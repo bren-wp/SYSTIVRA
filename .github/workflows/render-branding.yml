@@ -30,5 +30,7 @@ jobs:
           git add brending/rendered
           if ! git diff --cached --quiet; then
             git commit -m "assets: render SYSTIVRA PNG concept gallery"
+            git fetch origin "$GITHUB_REF_NAME"
+            git rebase "origin/$GITHUB_REF_NAME"
             git push origin "HEAD:$GITHUB_REF_NAME"
           fi
