@@ -19,6 +19,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.ShowChart
+import androidx.compose.material.icons.rounded.FactCheck
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -125,7 +131,14 @@ fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
                         NavigationBarItem(
                             selected = route == id,
                             onClick = { open(id) },
-                            icon = { Text(symbol, fontSize = 23.sp) },
+                            icon = {
+                                Icon(imageVector = when (id) {
+                                    "dashboard" -> Icons.Rounded.Dashboard
+                                    "live-monitor" -> Icons.Rounded.ShowChart
+                                    "diagnostics-center" -> Icons.Rounded.FactCheck
+                                    else -> Icons.Rounded.Tune
+                                }, contentDescription = label, modifier = Modifier.size(24.dp))
+                            },
                             label = { Text(label, fontSize = 10.sp) },
                             alwaysShowLabel = true
                         )
@@ -151,7 +164,7 @@ fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
                     }
                 }
                 when (route) {
-                    "dashboard" -> Dashboard(snapshot, ::open)
+                    "dashboard" -> Dashboard(snapshot, samples, ::open)
                     "system-health" -> SystemHealth(snapshot, ::open)
                     "privacy-center" -> PrivacyCenter()
                     "cpu-cores" -> CpuCoreInspector(snapshot)
@@ -184,7 +197,7 @@ fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
 }
 
 @Composable
-private fun Dashboard(snapshot: DeviceSnapshot, open: (String) -> Unit) {
+private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, open: (String) -> Unit) {
     val cards = listOf(
         Triple("CPU", snapshot.cpu.firstOrNull()?.display ?: "Unavailable", "cpu-details"),
         Triple("RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable", "memory-details"),
@@ -222,6 +235,28 @@ private fun Dashboard(snapshot: DeviceSnapshot, open: (String) -> Unit) {
                         }
                     }
                 }
+            }
+        }
+        item {
+            val percentage = samples.mapNotNull {
+                it.battery.firstOrNull()?.value?.removeSuffix("%")?.toFloatOrNull()
+            }
+            PanelCard(onClick = { open("metric-fullscreen") }) {
+                Text("Battery activity", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Text("Real-time session · last " + percentage.size + " battery readings", color = Muted, fontSize = 12.sp)
+                if (percentage.size > 1) {
+                    Canvas(Modifier.fillMaxWidth().height(96.dp)) {
+                        val step = size.width / (percentage.size - 1)
+                        percentage.zipWithNext().forEachIndexed { index, pair ->
+                            drawLine(Mint, Offset(step * index, size.height * (1 - pair.first / 100f)),
+                                Offset(step * (index + 1), size.height * (1 - pair.second / 100f)),
+                                strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
+                        }
+                    }
+                } else {
+                    Text("Collecting live readings…", color = Muted, fontSize = 12.sp)
+                }
+                Text("View full chart ›", color = Cyan, fontSize = 12.sp)
             }
         }
         item { LinkCard("Thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
