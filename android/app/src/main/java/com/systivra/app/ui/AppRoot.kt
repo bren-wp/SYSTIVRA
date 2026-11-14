@@ -124,7 +124,8 @@ private val sections = listOf(
     "about" to "About SYSTIVRA",
     "device-detection" to "Device Detection",
     "system-overview" to "System Overview",
-    "recording-library" to "Recording Library"
+    "recording-library" to "Recording Library",
+    "all-screens" to "Screen Catalog"
 )
 
 private val enabledRoutes = setOf(
@@ -136,7 +137,7 @@ private val enabledRoutes = setOf(
     "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
     "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
     "recording-session", "session-analysis", "session-insights", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
-    "overlay-configuration", "recording-library"
+    "overlay-configuration", "recording-library", "all-screens"
 )
 
 @Composable
@@ -659,7 +660,7 @@ private fun About() {
         item {
             PanelCard {
                 Text("Privacy-first", fontWeight = FontWeight.Bold)
-                Text("No account, tracking, network requirement or dangerous permissions.", color = Muted)
+                Text("No account or tracking, and no Internet permission. Optional Usage Access is user-controlled.", color = Muted)
             }
         }
         item {
