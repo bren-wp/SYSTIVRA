@@ -26,7 +26,7 @@ jobs:
           gradle-version: "9.6.0"
       - name: Assemble debug APK
         working-directory: android
-        run: gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:bundleRelease --stacktrace --no-daemon
+        run: gradle :app:lintDebug :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:bundleRelease --stacktrace --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: systivra-debug-apk
