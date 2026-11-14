@@ -113,7 +113,8 @@ private val enabledRoutes = setOf(
     "about", "device-detection", "system-overview",
     "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
     "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
-    "recording-session", "session-analysis", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results"
+    "recording-session", "session-analysis", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
+    "overlay-configuration"
 )
 
 @Composable
@@ -202,6 +203,7 @@ fun AppRoot(
                     "benchmark-running" -> BenchmarkRunningScreen(benchmark, ::open)
                     "benchmark-results" -> BenchmarkResultsScreen(benchmark)
                     "diagnostic-results" -> DiagnosticResultsScreen()
+                    "overlay-configuration" -> OverlayPreviewScreen(snapshot)
                     "hardware-explorer" -> HardwareExplorer(::open)
                     "live-monitor" -> LiveMonitor(snapshot, samples, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
@@ -365,6 +367,7 @@ private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>,
         item { LinkCard("Temporary history", "Last " + samples.size + " samples · memory only") { open("history") } }
         item { LinkCard("Session Recorder", "Explicit, foreground-only recording") { open("recording-session") } }
         item { LinkCard("Full-screen chart", "Battery history in focus") { open("metric-fullscreen") } }
+        item { LinkCard("Performance HUD", "Customize the in-app overlay preview") { open("overlay-configuration") } }
     }
 }
 
