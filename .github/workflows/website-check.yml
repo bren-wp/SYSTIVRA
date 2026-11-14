@@ -1,0 +1,25 @@
+name: Website static validation
+on:
+  push:
+    paths: ["website/**", "brending/**", ".github/workflows/website-check.yml"]
+  pull_request:
+    paths: ["website/**", "brending/**", ".github/workflows/website-check.yml"]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check HTML assets and text conventions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          assert len(list(Path('brending/screens').glob('*.svg'))) == 37
+          main=Path('website/index.html').read_text()
+          assert 'No account' in main
+          assert 'login' not in main.lower()
+          assert re.search(r'<html lang="en">',main)
+          for f in Path('brending').rglob('*.svg'):
+              assert f.read_text().count('<svg') == 1, str(f)
+          print("37 English-first design screens and website verified")
+          PY
