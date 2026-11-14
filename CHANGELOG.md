@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0-preview.1] — 2026-11-14
+
+- Session-based SQLite schema v2 with non-destructive v1 data migration.
+- Separate Recording Library: session list, recording dates and sample counts, session-specific analysis and CSV export.
+- Confirmed deletion of an individual recorded session; retention stays capped at 900 actual samples total.
+- Updated Android instrumented tests for database migration, reopen, deletion and empty sessions.
+- Added manual vibration diagnostics with a user-confirmed result; VIBRATE is a normal permission.
+- Fixed outdated emulator UI tests after Dashboard redesign and enabled programmatic scroll for off-screen navigation items.
+- Updated public privacy copy, README and release documentation.
+- **All 37 reference screens remain visually uncertified** until real emulator / physical-device screenshots are inspected and compared.
+
 ## [0.4.0-preview.1] — 2026-11-14
 
 - Private SQLite persistence for user-initiated monitoring sessions, capped at 900 samples.

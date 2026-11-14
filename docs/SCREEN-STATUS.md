@@ -65,3 +65,7 @@ References exported: **37**. Each PNG is a **concept rendering**, not a verified
 ## v0.4.0 data retention clarification
 
 Foreground-only user recordings are now stored in an app-private SQLite database, capped at 900 samples. Recording stops when the app is backgrounded. The user can clear saved samples or export them to CSV through a system file picker. This does not establish visual 1:1 certification.
+
+## v0.5 session-management addition
+
+The Recording Library is an additional real in-app screen beyond the original 37 design references. It inherits the shared Compose design system but has **no approved image baseline yet**; do not count its implementation as visual 1:1 compliance. The existing 37 design references and new Recording Library both require real screenshot comparison and device tests. The display/touch and vibration diagnostics remain manually user-confirmed.

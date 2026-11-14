@@ -30,8 +30,8 @@ Many Android monitoring apps display device numbers without explaining their ori
 - 🔐 **Privacy-first** — no mandatory internet connection, telemetry or user account.
 - ⚡ **Live monitoring** — battery, charging, RAM, storage, thermal state, and optional system CPU load.
 - 🧠 **Hardware intelligence** — inspect CPU architecture, OpenGL GPU driver, Android version, display refresh rate and sensors.
-- 🩺 **Honest diagnostics** — interactive display/touch test with user-confirmed outcomes.
-- 📊 **Recording & CSV reports** — user-controlled foreground capture and local file export.
+- 🩺 **Honest diagnostics** — interactive display/touch and vibration tests with user-confirmed outcomes.
+- 📊 **Recording Library** — separate sessions, recorded sample analysis, local CSV export, safe per-session deletion.
 - 🔎 **Transparent measurements** — unavailable CPU/GPU temperatures, external FPS and permissions are never invented.
 - 🎮 **Performance Lab** — bounded, cancellable CPU test with a thermal safety cutoff.
 - 🧭 **Live sensors** — observe Android-provided axes, units and calibration status.
@@ -74,7 +74,7 @@ Many Android monitoring apps display device numbers without explaining their ori
 | 🌡️ Thermal | Android platform thermal state (API 29+) | Not a direct CPU temperature |
 | 🖥️ System | Model, vendor, OS, architecture and display | Public Android APIs |
 | 🧭 Sensors | Inventory and live values from supported sensors | SensorManager |
-| 📈 Monitoring | Adjustable foreground sampling, battery chart, opt-in 900-sample SQLite recorder and analysis | Local persistence; no background service |
+| 📈 Monitoring | Adjustable foreground sampling, battery chart, opt-in grouped SQLite recording library (900 samples total), analysis and per-session export | Local persistence; no background service |
 | 🧪 Diagnostics | User-confirmed display color/touch test with saved result | Camera/microphone/speaker tests not implemented |
 | 📄 Reports | On-device CSV export via Android file picker | Foreground session |
 | 🖥️ GPU / CPU | OpenGL renderer/vendor/version; optional /proc/stat load | Hardware temperature and global GPU load may be unavailable |
@@ -145,7 +145,7 @@ Further work includes richer multi-session analysis, cross-app overlay support, 
 
 ## 🔏 Privacy & license
 
-No account is required, no telemetry backend is needed for the core app, and no INTERNET permission is requested in the current Android build (ACCESS_NETWORK_STATE is used only to inspect network status). Live session readings remain in memory; only user-started recordings are saved to a private local SQLite database (up to 900 samples), without Android backup. CSV export is initiated by the user.
+No account is required, no telemetry backend is needed for the core app, and no INTERNET permission is requested in the current Android build (ACCESS_NETWORK_STATE is used only to inspect network status). Live session readings remain in memory; only user-started recordings are saved to a private local SQLite database (up to 900 samples across sessions), without Android backup. CSV export is initiated by the user.
 
 SYSTIVRA source code is distributed under the [MIT License](LICENSE).
 
