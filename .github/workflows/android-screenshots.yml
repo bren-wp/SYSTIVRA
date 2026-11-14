@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -61,7 +61,7 @@ jobs:
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
       - name: Upload real Google Play candidate images
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: systivra-real-screenshots-not-yet-manually-approved
           path: brending/google-play/real-screenshots/*.png
@@ -94,7 +94,7 @@ jobs:
           test -f qa/diff/report.csv && head -n 8 qa/diff/report.csv || true
       - name: Upload screenshots and diff results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: systivra-validated-emulator-screenshots-and-diffs
           path: |
