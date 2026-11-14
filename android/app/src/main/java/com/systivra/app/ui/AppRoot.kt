@@ -131,19 +131,28 @@ fun AppRoot(
         val appContext = LocalContext.current.applicationContext
         val benchmark = remember { BenchmarkController(appContext) }
         val benchmarkScope = rememberCoroutineScope()
-        var route by rememberSaveable {
-            mutableStateOf(initialRoute?.takeIf { id -> sections.any { it.first == id } } ?: "dashboard")
+        var navigationStack by rememberSaveable {
+            mutableStateOf(
+                arrayListOf(initialRoute?.takeIf { id -> sections.any { it.first == id } } ?: "dashboard")
+            )
         }
-        var parent by rememberSaveable { mutableStateOf("dashboard") }
+        val route = navigationStack.lastOrNull() ?: "dashboard"
         fun open(id: String) {
-            if (route != id) {
-                if (tabs.any { it.first == route }) parent = route
-                route = id
+            if (route == id) return
+            navigationStack = if (tabs.any { it.first == id }) {
+                arrayListOf(id)
+            } else {
+                ArrayList(navigationStack).apply { add(id) }
             }
         }
-        BackHandler(enabled = tabs.none { it.first == route }) {
-            route = parent
+        fun goBack() {
+            navigationStack = if (navigationStack.size > 1) {
+                ArrayList(navigationStack.dropLast(1))
+            } else {
+                arrayListOf("dashboard")
+            }
         }
+        BackHandler(enabled = navigationStack.size > 1) { goBack() }
         Scaffold(
             containerColor = Background,
             bottomBar = {
@@ -173,7 +182,7 @@ fun AppRoot(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("‹", Modifier.clickable { route = parent }.padding(end = 14.dp),
+                        Text("‹", Modifier.clickable { goBack() }.padding(end = 14.dp),
                             fontSize = 30.sp, color = Cyan)
                         Text(
                             sections.firstOrNull { it.first == route }?.second ?: "SYSTIVRA",
