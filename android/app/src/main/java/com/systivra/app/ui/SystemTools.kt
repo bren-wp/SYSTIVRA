@@ -29,6 +29,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -169,17 +172,23 @@ fun AppUsageScreen() {
     val usage = remember(context) { context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager }
     var refresh by remember { mutableStateOf(0) }
     val allowed = remember(refresh) { hasUsageAccess(appOps, context) }
-    val top = remember(refresh, allowed) {
-        if (!allowed) emptyList()
-        else runCatching {
-            val now = System.currentTimeMillis()
-            usage.queryUsageStats(UsageStatsManager.INTERVAL_DAILY,
-                now - 24L * 60 * 60 * 1000, now).orEmpty()
-                .filter { it.totalTimeInForeground > 0 }
-                .groupBy { it.packageName }
-                .map { (pkg, events) -> pkg to events.sumOf { it.totalTimeInForeground } }
-                .sortedByDescending { it.second }.take(15)
-        }.getOrDefault(emptyList())
+    val top by produceState<List<Pair<String, Long>>>(
+        initialValue = emptyList(), key1 = refresh, key2 = allowed
+    ) {
+        value = if (!allowed) emptyList() else withContext(Dispatchers.IO) {
+            runCatching {
+                val now = System.currentTimeMillis()
+                usage.queryUsageStats(
+                    UsageStatsManager.INTERVAL_DAILY,
+                    now - 24L * 60 * 60 * 1000, now
+                ).orEmpty()
+                    .filter { it.totalTimeInForeground > 0 }
+                    .groupBy { it.packageName }
+                    .map { (pkg, events) -> pkg to events.sumOf { it.totalTimeInForeground } }
+                    .sortedByDescending { it.second }
+                    .take(15)
+            }.getOrDefault(emptyList())
+        }
     }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("App usage — last 24 hours", fontWeight = FontWeight.Bold, fontSize = 22.sp) }
