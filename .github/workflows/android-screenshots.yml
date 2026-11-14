@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [feat/systivra-v090-brendigo-application-id]
-    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/promote-real-play-screenshots.py", "android/app/src/main/**"]
+    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/promote-real-play-screenshots.py", "tools/validate_application_id.py", "android/app/src/main/**"]
 concurrency:
   group: systivra-visual-qa-${{ github.ref }}
   cancel-in-progress: true
@@ -34,6 +34,8 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon
       - name: Install capture validator
         run: python3 -m pip install --quiet Pillow
+      - name: Validate BRENDIGO application identity
+        run: python3 tools/validate_application_id.py
       - name: Capture actual Brendigo application screens
         uses: reactivecircus/android-emulator-runner@v2
         with:
