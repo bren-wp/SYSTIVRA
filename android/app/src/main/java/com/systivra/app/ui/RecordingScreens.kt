@@ -21,13 +21,15 @@ import com.systivra.app.data.DeviceSnapshot
 import java.util.Locale
 
 /**
- * User-initiated memory-only capture. Does not start a foreground service.
- * MainActivity samples only while lifecycle is STARTED and holds at most 900 readings.
+ * User-initiated foreground capture backed by a private local SQLite store.
+ * MainActivity only samples in STARTED lifecycle and retains at most 900 readings.
  */
 @Composable
 fun RecordingSessionScreen(
     readings: List<DeviceSnapshot>,
     active: Boolean,
+    ready: Boolean,
+    storageError: String?,
     toggle: () -> Unit,
     clear: () -> Unit,
     open: (String) -> Unit
@@ -35,7 +37,7 @@ fun RecordingSessionScreen(
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Text("Session Recorder", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-            Text("Explicit foreground capture only. Readings remain in memory and are lost when the process closes.",
+            Text("Foreground-only sampling. Your saved samples remain in private local storage across app restarts until you clear them.",
                 color = Muted, fontSize = 13.sp)
         }
         item {
@@ -48,14 +50,15 @@ fun RecordingSessionScreen(
                         val elapsed = (readings.last().time - readings.first().time).coerceAtLeast(0L)
                         Text("Recorded span: " + (elapsed / 1000L).toString() + " seconds", color = Muted)
                     }
-                    Button(onClick = toggle) { Text(if (active) "Stop recording" else "Start recording") }
-                    Button(enabled = !active && readings.isNotEmpty(), onClick = clear) { Text("Clear recorded samples") }
+                    Button(enabled = ready, onClick = toggle) { Text(if (active) "Stop recording" else if (ready) "Start recording" else "Loading saved history…") }
+                    Button(enabled = ready && !active && readings.isNotEmpty(), onClick = clear) { Text("Clear recorded samples") }
                 }
             }
         }
         item { Button(enabled = readings.isNotEmpty(), onClick = { open("session-analysis") }) { Text("Analyze session") } }
         item { Button(enabled = readings.isNotEmpty(), onClick = { open("reports-export") }) { Text("Export current session") } }
-        item { Text("On-screen capture stops when SYSTIVRA is backgrounded. Maximum 900 samples to limit RAM consumption.", color = Muted, fontSize = 12.sp) }
+        item { Text("Sampling pauses when SYSTIVRA leaves the foreground. At most 900 entries are retained locally. Database backup is disabled.", color = Muted, fontSize = 12.sp) }
+        if (storageError != null) item { Text(storageError, color = Cyan, fontSize = 12.sp) }
     }
 }
 
@@ -69,7 +72,7 @@ fun SessionAnalysisScreen(readings: List<DeviceSnapshot>, open: (String) -> Unit
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Text("Session Analysis", fontWeight = FontWeight.Bold, fontSize = 23.sp)
-            Text("Derived only from explicitly recorded foreground samples.", color = Muted)
+            Text("Derived only from samples saved by an explicit foreground recording.", color = Muted)
         }
         if (readings.isEmpty()) {
             item { SummaryCard("No session", "Start a recording from the Monitor screen to collect readings.") }
