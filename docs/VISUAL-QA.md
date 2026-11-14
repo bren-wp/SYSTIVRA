@@ -10,3 +10,9 @@
 6. Record evidence per screen and keep failures visible in pull requests.
 
 The 37 SVG templates are conceptual exports and do not substitute for reference screenshots or physical device testing.
+
+## Automated emulator evidence
+
+The [SYSTIVRA Android screen QA workflow](../.github/workflows/android-screenshots.yml) uses an Android 35 emulator, DEBUG-only route selection and saves 37 actual emulator screenshots. It resizes concept art to the emulator dimensions and runs [visual-diff.py](../tools/visual-diff.py). These comparisons intentionally report differences and **do not** automatically establish 1:1 parity; status and navigation bars, rasterization, fonts and OS density must be reconciled before approval.
+
+Capture artifacts and per-screen diffs must be reviewed, defects fixed, and rerun across multiple physical configurations. The system Splash animation may complete before the screenshot is taken and requires separate verification.

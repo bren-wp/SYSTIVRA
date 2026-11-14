@@ -2,13 +2,13 @@
 
 | Phase | Deliverables | Status |
 |---|---|---|
-| 1 | Brand system, 37 design references, Android project, privacy-first responsive website | In progress |
-| 2 | Real device sampling and detailed CPU/GPU/RAM/storage/battery/thermal/sensor screens | Partial foundation |
-| 3 | Room session history, aggregation, export, alert thresholds | Planned |
-| 4 | Honest component tests, benchmark methodology and safety cutoff | Planned |
-| 5 | Optional overlay and advanced provider adapters | Planned |
-| 6 | Full security/dead-code audit and screenshot diff QA | Planned |
-| 7 | Tested signed release APK and AAB | Planned |
+| 1 | Brand system, 37 design references, Android project, privacy-first responsive website | Implemented foundation |
+| 2 | Public Android API metrics, EGL renderer, optional /proc load, live sensors and detail pages | Implemented where platform supports data |
+| 3 | Memory-only recording, session analysis, CSV export, local threshold controls; Room history | Partial; Room pending |
+| 4 | Display/touch test and bounded CPU microbenchmark; additional component tests | Partial |
+| 5 | In-app HUD preview; cross-app overlay and privileged hardware providers | Partial / latter not implemented |
+| 6 | Visual evidence workflow and pixel-diff tool; full device/security/dead-code audit | In progress |
+| 7 | Versioned debug APK, unsigned AAB, source archive and checksums | Preview workflow; production signing pending |
 
 ## Non-negotiable quality rules
 

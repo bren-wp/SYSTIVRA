@@ -1,19 +1,37 @@
 # SYSTIVRA Android
 
-Native Android foundation using Kotlin, Compose, and Android system APIs.
+Native Kotlin + Jetpack Compose, Android API 24+; English-only dark UI; Splash → direct Dashboard with no login or onboarding.
 
-## Build
-Install Android SDK Platform 37 and JDK 17. Use Gradle 9.6: from this directory run gradle :app:assembleDebug.
+## Run tests and build
 
-No APK has been locally built in this workspace. See the Android GitHub Actions job for compiler validation.
+Use JDK 17+, Gradle 9.6.0 and Android SDK Platform 37.0:
 
-## Product
-- Splash -> direct Dashboard (no account, no onboarding).
-- English-only dark UI.
-- Real battery, RAM, storage, Android thermal status, sensor inventory, device/OS properties and current in-memory monitoring history.
-- No internet permission, advertising SDK, analytics SDK, paid upgrades or invented optimization scores.
-- Display/touch self-test is manually verified.
-- Restricted CPU/GPU metrics are honestly marked Unavailable.
-- Other destinations exist in the development screen inventory but are explicitly labeled Planned.
+    gradle :app:testDebugUnitTest :app:assembleDebug :app:bundleRelease
 
-See ../brending, ../docs/ROADMAP.md and ../docs/VISUAL-QA.md for design/QA requirements.
+The APK is a development **debug build**. The release AAB is **unsigned** until an authorized private signing key is supplied. Never commit a key or password.
+
+## Implemented capabilities (v0.3.0-preview.1)
+
+- Battery status, charge level, temperature, current if reported, Android-reported health and voltage.
+- RAM and internal storage, refresh rate and system/device metadata.
+- GPU renderer, vendor and OpenGL ES from a temporary EGL context.
+- Optional system CPU activity from two readable /proc/stat snapshots; unavailable if the OS blocks access.
+- Live SensorManager axes and units, unregistered when the user leaves that screen.
+- Optional Usage Access statistics after Android system authorization.
+- Network state without Internet access.
+- User-controlled memory-only session recording (max 900 samples), analysis and CSV export.
+- Local on-screen battery/thermal alert thresholds, adjustable sampling interval.
+- Two-second bounded CPU microbenchmark with cancel and Android thermal safeguard.
+- User-confirmed display and touch diagnostic results.
+- Customizable in-app HUD preview (not an overlay over other apps).
+- Clear Unavailable states when restricted or unsupported.
+
+## Known limitations
+
+Some screens expose a limited subset of planned functionality. Persistent Room history, cross-app overlay, microphone/camera/speaker tests, and GPU/FPS/CPU temperature monitoring are not complete. Privacy and Google Play permission compliance must be validated before production distribution.
+
+## 1:1 status
+
+37 SVG/PNG visual concept references exist under brending/. Visual matching is **not yet certified**. Debug-only route extras support emulator screenshots; [GitHub screen QA](../.github/workflows/android-screenshots.yml) records image evidence and reports pixel differences. The app does not claim unverified 1:1 parity.
+
+See ../docs/SCREEN-STATUS.md and ../docs/VISUAL-QA.md.

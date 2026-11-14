@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0-preview.1] — 2026-11-14
+
+### Added
+- Fully routed set of 37 English-language concepts (system Splash + navigable in-app screens); functionality varies by module.
+- Live sensors with units and metadata; Android network status without Internet access.
+- Opt-in app usage reading, explicit Permission Center and local on-screen alert thresholds.
+- Explicit foreground-only recording (900 samples), session statistics and manual CSV export.
+- Bounded, cancellable CPU microbenchmark with thermal safety conditions and measured results.
+- Real OpenGL ES GPU driver identification and optional CPU load from readable proc-stat deltas.
+- Additional Android battery health, voltage and display refresh-rate information.
+- In-app Performance HUD preview, not cross-app overlay functionality.
+- Configurable sampling interval, user-confirmed diagnostic result persistence.
+- Debug-only QA routes, automated emulator screenshot workflow and visual diff reporting.
+- Deterministic proc-stat JUnit tests.
+
+### Verification
+GitHub Actions builds APK/AAB and executes unit tests; device and screenshot acceptance must be validated separately.
+
+### Outstanding
+Exact 1:1 visual parity remains unverified, permanent Room history and additional component tests are incomplete. Google Play release signing is not configured.
+
 ## [0.2.0-preview.1] — 2026-11-14
 
 ### Added
