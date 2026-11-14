@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0-preview.2] — 2026-11-14
+
+- Fixed nested in-app back-stack navigation.
+- Updated native Dashboard with branded gradients, stronger device summary and category icons.
+- Added gradient launcher splash artwork.
+- Added Compose UI instrumentation smoke tests and emulator screenshot QA workflow.
+- No 1:1 certification; manual screenshot and physical-device reviews remain outstanding.
+
 ## [0.3.0-preview.1] — 2026-11-14
 
 ### Added
