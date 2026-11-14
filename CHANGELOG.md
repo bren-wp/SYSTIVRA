@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.0-preview.1] — 2026-11-15
+
+- Released editable SYSTIVRA Google Play icon and feature artwork plus exact-sized PNG assets in `brending/google-play/`, with reproducible generation workflow.
+- Provided eight English-language promotional concept illustrations explicitly separated from real Play screenshots; no deceptive screenshot claim.
+- Added English Play listing copy, target API / signing / permissions and Data Safety release-readiness checklist.
+- Moved CSV and JSON document writing off the Compose UI thread to reduce stalls.
+- Moved optional Android app usage queries off the main thread.
+- Fixed the Screen Catalog route and clarified optional Usage Access privacy text.
+- Hardened emulator screenshot QA: preserve native resolution, verify the SYSTIVRA process and focused app, reject invalid/repeated System UI screenshots, archive logcat evidence.
+- **No zero-crash or Google Play approval claim**: physical-device, accessibility, full security and visual 1:1 tests remain open.
+
 ## [0.6.0-preview.1] — 2026-11-14
 
 - Introduced **Session Insights** using measured battery charge and temperature with unavailable-safe calculations and a real historical chart.

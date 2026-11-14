@@ -1,34 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Engineering-only screenshots from a DEBUG Android APK.
-# They are not evidence of pixel-perfect compliance without QA comparison.
+# Capture only ACTUAL focused Android app screens; never save Quickstep or System UI ANRs.
 APP=com.systivra.app
 ACTIVITY="$APP/.MainActivity"
-mkdir -p qa/screenshots
-adb install -r android/app/build/outputs/apk/debug/app-debug.apk
-adb shell wm size 390x844
-adb shell wm density 160
+APK=android/app/build/outputs/apk/debug/app-debug.apk
+mkdir -p qa/screenshots qa/debug
+adb wait-for-device
+adb install -r "$APK"
+adb shell input keyevent 82 || true
+# Do NOT set wm size/density: restarting Quickstep caused the older QA screenshots to show ANR dialogs.
+adb shell wm size
+adb shell wm density
 adb shell settings put system font_scale 1.0
-for reference in brending/screens/*.svg; do
-  basename="$(basename "$reference" .svg)"
-  route="${basename#??-}"
-  if [[ "$route" == splash ]]; then
-    echo "Skipping system Splash: a delayed PNG would incorrectly show Dashboard"
-    continue
+capture() {
+  local basename="$1" route="$2" focus='' output="qa/screenshots/$1.png"
+  echo "Capture $basename -> $route"
+  adb shell am force-stop "$APP" || true
+  adb shell am start -W -n "$ACTIVITY" --es qa_route "$route" > "qa/debug/${basename}.launch.txt"
+  sleep 2
+  if ! adb shell pidof "$APP" >/dev/null; then
+    echo "ERROR: app process absent ($route)"
+    adb logcat -d -t 400 > "qa/debug/${basename}.logcat.txt" || true
+    return 1
   fi
-  echo "Capturing $basename: $route"
-  adb shell am force-stop "$APP" || true
-  adb shell am start -n "$ACTIVITY" --es qa_route "$route" >/dev/null
-  sleep 1.8
-  adb exec-out screencap -p > "qa/screenshots/$basename.png"
-  test -s "qa/screenshots/$basename.png"
+  focus="$(adb shell dumpsys window | grep -E 'mCurrentFocus=|mFocusedApp=' | head -n 2 || true)"
+  if [[ "$focus" != *"$APP"* ]]; then
+    echo "ERROR: another window is focused ($route): $focus"
+    adb logcat -d -t 400 > "qa/debug/${basename}.logcat.txt" || true
+    return 1
+  fi
+  adb exec-out screencap -p > "$output"
+  test -s "$output"
+}
+for ref in brending/screens/*.svg; do
+  basename="$(basename "$ref" .svg)"
+  route="${basename#??-}"
+  [[ "$route" != splash ]] || continue
+  capture "$basename" "$route"
 done
-for page in 38-recording-library 39-session-insights; do
-  route="${page#??-}"
-  adb shell am force-stop "$APP" || true
-  adb shell am start -n "$ACTIVITY" --es qa_route "$route" >/dev/null
-  sleep 1.8
-  adb exec-out screencap -p > "qa/screenshots/$page.png"
-  test -s "qa/screenshots/$page.png"
-done
-echo "Captured $(find qa/screenshots -name '*.png' | wc -l) app screens; extras have no approved baseline. System Splash requires separate verification."
+capture 38-recording-library recording-library
+capture 39-session-insights session-insights
+python3 tools/validate-android-screens.py qa/screenshots
+echo "Captured $(find qa/screenshots -name '*.png' | wc -l) app screenshots; Splash requires separate startup capture."

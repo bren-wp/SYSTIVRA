@@ -1,0 +1,10 @@
+{
+  "app_name": "SYSTIVRA",
+  "publisher": "BRENDIGO",
+  "assets_ready_for_store": {
+    "icon": "assets/icon-512.png",
+    "feature_graphic": "assets/feature-graphic-1024x500.png"
+  },
+  "screenshots_ready": false,
+  "reason": "Concept SVG/PNG files are not real captures of the running Android app. Google Play requires authentic screenshots; use stable emulator/phone captures."
+}
