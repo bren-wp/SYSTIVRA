@@ -57,6 +57,8 @@ private val tabs = listOf(
 private val sections = listOf(
     "dashboard" to "Dashboard",
     "hardware-explorer" to "Hardware Explorer",
+    "system-health" to "System Health",
+    "privacy-center" to "Privacy Center",
     "cpu-details" to "CPU Details",
     "cpu-cores" to "CPU Core Inspector",
     "gpu-details" to "GPU Details",
