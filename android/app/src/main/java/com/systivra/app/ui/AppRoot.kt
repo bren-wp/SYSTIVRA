@@ -28,6 +28,16 @@ import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.ShowChart
 import androidx.compose.material.icons.rounded.FactCheck
 import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.Thermostat
+import androidx.compose.material.icons.rounded.Sensors
+import androidx.compose.material.icons.rounded.NetworkCheck
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Analytics
+import androidx.compose.material.icons.rounded.BugReport
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -611,11 +621,33 @@ private fun PanelCard(onClick: (() -> Unit)? = null, content: @Composable () -> 
 
 @Composable
 private fun LinkCard(title: String, subtitle: String, open: () -> Unit) {
+    val icon: ImageVector = when {
+        title.contains("CPU", ignoreCase = true) || title.contains("Memory", ignoreCase = true)
+            || title.contains("RAM", ignoreCase = true) -> Icons.Rounded.Memory
+        title.contains("Storage", ignoreCase = true) -> Icons.Rounded.Storage
+        title.contains("Battery", ignoreCase = true) || title.contains("Charging", ignoreCase = true)
+            -> Icons.Rounded.BatteryChargingFull
+        title.contains("Thermal", ignoreCase = true) -> Icons.Rounded.Thermostat
+        title.contains("Sensor", ignoreCase = true) -> Icons.Rounded.Sensors
+        title.contains("Network", ignoreCase = true) -> Icons.Rounded.NetworkCheck
+        title.contains("Diagnostic", ignoreCase = true) -> Icons.Rounded.BugReport
+        title.contains("Report", ignoreCase = true) || title.contains("Benchmark", ignoreCase = true)
+            -> Icons.Rounded.Analytics
+        title.contains("About", ignoreCase = true) -> Icons.Rounded.Info
+        else -> Icons.Rounded.Tune
+    }
+    val accent = when {
+        title.contains("Battery", ignoreCase = true) || title.contains("Thermal", ignoreCase = true)
+            -> Mint
+        title.contains("Diagnostic", ignoreCase = true) || title.contains("Report", ignoreCase = true)
+            -> Purple
+        else -> Cyan
+    }
     PanelCard(open) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(40.dp).background(Raised, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center) {
-                Text("◇", color = Cyan, fontSize = 23.sp)
+                Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(23.dp))
             }
             Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
                 Text(title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
