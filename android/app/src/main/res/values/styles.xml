@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="Theme.Systivra" parent="android:style/Theme.Material.Light.NoActionBar">
+    <item name="android:statusBarColor">@color/night</item>
+    <item name="android:navigationBarColor">@color/night</item>
+    <item name="android:windowLightStatusBar">false</item>
+  </style>
+  <style name="Theme.Systivra.Starting" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">@color/night</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/logo_mark</item>
+    <item name="postSplashScreenTheme">@style/Theme.Systivra</item>
+  </style>
+</resources>
