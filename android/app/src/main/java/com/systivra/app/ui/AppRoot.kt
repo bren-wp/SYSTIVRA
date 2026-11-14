@@ -1,6 +1,7 @@
 package com.systivra.app.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Slider
+import kotlin.math.roundToInt
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
@@ -25,15 +28,29 @@ import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.ShowChart
 import androidx.compose.material.icons.rounded.FactCheck
 import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.Thermostat
+import androidx.compose.material.icons.rounded.Sensors
+import androidx.compose.material.icons.rounded.NetworkCheck
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Analytics
+import androidx.compose.material.icons.rounded.BugReport
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -41,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
@@ -106,23 +124,48 @@ private val enabledRoutes = setOf(
     "display-details", "device-and-android", "sensor-explorer", "live-monitor",
     "diagnostics-center", "component-test", "history", "settings",
     "about", "device-detection", "system-overview",
-    "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export"
+    "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
+    "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
+    "recording-session", "session-analysis", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
+    "overlay-configuration"
 )
 
 @Composable
-fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
+fun AppRoot(
+    snapshot: DeviceSnapshot,
+    samples: List<DeviceSnapshot>,
+    recorded: List<DeviceSnapshot>,
+    isRecording: Boolean,
+    onToggleRecording: () -> Unit,
+    onClearRecording: () -> Unit,
+    initialRoute: String? = null
+) {
     AppTheme {
-        var route by rememberSaveable { mutableStateOf("dashboard") }
-        var parent by rememberSaveable { mutableStateOf("dashboard") }
+        val appContext = LocalContext.current.applicationContext
+        val benchmark = remember { BenchmarkController(appContext) }
+        val benchmarkScope = rememberCoroutineScope()
+        var navigationStack by rememberSaveable {
+            mutableStateOf(
+                arrayListOf(initialRoute?.takeIf { id -> sections.any { it.first == id } } ?: "dashboard")
+            )
+        }
+        val route = navigationStack.lastOrNull() ?: "dashboard"
         fun open(id: String) {
-            if (route != id) {
-                if (tabs.any { it.first == route }) parent = route
-                route = id
+            if (route == id) return
+            navigationStack = if (tabs.any { it.first == id }) {
+                arrayListOf(id)
+            } else {
+                ArrayList(navigationStack).apply { add(id) }
             }
         }
-        BackHandler(enabled = tabs.none { it.first == route }) {
-            route = parent
+        fun goBack() {
+            navigationStack = if (navigationStack.size > 1) {
+                ArrayList(navigationStack.dropLast(1))
+            } else {
+                arrayListOf("dashboard")
+            }
         }
+        BackHandler(enabled = navigationStack.size > 1) { goBack() }
         Scaffold(
             containerColor = Background,
             bottomBar = {
@@ -140,7 +183,14 @@ fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
                                 }, contentDescription = label, modifier = Modifier.size(24.dp))
                             },
                             label = { Text(label, fontSize = 10.sp) },
-                            alwaysShowLabel = true
+                            alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Purple,
+                                selectedTextColor = Purple,
+                                indicatorColor = Color(0xFF27224B),
+                                unselectedIconColor = Muted,
+                                unselectedTextColor = Muted
+                            )
                         )
                     }
                 }
@@ -152,7 +202,7 @@ fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("‹", Modifier.clickable { route = parent }.padding(end = 14.dp),
+                        Text("‹", Modifier.clickable { goBack() }.padding(end = 14.dp),
                             fontSize = 30.sp, color = Cyan)
                         Text(
                             sections.firstOrNull { it.first == route }?.second ?: "SYSTIVRA",
@@ -170,7 +220,22 @@ fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
                     "cpu-cores" -> CpuCoreInspector(snapshot)
                     "charging-analysis" -> ChargingAnalysis(snapshot, samples)
                     "metric-fullscreen" -> FullscreenMetric(samples)
-                    "reports-export" -> ReportExportScreen(samples)
+                    "reports-export" -> ReportExportScreen(if (recorded.isNotEmpty()) recorded else samples)
+                    "sensor-live" -> SensorLiveScreen()
+                    "network-details" -> NetworkDetailsScreen()
+                    "app-usage" -> AppUsageScreen()
+                    "alerts" -> AlertsScreen(snapshot)
+                    "permission-center" -> PermissionCenterScreen()
+                    "recording-session" -> RecordingSessionScreen(recorded, isRecording, onToggleRecording, onClearRecording, ::open)
+                    "session-analysis" -> SessionAnalysisScreen(recorded, ::open)
+                    "benchmark-center" -> BenchmarkCenterScreen(benchmark, onStart = {
+                        benchmark.start(benchmarkScope)
+                        open("benchmark-running")
+                    })
+                    "benchmark-running" -> BenchmarkRunningScreen(benchmark, ::open)
+                    "benchmark-results" -> BenchmarkResultsScreen(benchmark)
+                    "diagnostic-results" -> DiagnosticResultsScreen()
+                    "overlay-configuration" -> OverlayPreviewScreen(snapshot)
                     "hardware-explorer" -> HardwareExplorer(::open)
                     "live-monitor" -> LiveMonitor(snapshot, samples, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
@@ -199,7 +264,7 @@ fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
 @Composable
 private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, open: (String) -> Unit) {
     val cards = listOf(
-        Triple("CPU", snapshot.cpu.firstOrNull()?.display ?: "Unavailable", "cpu-details"),
+        Triple("CPU", snapshot.cpu.firstOrNull { it.name == "System-wide CPU load" }?.display ?: "Unavailable", "cpu-details"),
         Triple("RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable", "memory-details"),
         Triple("Storage", snapshot.storage.getOrNull(1)?.display ?: "Unavailable", "storage-details"),
         Triple("Battery", snapshot.battery.firstOrNull()?.display ?: "Unavailable", "battery-details")
@@ -217,10 +282,27 @@ private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, o
             Text(snapshot.name, color = Muted, fontSize = 14.sp)
         }
         item {
-            PanelCard {
-                Text("Device Overview", fontWeight = FontWeight.Bold, fontSize = 19.sp)
-                Text("Actual Android data · updates every 2 seconds while visible.",
-                    fontSize = 12.sp, color = Muted)
+            PanelCard(onClick = { open("device-and-android") }) {
+                Row(horizontalArrangement = Arrangement.spacedBy(13.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        Modifier.size(58.dp)
+                            .background(
+                                Brush.linearGradient(listOf(Color(0xFF128FED), Purple, Color(0xFF172E65))),
+                                RoundedCornerShape(14.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("S", color = Color.White, fontWeight = FontWeight.Black, fontSize = 32.sp)
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(snapshot.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        Text("Android " + (snapshot.system.firstOrNull { it.name == "Android" }?.display ?: "Unavailable"),
+                            fontSize = 12.sp, color = Muted)
+                        Text(if (snapshot.time > 0) "● MONITORING ACTIVE" else "Detecting device…",
+                            fontSize = 11.sp, color = Mint)
+                    }
+                }
+                Text("View system information ›", color = Cyan, fontSize = 12.sp)
             }
         }
         items(cards.chunked(2)) { pair ->
@@ -263,6 +345,7 @@ private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, o
         item { LinkCard("Hardware explorer", "CPU, GPU, sensors and device properties") { open("hardware-explorer") } }
         item { LinkCard("Monitoring", "Live battery, RAM and thermal readings") { open("live-monitor") } }
         item { LinkCard("Charging analysis", "Compare measured battery readings") { open("charging-analysis") } }
+        item { LinkCard("CPU core inspector", "Supported cores and available metrics") { open("cpu-cores") } }
         item { LinkCard("Diagnostics", "Interactive tests, no fake health scores") { open("diagnostics-center") } }
     }
 }
@@ -331,6 +414,9 @@ private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>,
         item { LinkCard("Available RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable") { open("memory-details") } }
         item { LinkCard("Android thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
         item { LinkCard("Temporary history", "Last " + samples.size + " samples · memory only") { open("history") } }
+        item { LinkCard("Session Recorder", "Explicit, foreground-only recording") { open("recording-session") } }
+        item { LinkCard("Full-screen chart", "Battery history in focus") { open("metric-fullscreen") } }
+        item { LinkCard("Performance HUD", "Customize the in-app overlay preview") { open("overlay-configuration") } }
     }
 }
 
@@ -346,6 +432,9 @@ private fun Diagnostics(open: (String) -> Unit) {
         }
         item { LinkCard("Display & touch test", "Interactive color and touch panel") { open("component-test") } }
         item { LinkCard("Sensors", "Inventory of detected sensor devices") { open("sensor-explorer") } }
+        item { LinkCard("Live sensor readings", "Read sensor axes and metadata") { open("sensor-live") } }
+        item { LinkCard("CPU benchmark", "Bounded workload with thermal cutoff") { open("benchmark-center") } }
+        item { LinkCard("Diagnostic results", "Locally confirmed display/touch test") { open("diagnostic-results") } }
         item { LinkCard("Thermal status", "Android platform status, where supported") { open("thermal-details") } }
         item { LinkCard("Other planned tests", "Full development inventory and status") { open("all-screens") } }
     }
@@ -353,9 +442,13 @@ private fun Diagnostics(open: (String) -> Unit) {
 
 @Composable
 private fun ComponentTest() {
+    val context = LocalContext.current
+    val verdictPrefs = remember(context) {
+        context.getSharedPreferences("systivra_diagnostics", android.content.Context.MODE_PRIVATE)
+    }
     var touches by rememberSaveable { mutableIntStateOf(0) }
     var color by rememberSaveable { mutableIntStateOf(0) }
-    var verdict by rememberSaveable { mutableStateOf("Not assessed") }
+    var verdict by rememberSaveable { mutableStateOf(verdictPrefs.getString("display_touch", "Not assessed") ?: "Not assessed") }
     val colors = listOf(Color.Red, Color.Green, Color.Blue, Color.White, Color.Black)
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("Tap the panel and inspect each color. Confirm the result manually.", color = Muted) }
@@ -376,8 +469,14 @@ private fun ComponentTest() {
                 Text("Result: " + verdict, color = Mint)
                 Button(onClick = { color = (color + 1) % colors.size }) { Text("Next color") }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { verdict = "Pass (user-confirmed)" }) { Text("Pass") }
-                    Button(onClick = { verdict = "Fail (user-confirmed)" }) { Text("Fail") }
+                    Button(onClick = {
+                        verdict = "Pass (user-confirmed)"
+                        verdictPrefs.edit().putString("display_touch", verdict).apply()
+                    }) { Text("Pass") }
+                    Button(onClick = {
+                        verdict = "Fail (user-confirmed)"
+                        verdictPrefs.edit().putString("display_touch", verdict).apply()
+                    }) { Text("Fail") }
                 }
             }
         }
@@ -386,6 +485,13 @@ private fun ComponentTest() {
 
 @Composable
 private fun Settings(open: (String) -> Unit) {
+    val context = LocalContext.current
+    val preferences = remember(context) {
+        context.getSharedPreferences("systivra_settings", android.content.Context.MODE_PRIVATE)
+    }
+    var samplingSeconds by rememberSaveable {
+        mutableIntStateOf(preferences.getInt("sampling_seconds", 2).coerceIn(1, 10))
+    }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
         item {
             PanelCard {
@@ -397,7 +503,16 @@ private fun Settings(open: (String) -> Unit) {
         item {
             PanelCard {
                 Text("Monitoring", fontWeight = FontWeight.Bold)
-                Text("Refreshes every 2 seconds only while the Activity is started.", color = Muted)
+                Text("Refresh interval: " + samplingSeconds + " seconds · foreground only", color = Muted)
+                Slider(
+                    value = samplingSeconds.toFloat(),
+                    valueRange = 1f..10f,
+                    steps = 8,
+                    onValueChange = {
+                        samplingSeconds = it.roundToInt().coerceIn(1, 10)
+                        preferences.edit().putInt("sampling_seconds", samplingSeconds).apply()
+                    }
+                )
             }
         }
         item { LinkCard("Reports & CSV export", "Export locally recorded session readings") { open("reports-export") } }
@@ -405,6 +520,10 @@ private fun Settings(open: (String) -> Unit) {
         item { LinkCard("Privacy Center", "Review access and local data policy") { open("privacy-center") } }
         item { LinkCard("All planned screens", "Browse implemented and upcoming destinations") { open("all-screens") } }
         item { LinkCard("Hardware Explorer", "See device data") { open("hardware-explorer") } }
+        item { LinkCard("Network state", "See active connection without network requests") { open("network-details") } }
+        item { LinkCard("App Usage", "Optional system Usage Access") { open("app-usage") } }
+        item { LinkCard("Alerts", "Local battery and thermal thresholds") { open("alerts") } }
+        item { LinkCard("Permission Center", "See granted Android access") { open("permission-center") } }
         item { LinkCard("About SYSTIVRA", "Version, privacy and source limitations") { open("about") } }
     }
 }
@@ -460,7 +579,7 @@ private fun About() {
             PanelCard {
                 Text("SYSTIVRA", color = Cyan, fontWeight = FontWeight.Black, fontSize = 28.sp)
                 Text("Advanced Device Monitor & Diagnostics", color = Muted)
-                Text("Version 0.2.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Version 0.3.0-preview.2 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
             }
         }
         item {
@@ -485,9 +604,16 @@ private fun PanelCard(onClick: (() -> Unit)? = null, content: @Composable () -> 
             if (onClick == null) Modifier else Modifier.clickable(onClick = onClick)
         ),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Panel)
+        colors = CardDefaults.cardColors(containerColor = Panel),
+        border = BorderStroke(1.dp, Color(0xFF233A5A)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            Modifier.fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Raised, Panel)))
+                .padding(17.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             content()
         }
     }
@@ -495,11 +621,33 @@ private fun PanelCard(onClick: (() -> Unit)? = null, content: @Composable () -> 
 
 @Composable
 private fun LinkCard(title: String, subtitle: String, open: () -> Unit) {
+    val icon: ImageVector = when {
+        title.contains("CPU", ignoreCase = true) || title.contains("Memory", ignoreCase = true)
+            || title.contains("RAM", ignoreCase = true) -> Icons.Rounded.Memory
+        title.contains("Storage", ignoreCase = true) -> Icons.Rounded.Storage
+        title.contains("Battery", ignoreCase = true) || title.contains("Charging", ignoreCase = true)
+            -> Icons.Rounded.BatteryChargingFull
+        title.contains("Thermal", ignoreCase = true) -> Icons.Rounded.Thermostat
+        title.contains("Sensor", ignoreCase = true) -> Icons.Rounded.Sensors
+        title.contains("Network", ignoreCase = true) -> Icons.Rounded.NetworkCheck
+        title.contains("Diagnostic", ignoreCase = true) -> Icons.Rounded.BugReport
+        title.contains("Report", ignoreCase = true) || title.contains("Benchmark", ignoreCase = true)
+            -> Icons.Rounded.Analytics
+        title.contains("About", ignoreCase = true) -> Icons.Rounded.Info
+        else -> Icons.Rounded.Tune
+    }
+    val accent = when {
+        title.contains("Battery", ignoreCase = true) || title.contains("Thermal", ignoreCase = true)
+            -> Mint
+        title.contains("Diagnostic", ignoreCase = true) || title.contains("Report", ignoreCase = true)
+            -> Purple
+        else -> Cyan
+    }
     PanelCard(open) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(40.dp).background(Raised, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center) {
-                Text("◇", color = Cyan, fontSize = 23.sp)
+                Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(23.dp))
             }
             Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
                 Text(title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)

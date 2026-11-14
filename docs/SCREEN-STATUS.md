@@ -4,45 +4,45 @@
 
 References exported: **37**. Each PNG is a **concept rendering**, not a verified app screenshot.
 
-| # | Screen reference | Android foundation | Pixel-perfect verified |
+| # | Screen reference | Android route / functionality | Pixel-perfect verified |
 |---|---|---|---|
-| 01 | [Splash](../brending/screens/01-splash.svg) | Foundation / partial | **No** |
-| 02 | [System Health](../brending/screens/02-system-health.svg) | Foundation / partial | **No** |
-| 03 | [Device Detection](../brending/screens/03-device-detection.svg) | Foundation / partial | **No** |
-| 04 | [Privacy Center](../brending/screens/04-privacy-center.svg) | Foundation / partial | **No** |
-| 05 | [Dashboard](../brending/screens/05-dashboard.svg) | Foundation / partial | **No** |
-| 06 | [Hardware Explorer](../brending/screens/06-hardware-explorer.svg) | Foundation / partial | **No** |
-| 07 | [Cpu Details](../brending/screens/07-cpu-details.svg) | Foundation / partial | **No** |
-| 08 | [Cpu Cores](../brending/screens/08-cpu-cores.svg) | Foundation / partial | **No** |
-| 09 | [Gpu Details](../brending/screens/09-gpu-details.svg) | Foundation / partial | **No** |
-| 10 | [Memory Details](../brending/screens/10-memory-details.svg) | Foundation / partial | **No** |
-| 11 | [Storage Details](../brending/screens/11-storage-details.svg) | Foundation / partial | **No** |
-| 12 | [Battery Details](../brending/screens/12-battery-details.svg) | Foundation / partial | **No** |
-| 13 | [Charging Analysis](../brending/screens/13-charging-analysis.svg) | Foundation / partial | **No** |
-| 14 | [Thermal Details](../brending/screens/14-thermal-details.svg) | Foundation / partial | **No** |
-| 15 | [Display Details](../brending/screens/15-display-details.svg) | Foundation / partial | **No** |
-| 16 | [Device And Android](../brending/screens/16-device-and-android.svg) | Foundation / partial | **No** |
-| 17 | [Network Details](../brending/screens/17-network-details.svg) | Design only; planned | **No** |
-| 18 | [Sensor Explorer](../brending/screens/18-sensor-explorer.svg) | Foundation / partial | **No** |
-| 19 | [Sensor Live](../brending/screens/19-sensor-live.svg) | Design only; planned | **No** |
-| 20 | [App Usage](../brending/screens/20-app-usage.svg) | Design only; planned | **No** |
-| 21 | [Live Monitor](../brending/screens/21-live-monitor.svg) | Foundation / partial | **No** |
-| 22 | [Metric Fullscreen](../brending/screens/22-metric-fullscreen.svg) | Foundation / partial | **No** |
-| 23 | [Recording Session](../brending/screens/23-recording-session.svg) | Design only; planned | **No** |
-| 24 | [Session Analysis](../brending/screens/24-session-analysis.svg) | Design only; planned | **No** |
-| 25 | [Alerts](../brending/screens/25-alerts.svg) | Design only; planned | **No** |
-| 26 | [Diagnostics Center](../brending/screens/26-diagnostics-center.svg) | Foundation / partial | **No** |
-| 27 | [Component Test](../brending/screens/27-component-test.svg) | Foundation / partial | **No** |
-| 28 | [Diagnostic Results](../brending/screens/28-diagnostic-results.svg) | Design only; planned | **No** |
-| 29 | [Benchmark Center](../brending/screens/29-benchmark-center.svg) | Design only; planned | **No** |
-| 30 | [Benchmark Running](../brending/screens/30-benchmark-running.svg) | Design only; planned | **No** |
-| 31 | [Benchmark Results](../brending/screens/31-benchmark-results.svg) | Design only; planned | **No** |
-| 32 | [Overlay Configuration](../brending/screens/32-overlay-configuration.svg) | Design only; planned | **No** |
-| 33 | [History](../brending/screens/33-history.svg) | Foundation / partial | **No** |
-| 34 | [Reports Export](../brending/screens/34-reports-export.svg) | Foundation / partial | **No** |
-| 35 | [Permission Center](../brending/screens/35-permission-center.svg) | Design only; planned | **No** |
-| 36 | [Settings](../brending/screens/36-settings.svg) | Foundation / partial | **No** |
-| 37 | [About](../brending/screens/37-about.svg) | Foundation / partial | **No** |
+| 01 | [Splash](../brending/screens/01-splash.svg) | Routable; partial functionality | **No** |
+| 02 | [System Health](../brending/screens/02-system-health.svg) | Routable; partial functionality | **No** |
+| 03 | [Device Detection](../brending/screens/03-device-detection.svg) | Routable; partial functionality | **No** |
+| 04 | [Privacy Center](../brending/screens/04-privacy-center.svg) | Routable; partial functionality | **No** |
+| 05 | [Dashboard](../brending/screens/05-dashboard.svg) | Routable; partial functionality | **No** |
+| 06 | [Hardware Explorer](../brending/screens/06-hardware-explorer.svg) | Routable; partial functionality | **No** |
+| 07 | [Cpu Details](../brending/screens/07-cpu-details.svg) | Routable; partial functionality | **No** |
+| 08 | [Cpu Cores](../brending/screens/08-cpu-cores.svg) | Routable; partial functionality | **No** |
+| 09 | [Gpu Details](../brending/screens/09-gpu-details.svg) | Routable; partial functionality | **No** |
+| 10 | [Memory Details](../brending/screens/10-memory-details.svg) | Routable; partial functionality | **No** |
+| 11 | [Storage Details](../brending/screens/11-storage-details.svg) | Routable; partial functionality | **No** |
+| 12 | [Battery Details](../brending/screens/12-battery-details.svg) | Routable; partial functionality | **No** |
+| 13 | [Charging Analysis](../brending/screens/13-charging-analysis.svg) | Routable; partial functionality | **No** |
+| 14 | [Thermal Details](../brending/screens/14-thermal-details.svg) | Routable; partial functionality | **No** |
+| 15 | [Display Details](../brending/screens/15-display-details.svg) | Routable; partial functionality | **No** |
+| 16 | [Device And Android](../brending/screens/16-device-and-android.svg) | Routable; partial functionality | **No** |
+| 17 | [Network Details](../brending/screens/17-network-details.svg) | Routable; feature scope varies | **No** |
+| 18 | [Sensor Explorer](../brending/screens/18-sensor-explorer.svg) | Routable; partial functionality | **No** |
+| 19 | [Sensor Live](../brending/screens/19-sensor-live.svg) | Routable; feature scope varies | **No** |
+| 20 | [App Usage](../brending/screens/20-app-usage.svg) | Routable; feature scope varies | **No** |
+| 21 | [Live Monitor](../brending/screens/21-live-monitor.svg) | Routable; partial functionality | **No** |
+| 22 | [Metric Fullscreen](../brending/screens/22-metric-fullscreen.svg) | Routable; partial functionality | **No** |
+| 23 | [Recording Session](../brending/screens/23-recording-session.svg) | Routable; feature scope varies | **No** |
+| 24 | [Session Analysis](../brending/screens/24-session-analysis.svg) | Routable; feature scope varies | **No** |
+| 25 | [Alerts](../brending/screens/25-alerts.svg) | Routable; feature scope varies | **No** |
+| 26 | [Diagnostics Center](../brending/screens/26-diagnostics-center.svg) | Routable; partial functionality | **No** |
+| 27 | [Component Test](../brending/screens/27-component-test.svg) | Routable; partial functionality | **No** |
+| 28 | [Diagnostic Results](../brending/screens/28-diagnostic-results.svg) | Routable; feature scope varies | **No** |
+| 29 | [Benchmark Center](../brending/screens/29-benchmark-center.svg) | Routable; feature scope varies | **No** |
+| 30 | [Benchmark Running](../brending/screens/30-benchmark-running.svg) | Routable; feature scope varies | **No** |
+| 31 | [Benchmark Results](../brending/screens/31-benchmark-results.svg) | Routable; feature scope varies | **No** |
+| 32 | [Overlay Configuration](../brending/screens/32-overlay-configuration.svg) | Routable; feature scope varies | **No** |
+| 33 | [History](../brending/screens/33-history.svg) | Routable; partial functionality | **No** |
+| 34 | [Reports Export](../brending/screens/34-reports-export.svg) | Routable; partial functionality | **No** |
+| 35 | [Permission Center](../brending/screens/35-permission-center.svg) | Routable; feature scope varies | **No** |
+| 36 | [Settings](../brending/screens/36-settings.svg) | Routable; partial functionality | **No** |
+| 37 | [About](../brending/screens/37-about.svg) | Routable; partial functionality | **No** |
 
 
 ## Validation requirements
@@ -53,4 +53,11 @@ References exported: **37**. Each PNG is a **concept rendering**, not a verified
 4. Resolve card dimensions, elevation, typography, icon shapes, safe area, status/navigation bars, themes, landscape and large screens.
 5. **Never claim a 1:1 match** without automated comparison plus manual on-device review.
 
-**Current result:** 0/37 screens certified pixel-perfect. Screens partially implemented do not equal finished functional modules.
+**Current result:** 0/37 screens certified pixel-perfect. A real screenshot evidence workflow was added; no 1:1 claim until emulator and physical-device comparisons pass. Screens partially implemented do not equal finished functional modules.
+
+## What remains outside the 37 routable destinations
+
+- Cross-application overlay / foreground-service permissions are **not implemented**. The HUD page is an interactive in-app preview only.
+- Persisted history (Room/SQL), advanced GPU/CPU temperatures and multi-platform benchmarking remain future work.
+- Test results for microphone, speaker, camera and all hardware sensors are not yet implemented.
+- Do not treat nonfunctional concepts as production-complete merely because their routes exist.

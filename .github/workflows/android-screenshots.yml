@@ -1,0 +1,77 @@
+name: SYSTIVRA Android screen QA
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/systivra-v030-monitoring-diagnostics]
+    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh"]
+permissions:
+  contents: read
+jobs:
+  screen-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install compile SDK
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDK_MANAGER"
+          yes | "$SDK_MANAGER" --licenses >/dev/null || true
+          "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+      - name: Compile Android debug APK
+        working-directory: android
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Capture emulator screens
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          emulator-boot-timeout: 600
+          disable-animations: true
+          script: |
+            cd android && gradle :app:connectedDebugAndroidTest --no-daemon
+            cd ..
+            bash tools/capture-android-screens.sh
+      - name: Resize design concepts for comparison
+        if: always()
+        run: |
+          python3 -m pip install --user --quiet Pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          target=Path('qa/reference-scaled')
+          target.mkdir(parents=True,exist_ok=True)
+          for ref in sorted(Path('brending/rendered').glob('[0-9][0-9]-*.png')):
+              with Image.open(ref) as original:
+                  original.convert('RGBA').resize((390,844)).save(target/ref.name)
+          print('References:',len(list(target.glob('*.png'))))
+          PY
+      - name: Report pixel differences
+        if: always()
+        continue-on-error: true
+        run: |
+          python3 tools/visual-diff.py --reference qa/reference-scaled --actual qa/screenshots --output qa/diff
+      - name: Report screenshot inventory
+        if: always()
+        run: |
+          echo "Captured screens: $(find qa/screenshots -name '*.png' 2>/dev/null | wc -l)"
+          test -f qa/diff/report.csv && head -n 8 qa/diff/report.csv || true
+      - name: Upload screenshots and diff results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: systivra-37-emulator-screenshots
+          path: |
+            qa/screenshots/
+            qa/diff/
+          if-no-files-found: warn

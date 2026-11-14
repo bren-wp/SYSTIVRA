@@ -28,11 +28,14 @@ Many Android monitoring apps display device numbers without explaining their ori
 - 🚀 **Splash → Dashboard** — no sign-in, registration or onboarding.
 - 🌙 **Dark by default** — consistent midnight, electric blue, violet and mint design tokens.
 - 🔐 **Privacy-first** — no mandatory internet connection, telemetry or user account.
-- ⚡ **Live monitoring** — battery level, charging state and available RAM, storage and thermal status.
-- 🧠 **Hardware intelligence** — inspect CPU architecture, Android build, display properties and sensors.
+- ⚡ **Live monitoring** — battery, charging, RAM, storage, thermal state, and optional system CPU load.
+- 🧠 **Hardware intelligence** — inspect CPU architecture, OpenGL GPU driver, Android version, display refresh rate and sensors.
 - 🩺 **Honest diagnostics** — interactive display/touch test with user-confirmed outcomes.
-- 📊 **Local CSV reports** — export session readings through the Android file picker.
-- 🔎 **Transparent measurements** — CPU/GPU temperatures and FPS are **not invented** when Android restricts them.
+- 📊 **Recording & CSV reports** — user-controlled foreground capture and local file export.
+- 🔎 **Transparent measurements** — unavailable CPU/GPU temperatures, external FPS and permissions are never invented.
+- 🎮 **Performance Lab** — bounded, cancellable CPU test with a thermal safety cutoff.
+- 🧭 **Live sensors** — observe Android-provided axes, units and calibration status.
+- 🔔 **Local alerts** — configurable, on-screen battery and thermal thresholds.
 
 ## 📱 App gallery
 
@@ -70,11 +73,15 @@ Many Android monitoring apps display device numbers without explaining their ori
 | 💾 Storage | Available, total and used internal volume | StatFs |
 | 🌡️ Thermal | Android platform thermal state (API 29+) | Not a direct CPU temperature |
 | 🖥️ System | Model, vendor, OS, architecture and display | Public Android APIs |
-| 🧭 Sensors | Device-reported sensor inventory | SensorManager |
-| 📈 Monitoring | Foreground in-memory samples, measured battery chart | No background recording |
-| 🧪 Diagnostics | User-confirmed display color / touch test | Other tests planned |
+| 🧭 Sensors | Inventory and live values from supported sensors | SensorManager |
+| 📈 Monitoring | Adjustable foreground sampling, battery chart, opt-in 900-sample recorder and analysis | No background service / persistent database |
+| 🧪 Diagnostics | User-confirmed display color/touch test with saved result | Camera/microphone/speaker tests not implemented |
 | 📄 Reports | On-device CSV export via Android file picker | Foreground session |
-| 🛠️ GPU / FPS / benchmarks | Planned | Never simulated as real data |
+| 🖥️ GPU / CPU | OpenGL renderer/vendor/version; optional /proc/stat load | Hardware temperature and global GPU load may be unavailable |
+| 🧪 Benchmark | Bounded, cancellable 2-second single-worker CPU test | Not comparable with standardized benchmark suites |
+| 🌐 Network | Network state and platform bandwidth estimate | ACCESS_NETWORK_STATE only; no Internet permission |
+| 🕵️ App usage | Optional local usage statistics | Explicit Android Usage Access required |
+| 🎛️ HUD | Interactive in-app preview | Overlay over other apps not implemented |
 | 🎨 Visual QA | Reference gallery, pixel-diff tool and UI tokens | Physical capture validation pending |
 
 ### Accuracy over fabricated numbers
@@ -130,13 +137,15 @@ See [Releases](https://github.com/bren-wp/SYSTIVRA/releases) for builds. Preview
 
 ## 🧪 Quality & roadmap
 
+The [37-screen implementation matrix](docs/SCREEN-STATUS.md) tracks each route and the as-yet unverified 1:1 pixel comparisons. A dedicated [Android emulator capture workflow](.github/workflows/android-screenshots.yml) generates real screenshot evidence; these are not interchangeable with concept images.
+
 Production acceptance requires functional and visual checks across phone/tablet sizes, Android API levels, screen density, font scaling, TalkBack, battery/thermal behavior and real devices. The [visual QA protocol](docs/VISUAL-QA.md) measures actual screen diffs against approved references. **No screen is described as 1:1 until that screen has passed visual comparison.**
 
-Further work includes persistent session storage, more hardware diagnostics, safe benchmarks, advanced monitoring and full security/dead-code review. Unsupported features remain clearly labeled in-app.
+Further work includes permanent session storage, cross-app overlay support, additional component tests, broader benchmark coverage, measured visual parity and full security/dead-code review. Unsupported features remain clearly labeled in-app.
 
 ## 🔏 Privacy & license
 
-No account is required, no telemetry backend is needed for the core app, and no network permission is requested in the current Android build. Session readings are kept in memory; CSV export is initiated by the user.
+No account is required, no telemetry backend is needed for the core app, and no INTERNET permission is requested in the current Android build (ACCESS_NETWORK_STATE is used only to inspect network status). Session readings are kept in memory; CSV export is initiated by the user.
 
 SYSTIVRA source code is distributed under the [MIT License](LICENSE).
 
