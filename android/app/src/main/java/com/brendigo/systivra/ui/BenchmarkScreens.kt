@@ -1,4 +1,4 @@
-package com.systivra.app.ui
+package com.brendigo.systivra.ui
 
 import android.content.Context
 import android.os.Build

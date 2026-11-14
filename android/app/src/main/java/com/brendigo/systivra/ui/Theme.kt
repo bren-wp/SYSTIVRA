@@ -1,4 +1,4 @@
-package com.systivra.app.ui
+package com.brendigo.systivra.ui
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme

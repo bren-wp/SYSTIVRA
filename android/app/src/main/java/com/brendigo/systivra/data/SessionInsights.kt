@@ -1,4 +1,4 @@
-package com.systivra.app.data
+package com.brendigo.systivra.data
 
 /**
  * Descriptive statistics over real recorded samples. Not a battery-health

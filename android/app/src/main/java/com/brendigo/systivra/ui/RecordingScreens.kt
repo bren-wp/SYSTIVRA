@@ -1,4 +1,4 @@
-package com.systivra.app.ui
+package com.brendigo.systivra.ui
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.systivra.app.data.DeviceSnapshot
+import com.brendigo.systivra.data.DeviceSnapshot
 import java.util.Locale
 
 /**

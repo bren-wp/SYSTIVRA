@@ -1,4 +1,4 @@
-package com.systivra.app.ui
+package com.brendigo.systivra.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.systivra.app.data.DeviceSnapshot
+import com.brendigo.systivra.data.DeviceSnapshot
 
 /**
  * In-app HUD layout editor. Does not claim SYSTEM_ALERT_WINDOW permission, a

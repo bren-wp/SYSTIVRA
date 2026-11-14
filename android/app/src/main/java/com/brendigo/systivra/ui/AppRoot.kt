@@ -1,4 +1,4 @@
-package com.systivra.app.ui
+package com.brendigo.systivra.ui
 
 import android.content.Context
 import android.os.Build
@@ -71,9 +71,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.systivra.app.data.RecordedSession
-import com.systivra.app.data.DeviceSnapshot
-import com.systivra.app.data.Reading
+import com.brendigo.systivra.data.RecordedSession
+import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.Reading
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

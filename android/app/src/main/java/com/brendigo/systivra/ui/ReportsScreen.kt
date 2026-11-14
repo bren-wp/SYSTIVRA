@@ -1,4 +1,4 @@
-package com.systivra.app.ui
+package com.brendigo.systivra.ui
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -27,8 +27,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.systivra.app.data.DeviceSnapshot
-import com.systivra.app.data.buildSessionJson
+import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.buildSessionJson
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

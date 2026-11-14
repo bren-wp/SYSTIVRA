@@ -1,4 +1,4 @@
-package com.systivra.app.data
+package com.brendigo.systivra.data
 
 /**
  * Local JSON export, format v1. Uses only explicitly recorded measurements.
