@@ -1,4 +1,4 @@
-package com.systivra.app
+package com.brendigo.systivra
 
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
@@ -9,11 +9,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.systivra.app.data.DeviceMetrics
-import com.systivra.app.data.DeviceSnapshot
-import com.systivra.app.data.RecordedSession
-import com.systivra.app.data.RecordingStore
-import com.systivra.app.ui.AppRoot
+import com.brendigo.systivra.data.DeviceMetrics
+import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.RecordedSession
+import com.brendigo.systivra.data.RecordingStore
+import com.brendigo.systivra.ui.AppRoot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay

@@ -1,4 +1,4 @@
-package com.systivra.app
+package com.brendigo.systivra
 
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider

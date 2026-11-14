@@ -1,4 +1,4 @@
-package com.systivra.app.data
+package com.brendigo.systivra.data
 
 import android.opengl.EGL14
 import android.opengl.EGLConfig

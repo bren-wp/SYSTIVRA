@@ -1,4 +1,4 @@
-package com.systivra.app
+package com.brendigo.systivra
 
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule

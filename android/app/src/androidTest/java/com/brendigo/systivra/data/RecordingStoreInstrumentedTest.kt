@@ -1,4 +1,4 @@
-package com.systivra.app.data
+package com.brendigo.systivra.data
 
 import android.content.ContentValues
 import android.content.Context
