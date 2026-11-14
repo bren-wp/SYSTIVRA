@@ -388,9 +388,13 @@ private fun Diagnostics(open: (String) -> Unit) {
 
 @Composable
 private fun ComponentTest() {
+    val context = LocalContext.current
+    val verdictPrefs = remember(context) {
+        context.getSharedPreferences("systivra_diagnostics", android.content.Context.MODE_PRIVATE)
+    }
     var touches by rememberSaveable { mutableIntStateOf(0) }
     var color by rememberSaveable { mutableIntStateOf(0) }
-    var verdict by rememberSaveable { mutableStateOf("Not assessed") }
+    var verdict by rememberSaveable { mutableStateOf(verdictPrefs.getString("display_touch", "Not assessed") ?: "Not assessed") }
     val colors = listOf(Color.Red, Color.Green, Color.Blue, Color.White, Color.Black)
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("Tap the panel and inspect each color. Confirm the result manually.", color = Muted) }
@@ -411,8 +415,14 @@ private fun ComponentTest() {
                 Text("Result: " + verdict, color = Mint)
                 Button(onClick = { color = (color + 1) % colors.size }) { Text("Next color") }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { verdict = "Pass (user-confirmed)" }) { Text("Pass") }
-                    Button(onClick = { verdict = "Fail (user-confirmed)" }) { Text("Fail") }
+                    Button(onClick = {
+                        verdict = "Pass (user-confirmed)"
+                        verdictPrefs.edit().putString("display_touch", verdict).apply()
+                    }) { Text("Pass") }
+                    Button(onClick = {
+                        verdict = "Fail (user-confirmed)"
+                        verdictPrefs.edit().putString("display_touch", verdict).apply()
+                    }) { Text("Fail") }
                 }
             }
         }
@@ -499,7 +509,7 @@ private fun About() {
             PanelCard {
                 Text("SYSTIVRA", color = Cyan, fontWeight = FontWeight.Black, fontSize = 28.sp)
                 Text("Advanced Device Monitor & Diagnostics", color = Muted)
-                Text("Version 0.2.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Version 0.3.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
             }
         }
         item {
