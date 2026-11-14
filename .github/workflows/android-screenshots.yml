@@ -2,8 +2,11 @@ name: SYSTIVRA Android screen QA
 on:
   workflow_dispatch:
   push:
-    branches: [feat/systivra-v040-persistent-history-qa]
+    branches: [feat/systivra-v060-session-insights-export]
     paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "android/app/src/main/**"]
+concurrency:
+  group: systivra-visual-qa-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -52,6 +55,8 @@ jobs:
           target=Path('qa/reference-scaled')
           target.mkdir(parents=True,exist_ok=True)
           for ref in sorted(Path('brending/rendered').glob('[0-9][0-9]-*.png')):
+              if ref.name.startswith('01-splash'):
+                  continue # Android system splash must be captured separately
               with Image.open(ref) as original:
                   original.convert('RGBA').resize((390,844)).save(target/ref.name)
           print('References:',len(list(target.glob('*.png'))))
@@ -70,7 +75,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: systivra-37-emulator-screenshots
+          name: systivra-38-app-screenshots-and-diffs
           path: |
             qa/screenshots/
             qa/diff/

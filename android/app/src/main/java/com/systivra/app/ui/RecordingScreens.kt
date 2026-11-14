@@ -55,7 +55,8 @@ fun RecordingSessionScreen(
                 }
             }
         }
-        item { Button(enabled = readings.isNotEmpty(), onClick = { open("session-analysis") }) { Text("Analyze session") } }
+        item { Button(enabled = readings.isNotEmpty(), onClick = { open("session-analysis") }) { Text("Analyze recorded samples") } }
+        item { Button(onClick = { open("recording-library") }) { Text("Open Recording Library") } }
         item { Button(enabled = readings.isNotEmpty(), onClick = { open("reports-export") }) { Text("Export current session") } }
         item { Text("Sampling pauses when SYSTIVRA leaves the foreground. At most 900 entries are retained locally. Database backup is disabled.", color = Muted, fontSize = 12.sp) }
         if (storageError != null) item { Text(storageError, color = Cyan, fontSize = 12.sp) }
@@ -84,7 +85,8 @@ fun SessionAnalysisScreen(readings: List<DeviceSnapshot>, open: (String) -> Unit
             item { SummaryCard("Average battery charge", if (charge.isNotEmpty()) oneDecimal(charge.average()) + "%" else "Unavailable") }
             item { SummaryCard("Thermal states", if (status.isEmpty()) "Unavailable" else
                 status.entries.joinToString("\n") { it.key + ": " + it.value.toString() }) }
-            item { Button(onClick = { open("reports-export") }) { Text("Export CSV") } }
+            item { Button(onClick = { open("session-insights") }) { Text("Detailed session insights") } }
+            item { Button(onClick = { open("reports-export") }) { Text("Export CSV or JSON") } }
         }
     }
 }
@@ -100,10 +102,12 @@ fun DiagnosticResultsScreen() {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("systivra_diagnostics", Context.MODE_PRIVATE)
     val result = prefs.getString("display_touch", "Not assessed") ?: "Not assessed"
+    val vibration = prefs.getString("vibration", "Not assessed") ?: "Not assessed"
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("Diagnostic Results", fontSize = 23.sp, fontWeight = FontWeight.Bold) }
         item { Text("Only user-confirmed test results appear. No fabricated health scores.", color = Muted) }
         item { SummaryCard("Display & touch test", result) }
+        item { SummaryCard("Vibration (user-confirmed)", vibration) }
         item { SummaryCard("Speaker / microphone / camera", "Not implemented — no result") }
         item { SummaryCard("Sensor inventory", "Available in the Hardware Explorer; not an automatic pass/fail test") }
     }

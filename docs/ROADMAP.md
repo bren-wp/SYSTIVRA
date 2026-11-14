@@ -4,7 +4,7 @@
 |---|---|---|
 | 1 | Brand system, 37 design references, Android project, privacy-first responsive website | Implemented foundation |
 | 2 | Public Android API metrics, EGL renderer, optional /proc load, live sensors and detail pages | Implemented where platform supports data |
-| 3 | Private SQLite persistent recording, session analysis, CSV export, local threshold controls; multi-session management | Partial; multi-session management pending |
+| 3 | Private SQLite sessions, per-session analysis, deletion, CSV export and local threshold controls | Implemented baseline; richer analytics planned |
 | 4 | Display/touch test and bounded CPU microbenchmark; additional component tests | Partial |
 | 5 | In-app HUD preview; cross-app overlay and privileged hardware providers | Partial / latter not implemented |
 | 6 | Visual evidence workflow and pixel-diff tool; full device/security/dead-code audit | In progress |

@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.systivra.app.data.DeviceSnapshot
+import com.systivra.app.data.buildSessionJson
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -38,7 +39,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
     val context = LocalContext.current
     var result by remember { mutableStateOf("No report exported yet.") }
     val snapshot = samples.toList()
-    val document = rememberLauncherForActivityResult(
+    val csvDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri: Uri? ->
         if (uri == null) {
@@ -50,6 +51,22 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                     ?: error("The selected document cannot be opened.")
                 output.bufferedWriter(Charsets.UTF_8).use { it.write(csv) }
                 "Exported " + snapshot.size + " samples successfully."
+            }.getOrElse { "Export failed: " + (it.localizedMessage ?: "Unknown error") }
+        }
+    }
+    val jsonDocument = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        if (uri == null) {
+            result = "Export canceled."
+        } else {
+            result = runCatching {
+                val output = context.contentResolver.openOutputStream(uri)
+                    ?: error("The selected document cannot be opened.")
+                output.bufferedWriter(Charsets.UTF_8).use {
+                    it.write(buildSessionJson(snapshot))
+                }
+                "Exported " + snapshot.size + " JSON samples successfully."
             }.getOrElse { "Export failed: " + (it.localizedMessage ?: "Unknown error") }
         }
     }
@@ -66,13 +83,32 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                     Text("Includes UTC timestamp, battery charge, temperature, free RAM, and Android thermal state.", color = Muted, fontSize = 13.sp)
                     Button(
                         enabled = snapshot.isNotEmpty(),
-                        onClick = { document.launch("SYSTIVRA-session.csv") }
+                        onClick = { csvDocument.launch("SYSTIVRA-session.csv") }
                     ) { Text("Choose export location") }
                     Text(result, color = Muted, fontSize = 13.sp)
                 }
             }
         }
-        item { Text("Saved recordings persist privately in SQLite across app restarts; this export copies them only to the destination you choose.", color = Muted, fontSize = 12.sp) }
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("JSON Export", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Cyan)
+                    Text("Export timestamps, battery, memory, thermal and measured CPU load as structured JSON.", color = Muted, fontSize = 13.sp)
+                    Button(
+                        enabled = snapshot.isNotEmpty(),
+                        onClick = { jsonDocument.launch("SYSTIVRA-session.json") }
+                    ) { Text("Save JSON report") }
+                }
+            }
+        }
+        item {
+            Text(
+                "Saved readings persist privately in SQLite until deleted. Exports are copies written " +
+                    "to a location you choose; they may contain sensitive device activity details. " +
+                    "No file is uploaded automatically.",
+                color = Muted, fontSize = 12.sp
+            )
+        }
     }
 }
 

@@ -1,5 +1,10 @@
 package com.systivra.app.ui
 
+import android.content.Context
+import android.os.Build
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.os.VibrationEffect
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -57,6 +62,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -65,6 +71,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.systivra.app.data.RecordedSession
 import com.systivra.app.data.DeviceSnapshot
 import com.systivra.app.data.Reading
 import java.text.SimpleDateFormat
@@ -101,6 +108,7 @@ private val sections = listOf(
     "metric-fullscreen" to "Metric Fullscreen",
     "recording-session" to "Recording Session",
     "session-analysis" to "Session Analysis",
+    "session-insights" to "Session Insights",
     "alerts" to "Alerts",
     "diagnostics-center" to "Diagnostics Center",
     "component-test" to "Component Test",
@@ -115,7 +123,8 @@ private val sections = listOf(
     "settings" to "Settings",
     "about" to "About SYSTIVRA",
     "device-detection" to "Device Detection",
-    "system-overview" to "System Overview"
+    "system-overview" to "System Overview",
+    "recording-library" to "Recording Library"
 )
 
 private val enabledRoutes = setOf(
@@ -126,8 +135,8 @@ private val enabledRoutes = setOf(
     "about", "device-detection", "system-overview",
     "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
     "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
-    "recording-session", "session-analysis", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
-    "overlay-configuration"
+    "recording-session", "session-analysis", "session-insights", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
+    "overlay-configuration", "recording-library"
 )
 
 @Composable
@@ -140,7 +149,12 @@ fun AppRoot(
     onClearRecording: () -> Unit,
     initialRoute: String? = null,
     historyReady: Boolean = true,
-    historyStorageError: String? = null
+    historyStorageError: String? = null,
+    savedSessions: List<RecordedSession> = emptyList(),
+    selectedSessionId: Long? = null,
+    selectedSessionSamples: List<DeviceSnapshot> = emptyList(),
+    onSelectSession: (Long?) -> Unit = {},
+    onDeleteSession: (Long) -> Unit = {}
 ) {
     AppTheme {
         val appContext = LocalContext.current.applicationContext
@@ -222,14 +236,18 @@ fun AppRoot(
                     "cpu-cores" -> CpuCoreInspector(snapshot)
                     "charging-analysis" -> ChargingAnalysis(snapshot, samples)
                     "metric-fullscreen" -> FullscreenMetric(samples)
-                    "reports-export" -> ReportExportScreen(recorded)
+                    "reports-export" -> ReportExportScreen(if (selectedSessionId == null) recorded else selectedSessionSamples)
                     "sensor-live" -> SensorLiveScreen()
                     "network-details" -> NetworkDetailsScreen()
                     "app-usage" -> AppUsageScreen()
                     "alerts" -> AlertsScreen(snapshot)
                     "permission-center" -> PermissionCenterScreen()
                     "recording-session" -> RecordingSessionScreen(recorded, isRecording, historyReady, historyStorageError, onToggleRecording, onClearRecording, ::open)
-                    "session-analysis" -> SessionAnalysisScreen(recorded, ::open)
+                    "recording-library" -> RecordingLibraryScreen(
+                        savedSessions, isRecording, selectedSessionId, onSelectSession, onDeleteSession, ::open
+                    )
+                    "session-analysis" -> SessionAnalysisScreen(if (selectedSessionId == null) recorded else selectedSessionSamples, ::open)
+                    "session-insights" -> SessionInsightsScreen(if (selectedSessionId == null) recorded else selectedSessionSamples, ::open)
                     "benchmark-center" -> BenchmarkCenterScreen(benchmark, onStart = {
                         benchmark.start(benchmarkScope)
                         open("benchmark-running")
@@ -239,7 +257,7 @@ fun AppRoot(
                     "diagnostic-results" -> DiagnosticResultsScreen()
                     "overlay-configuration" -> OverlayPreviewScreen(snapshot)
                     "hardware-explorer" -> HardwareExplorer(::open)
-                    "live-monitor" -> LiveMonitor(snapshot, samples, recorded, ::open)
+                    "live-monitor" -> LiveMonitor(snapshot, samples, recorded, savedSessions, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
                     "component-test" -> ComponentTest()
                     "history" -> History(samples, ::open)
@@ -272,6 +290,7 @@ private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, o
         Triple("Battery", snapshot.battery.firstOrNull()?.display ?: "Unavailable", "battery-details")
     )
     LazyColumn(
+        modifier = Modifier.testTag("dashboard-scroll"),
         contentPadding = PaddingValues(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -387,7 +406,7 @@ private fun MetricScreen(readings: List<Reading>, subtitle: String) {
 }
 
 @Composable
-private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, recorded: List<DeviceSnapshot>, open: (String) -> Unit) {
+private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, recorded: List<DeviceSnapshot>, savedSessions: List<RecordedSession>, open: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
         item { Text("Foreground live monitoring · no fabricated metrics", color = Muted, fontSize = 13.sp) }
         item {
@@ -416,7 +435,8 @@ private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>,
         item { LinkCard("Available RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable") { open("memory-details") } }
         item { LinkCard("Android thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
         item { LinkCard("Live history", "Last " + samples.size + " readings · temporary") { open("history") } }
-        item { LinkCard("Saved recordings", recorded.size.toString() + " samples · local SQLite storage") { open("recording-session") } }
+        item { LinkCard("Recording Library", savedSessions.size.toString() + " saved sessions") { open("recording-library") } }
+        item { LinkCard("Session Insights", "Review battery trends from saved samples") { open("session-insights") } }
         item { LinkCard("Session Recorder", "Explicit, foreground-only recording") { open("recording-session") } }
         item { LinkCard("Full-screen chart", "Battery history in focus") { open("metric-fullscreen") } }
         item { LinkCard("Performance HUD", "Customize the in-app overlay preview") { open("overlay-configuration") } }
@@ -453,6 +473,20 @@ private fun ComponentTest() {
     var color by rememberSaveable { mutableIntStateOf(0) }
     var verdict by rememberSaveable { mutableStateOf(verdictPrefs.getString("display_touch", "Not assessed") ?: "Not assessed") }
     val colors = listOf(Color.Red, Color.Green, Color.Blue, Color.White, Color.Black)
+    val vibrator = remember(context) {
+        if (Build.VERSION.SDK_INT >= 31) {
+            (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager)
+                ?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            (context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)
+        }
+    }
+    val hasVibrator = vibrator?.hasVibrator() == true
+    var vibrationFeedback by rememberSaveable { mutableStateOf("Not tested") }
+    var vibrationVerdict by rememberSaveable {
+        mutableStateOf(verdictPrefs.getString("vibration", "Not assessed") ?: "Not assessed")
+    }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("Tap the panel and inspect each color. Confirm the result manually.", color = Muted) }
         item {
@@ -479,6 +513,41 @@ private fun ComponentTest() {
                     Button(onClick = {
                         verdict = "Fail (user-confirmed)"
                         verdictPrefs.edit().putString("display_touch", verdict).apply()
+                    }) { Text("Fail") }
+                }
+            }
+        }
+        item {
+            PanelCard {
+                Text("Vibration test", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(
+                    if (hasVibrator) "Trigger a short pulse and confirm whether you feel it."
+                    else "This device does not report a vibrator.",
+                    color = Muted, fontSize = 13.sp
+                )
+                Text(vibrationFeedback, color = Muted, fontSize = 12.sp)
+                Button(enabled = hasVibrator, onClick = {
+                    vibrationFeedback = runCatching {
+                        if (Build.VERSION.SDK_INT >= 26) {
+                            vibrator?.vibrate(
+                                VibrationEffect.createOneShot(200L, VibrationEffect.DEFAULT_AMPLITUDE)
+                            )
+                        } else {
+                            @Suppress("DEPRECATION")
+                            vibrator?.vibrate(200L)
+                        }
+                        "Pulse requested. Did you feel it?"
+                    }.getOrElse { "Vibration could not be started" }
+                }) { Text("Test vibration") }
+                Text("User-confirmed result: " + vibrationVerdict, color = Mint)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(enabled = hasVibrator, onClick = {
+                        vibrationVerdict = "Pass (user-confirmed)"
+                        verdictPrefs.edit().putString("vibration", vibrationVerdict).apply()
+                    }) { Text("Pass") }
+                    Button(enabled = hasVibrator, onClick = {
+                        vibrationVerdict = "Fail (user-confirmed)"
+                        verdictPrefs.edit().putString("vibration", vibrationVerdict).apply()
                     }) { Text("Fail") }
                 }
             }
@@ -518,7 +587,9 @@ private fun Settings(open: (String) -> Unit) {
                 )
             }
         }
-        item { LinkCard("Reports & CSV export", "Export locally recorded session readings") { open("reports-export") } }
+        item { LinkCard("Reports · CSV & JSON", "Export locally recorded readings") { open("reports-export") } }
+        item { LinkCard("Session Insights", "Battery trends and measured thermal statistics") { open("session-insights") } }
+        item { LinkCard("Recording Library", "View, export or delete selected recordings") { open("recording-library") } }
         item { LinkCard("System Health", "Measurement availability, not a fabricated score") { open("system-health") } }
         item { LinkCard("Privacy Center", "Review access and local data policy") { open("privacy-center") } }
         item { LinkCard("All planned screens", "Browse implemented and upcoming destinations") { open("all-screens") } }
@@ -582,7 +653,7 @@ private fun About() {
             PanelCard {
                 Text("SYSTIVRA", color = Cyan, fontWeight = FontWeight.Black, fontSize = 28.sp)
                 Text("Advanced Device Monitor & Diagnostics", color = Muted)
-                Text("Version 0.4.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Version 0.6.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
             }
         }
         item {

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.6.0-preview.1] — 2026-11-14
+
+- Introduced **Session Insights** using measured battery charge and temperature with unavailable-safe calculations and a real historical chart.
+- Added optional net battery percentage-point rate only for sufficiently long sample intervals, with explicit limitations.
+- Implemented on-device JSON export alongside CSV using the system document picker.
+- JSON v1 schema preserves explicit nulls, escapes special characters and excludes device identity.
+- Added deterministic JUnit tests for trends, short intervals, unknown data and JSON encoding.
+- Updated navigation, Recording Library, README and privacy documentation.
+- Enhanced emulator screenshot QA inventory: 36 original app routes plus Recording Library and Session Insights. The system Splash requires a separate capture.
+- **Pixel-perfect 1:1 is unverified**. No newly generated concept reference for Session Insights was claimed.
+
+## [0.5.0-preview.1] — 2026-11-14
+
+- Session-based SQLite schema v2 with non-destructive v1 data migration.
+- Separate Recording Library: session list, recording dates and sample counts, session-specific analysis and CSV export.
+- Confirmed deletion of an individual recorded session; retention stays capped at 900 actual samples total.
+- Updated Android instrumented tests for database migration, reopen, deletion and empty sessions.
+- Added manual vibration diagnostics with a user-confirmed result; VIBRATE is a normal permission.
+- Fixed outdated emulator UI tests after Dashboard redesign and enabled programmatic scroll for off-screen navigation items.
+- Updated public privacy copy, README and release documentation.
+- **All 37 reference screens remain visually uncertified** until real emulator / physical-device screenshots are inspected and compared.
+
 ## [0.4.0-preview.1] — 2026-11-14
 
 - Private SQLite persistence for user-initiated monitoring sessions, capped at 900 samples.
