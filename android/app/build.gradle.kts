@@ -9,8 +9,8 @@ android {
         applicationId = "com.systivra.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.3.0-preview.1"
+        versionCode = 4
+        versionName = "0.3.0-preview.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true }
