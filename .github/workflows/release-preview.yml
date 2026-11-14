@@ -1,0 +1,63 @@
+name: Publish SYSTIVRA preview release
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/systivra-v020-ui-marketing-release]
+    paths: [".github/workflows/release-preview.yml"]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install Android SDK
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDK_MANAGER" || { echo "sdkmanager not found"; exit 1; }
+          yes | "$SDK_MANAGER" --licenses >/dev/null || true
+          "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+      - name: Test, build debug APK and unsigned release AAB
+        working-directory: android
+        run: gradle :app:testDebugUnitTest :app:assembleDebug :app:bundleRelease --no-daemon --stacktrace
+      - name: Package full source, builds and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/SYSTIVRA-v0.2.0-preview.1-debug.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab dist/SYSTIVRA-v0.2.0-preview.1-unsigned.aab
+          git archive --format=zip --output=dist/SYSTIVRA-v0.2.0-preview.1-source.zip HEAD
+          cd dist
+          sha256sum SYSTIVRA-v0.2.0-preview.1-* > SHA256SUMS.txt
+          sha256sum -c SHA256SUMS.txt
+      - name: Publish tagged GitHub pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: bren-wp/SYSTIVRA
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG=v0.2.0-preview.1
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing to replace immutable preview assets."
+            exit 1
+          fi
+          gh release create "$TAG" dist/* --target "$GITHUB_SHA" --prerelease --title "SYSTIVRA v0.2.0 Preview 1" --notes-file docs/releases/v0.2.0-preview.1.md
+      - name: Upload CI copies of release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: systivra-v0.2.0-preview.1-release-assets
+          path: dist/*
+          if-no-files-found: error
