@@ -1,5 +1,9 @@
 # SYSTIVRA — Google Play release gate (November 2026)
 
+## Canonical Play package identity — v0.9
+
+The only accepted Android application ID is **`com.brendigo.systivra`**. The app and its Play Console listing must be created under that exact ID. A previous differently named app cannot be updated in place; the new ID is a separate Android application and cannot automatically access the old app's sandboxed recordings. Do not reuse screenshots or manifests that show or target the previous ID. Debug APK and unsigned AAB are not Play-ready.
+
 ## Verified source configuration
 - Android package: `com.brendigo.systivra`
 - Android target API: **36**, meets the Play requirement for new app submissions since August 31, 2026.
