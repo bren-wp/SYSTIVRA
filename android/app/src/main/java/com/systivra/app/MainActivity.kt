@@ -19,6 +19,8 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private val live = MutableStateFlow(DeviceSnapshot.empty())
     private val history = MutableStateFlow<List<DeviceSnapshot>>(emptyList())
+    private val recorded = MutableStateFlow<List<DeviceSnapshot>>(emptyList())
+    private val recording = MutableStateFlow(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -31,6 +33,7 @@ class MainActivity : ComponentActivity() {
                     runCatching { metrics.capture() }.onSuccess {
                         live.value = it
                         history.value = (history.value + it).takeLast(60)
+                        if (recording.value) recorded.value = (recorded.value + it).takeLast(900)
                     }
                     delay(2_000L)
                 }
@@ -39,7 +42,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             val snapshot = live.collectAsStateWithLifecycle().value
             val samples = history.collectAsStateWithLifecycle().value
-            AppRoot(snapshot, samples)
+            val recordedSamples = recorded.collectAsStateWithLifecycle().value
+            val isRecording = recording.collectAsStateWithLifecycle().value
+            AppRoot(snapshot, samples, recordedSamples, isRecording,
+                onToggleRecording = { recording.value = !recording.value },
+                onClearRecording = { if (!recording.value) recorded.value = emptyList() }
+            )
         }
     }
 }
