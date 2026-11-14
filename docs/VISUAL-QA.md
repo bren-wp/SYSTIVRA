@@ -20,3 +20,7 @@ Capture artifacts and per-screen diffs must be reviewed, defects fixed, and reru
 ## v0.6 visual inventory
 
 The screenshot script captures 36 original in-app routes and two added screens: Recording Library and Session Insights (38 screenshots total). The original **01-splash** design is deliberately excluded from the regular image-diff set because an Android system Splash is transient and cannot be reliably captured with the same route mechanism. Its visual regression requires a separate start-up recording. Neither of the two added screens has an approved reference rendering yet. A build or screenshot artifact **does not** establish 1:1 parity.
+
+## v0.7 QA incident and recovery
+
+A previous completed screenshot workflow produced screens dominated by Android's "System UI isn't responding" / "Quickstep isn't responding" and first-run immersive tutorial, **not SYSTIVRA**. These captures must not be used in Google Play or counted as 1:1 compliance. The capture script now avoids changing emulator size/density, checks that `com.systivra.app` owns the focused window, fails when a system dialog is foreground, and writes logcat diagnostics. A separate image validation script checks capture count, dimensions, and repeated images before differential analysis. Actual screen alignment remains unverified.

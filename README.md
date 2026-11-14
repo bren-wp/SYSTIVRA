@@ -38,6 +38,16 @@ Many Android monitoring apps display device numbers without explaining their ori
 - 🧭 **Live sensors** — observe Android-provided axes, units and calibration status.
 - 🔔 **Local alerts** — configurable, on-screen battery and thermal thresholds.
 
+## 🎨 Google Play branding
+
+- [**Download the store artwork package**](brending/google-play/assets/SYSTIVRA-Play-Graphics.zip)
+- [App icon (512 × 512)](brending/google-play/assets/icon-512.png)
+- [Feature graphic (1024 × 500)](brending/google-play/assets/feature-graphic-1024x500.png)
+- [English Play listing text](brending/google-play/STORE-LISTING-EN.md)
+- [Google Play release readiness checklist](docs/GOOGLE-PLAY-RELEASE-GATE.md)
+
+The eight promotional visuals under `brending/google-play/concepts-NOT-FOR-PLAY/` are **marketing concepts, not screenshots**. Earlier Android emulator captures contained System UI/Quickstep ANRs and are not acceptable Play screenshots. The new capture process refuses to count screenshots when SYSTIVRA is not the focused app.
+
 ## 📱 App gallery
 
 <div align="center">
@@ -103,7 +113,7 @@ Android does not guarantee third-party access to all per-core CPU data, GPU usag
 | Mint status | #32E5BC |
 | Primary text | #F4F8FC |
 
-The Android app and [responsive presentation website](website/) share the same SYSTIVRA identity. The [branding directory](brending/) contains vector logos, launcher assets, 37 English-language concepts and PNG previews.
+The Android app and [responsive presentation website](website/) share the same SYSTIVRA identity. A reproducible [Google Play graphic generator](tools/render_google_play.py) creates correctly sized PNGs from the SVG source. The [branding directory](brending/) contains vector logos, launcher assets, 37 English-language concepts and PNG previews.
 
 ## 🏗️ Source structure
 
