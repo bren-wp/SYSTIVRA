@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [feat/systivra-v030-monitoring-diagnostics]
-    paths: [".github/workflows/android-screenshots.yml"]
+    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh"]
 permissions:
   contents: read
 jobs:
@@ -58,6 +58,11 @@ jobs:
         continue-on-error: true
         run: |
           python3 tools/visual-diff.py --reference qa/reference-scaled --actual qa/screenshots --output qa/diff
+      - name: Report screenshot inventory
+        if: always()
+        run: |
+          echo "Captured screens: $(find qa/screenshots -name '*.png' 2>/dev/null | wc -l)"
+          test -f qa/diff/report.csv && head -n 8 qa/diff/report.csv || true
       - name: Upload screenshots and diff results
         if: always()
         uses: actions/upload-artifact@v4
