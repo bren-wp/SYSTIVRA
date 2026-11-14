@@ -1,40 +1,146 @@
+<div align="center">
+
+<img src="brending/rendered/systivra-app-icon.png" alt="SYSTIVRA app icon" width="132" height="132">
+
 # SYSTIVRA
+### Advanced Device Monitor & Diagnostics
 
-**Advanced Android Device Monitor & Diagnostics** — an English-first, privacy-focused Android application and accompanying website.
+**Know your device. Monitor what Android actually reports.**
 
-> **Development status:** early implementation. Screens under \`brending/screens/\` are **design mockups**, not screenshots from a running Android build. Metrics in those SVG design boards are illustrative only.
+![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-2B86D8)
+![Build](https://github.com/bren-wp/SYSTIVRA/actions/workflows/android-ci.yml/badge.svg)
+![English](https://img.shields.io/badge/Language-English-1F90E2)
 
-## Product rules
+**A privacy-first Android system information utility, built with real metrics, clear data sources and a premium midnight UI.**
 
-- **Splash → Dashboard**. No login, registration, onboarding, mandatory account, subscription or paid optimization claims.
-- English-only interface; default dark theme.
-- Real readings are annotated with source and availability. Unsupported hardware data is **Unavailable**, never fabricated.
-- Local-first; no analytics, tracking, account collection or mandatory network access.
-- Visual target: supplied SYSTIVRA design boards. Pixel-perfect status is **not yet validated** against emulator screenshots.
+[**Download pre-release**](https://github.com/bren-wp/SYSTIVRA/releases) · [**Explore the website**](website/) · [**View 37 design references**](brending/screens/index.html) · [**Report a problem**](https://github.com/bren-wp/SYSTIVRA/issues)
 
-## Repository layout
+</div>
 
-| Folder | Purpose |
+---
+
+## ✨ Why SYSTIVRA?
+
+Many Android monitoring apps display device numbers without explaining their origin or limitations. SYSTIVRA takes a different approach: **real readings only, explicit availability and a clean native experience.**
+
+- 🚀 **Splash → Dashboard** — no sign-in, registration or onboarding.
+- 🌙 **Dark by default** — consistent midnight, electric blue, violet and mint design tokens.
+- 🔐 **Privacy-first** — no mandatory internet connection, telemetry or user account.
+- ⚡ **Live monitoring** — battery level, charging state and available RAM, storage and thermal status.
+- 🧠 **Hardware intelligence** — inspect CPU architecture, Android build, display properties and sensors.
+- 🩺 **Honest diagnostics** — interactive display/touch test with user-confirmed outcomes.
+- 📊 **Local CSV reports** — export session readings through the Android file picker.
+- 🔎 **Transparent measurements** — CPU/GPU temperatures and FPS are **not invented** when Android restricts them.
+
+## 📱 App gallery
+
+<div align="center">
+
+**SYSTIVRA dashboard and system insights**
+
+<table>
+<tr>
+<td align="center"><img src="brending/rendered/05-dashboard.png" alt="SYSTIVRA Dashboard design reference" width="188"><br><sub>Dashboard</sub></td>
+<td align="center"><img src="brending/rendered/21-live-monitor.png" alt="SYSTIVRA Live Monitor design reference" width="188"><br><sub>Live Monitor</sub></td>
+<td align="center"><img src="brending/rendered/07-cpu-details.png" alt="SYSTIVRA CPU Details design reference" width="188"><br><sub>CPU Details</sub></td>
+<td align="center"><img src="brending/rendered/12-battery-details.png" alt="SYSTIVRA Battery Details design reference" width="188"><br><sub>Battery</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="brending/rendered/14-thermal-details.png" alt="SYSTIVRA Thermal design reference" width="188"><br><sub>Thermal</sub></td>
+<td align="center"><img src="brending/rendered/18-sensor-explorer.png" alt="SYSTIVRA Sensors design reference" width="188"><br><sub>Sensors</sub></td>
+<td align="center"><img src="brending/rendered/26-diagnostics-center.png" alt="SYSTIVRA Diagnostics design reference" width="188"><br><sub>Diagnostics</sub></td>
+<td align="center"><img src="brending/rendered/36-settings.png" alt="SYSTIVRA Settings design reference" width="188"><br><sub>Settings</sub></td>
+</tr>
+</table>
+
+**[Explore the full 37-screen contact sheet](brending/rendered/systivra-37-screen-contact-sheet.png)**
+
+<sub>Visuals above are **design concept exports**, not captured Android emulator screenshots. A pixel-perfect 1:1 match remains a measurable development goal, not a verified claim.</sub>
+
+</div>
+
+## 🧩 Supported features and current status
+
+| Area | Current capabilities | Notes |
+|---|---|---|
+| 🔋 Battery | Level, state, temperature, current where available | Android BatteryManager/broadcast |
+| 🧠 RAM | Total, available, derived used memory | ActivityManager |
+| 💾 Storage | Available, total and used internal volume | StatFs |
+| 🌡️ Thermal | Android platform thermal state (API 29+) | Not a direct CPU temperature |
+| 🖥️ System | Model, vendor, OS, architecture and display | Public Android APIs |
+| 🧭 Sensors | Device-reported sensor inventory | SensorManager |
+| 📈 Monitoring | Foreground in-memory samples, measured battery chart | No background recording |
+| 🧪 Diagnostics | User-confirmed display color / touch test | Other tests planned |
+| 📄 Reports | On-device CSV export via Android file picker | Foreground session |
+| 🛠️ GPU / FPS / benchmarks | Planned | Never simulated as real data |
+| 🎨 Visual QA | Reference gallery, pixel-diff tool and UI tokens | Physical capture validation pending |
+
+### Accuracy over fabricated numbers
+
+Android does not guarantee third-party access to all per-core CPU data, GPU usage, FPS in other apps, or CPU/GPU temperatures. When a metric is not available, **SYSTIVRA says “Unavailable”** and explains its source. We never market a simulated score as device health or measured performance.
+
+## 🎨 Design system
+
+<img src="brending/logo.svg" alt="SYSTIVRA brand wordmark" width="420">
+
+| Design token | Value |
 |---|---|
-| \`android/\` | Kotlin / Jetpack Compose Android client |
-| \`website/\` | Responsive static presentation website |
-| \`brending/\` | SVG logo, app icon, 37 individually rendered vector design references and brand tokens |
-| \`docs/\` | Architecture, capabilities, implementation status, visual QA and roadmap |
+| Background | #0B121E |
+| Card | #152235 |
+| Raised card | #1A2D47 |
+| Cyan accent | #29C7FC |
+| Purple accent | #8B5CF6 |
+| Mint status | #32E5BC |
+| Primary text | #F4F8FC |
 
-## Quick start
+The Android app and [responsive presentation website](website/) share the same SYSTIVRA identity. The [branding directory](brending/) contains vector logos, launcher assets, 37 English-language concepts and PNG previews.
 
-### Website
-Open \`website/index.html\` in a browser, or host \`website/\` as static HTML/CSS/JS.
+## 🏗️ Source structure
 
-### Android
-Open \`android/\` in Android Studio with a compatible JDK 17+ and Android SDK; sync Gradle and run the \`app\` target. Android build and instrumentation tests have not yet been executed in this environment. Inspect the GitHub Actions build check for verification when it finishes.
+- **android/** — Kotlin + Jetpack Compose Android client
+- **website/** — static, responsive presentation website
+- **brending/** — icon, logo, app screen visual references and exported PNG previews
+- **docs/** — development roadmap, architecture and visual comparison criteria
+- **tools/** — branding exporter and strict screenshot pixel-diff utility
+- **.github/workflows/** — reproducible CI checks and preview release automation
 
-## Feature transparency
+## 🚀 Build and install
 
-Included in the initial Android foundation: live battery %, battery temperature where reported, charging status, RAM and available storage, OS/device metadata, sensor inventory, Android thermal status where supported, core device hardware info, local in-memory metric history while on screen, dashboard and navigation.
+Requirements: JDK 17, Android SDK Platform 37.0 and Gradle 9.6.0.
 
-Planned or partially implemented: GPU sampling, per-core frequencies on restricted systems, long-term Room recording, CPU/system workload estimation, benchmark lab, FPS overlay, exports, alert rules and diagnostics requiring privileges. The UI must indicate unavailable data rather than synthesize measurements.
+From the android directory:
 
-## License and attribution
+    gradle :app:testDebugUnitTest :app:assembleDebug :app:bundleRelease
 
-MIT — Copyright © 2026 BRENDIGO. Brand assets are project-original vector assets; external application code is **not copied** from competing Android apps.
+The debug APK is produced under android/app/build/outputs/apk/debug; the release AAB under android/app/build/outputs/bundle/release.
+
+**Signing:** development APKs are debug-signed. Without securely provided release signing credentials, the AAB is **unsigned and not ready for Google Play upload**. A signed production build must use the project's private signing key — never put a keystore or credentials in this repository.
+
+## 📦 Versioned releases
+
+Every milestone is designed to publish:
+- 📱 a clearly labeled debug APK for testing;
+- 📦 an unsigned release AAB for later authorized signing;
+- 🧾 a complete source ZIP (plus GitHub's automatic source archives);
+- 🔒 a SHA-256 checksum file and release notes.
+
+See [Releases](https://github.com/bren-wp/SYSTIVRA/releases) for builds. Preview builds are **not production-certified**. Release automation will not publish artifacts when compilation or unit tests fail.
+
+## 🧪 Quality & roadmap
+
+Production acceptance requires functional and visual checks across phone/tablet sizes, Android API levels, screen density, font scaling, TalkBack, battery/thermal behavior and real devices. The [visual QA protocol](docs/VISUAL-QA.md) measures actual screen diffs against approved references. **No screen is described as 1:1 until that screen has passed visual comparison.**
+
+Further work includes persistent session storage, more hardware diagnostics, safe benchmarks, advanced monitoring and full security/dead-code review. Unsupported features remain clearly labeled in-app.
+
+## 🔏 Privacy & license
+
+No account is required, no telemetry backend is needed for the core app, and no network permission is requested in the current Android build. Session readings are kept in memory; CSV export is initiated by the user.
+
+SYSTIVRA source code is distributed under the [MIT License](LICENSE).
+
+**SYSTIVRA** · Copyright © 2026 **BRENDIGO** · [brendigo.com](https://brendigo.com)
+
+---
+<div align="center"><sub>Created to help users understand their Android hardware — without guesswork.</sub></div>
