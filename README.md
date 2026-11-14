@@ -40,6 +40,9 @@ Many Android monitoring apps display device numbers without explaining their ori
 
 ## 🎨 Google Play branding
 
+**Current Play listing preparation:** static icon and feature artwork are production-sized; the screenshot set is **not yet approved**. Emulator captures showing Android System UI/Quickstep crashes must never be uploaded. [Strict capture workflow](.github/workflows/android-screenshots.yml) only publishes genuine focused-app images when validation succeeds.
+
+
 - [**Download the store artwork package**](brending/google-play/assets/SYSTIVRA-Play-Graphics.zip)
 - [App icon (512 × 512)](brending/google-play/assets/icon-512.png)
 - [Feature graphic (1024 × 500)](brending/google-play/assets/feature-graphic-1024x500.png)
@@ -147,6 +150,9 @@ Every milestone is designed to publish:
 See [Releases](https://github.com/bren-wp/SYSTIVRA/releases) for builds. Preview builds are **not production-certified**. Release automation will not publish artifacts when compilation or unit tests fail.
 
 ## 🧪 Quality & roadmap
+
+Dependency security and version status: [November 2026 stable dependency audit](docs/DEPENDENCY-AUDIT-2026-11.md). Stable AGP 9.4.0 and AndroidX SplashScreen 1.2.0; optional Usage Access now includes an affirmative explanation before Android system settings.
+
 
 The [37-screen implementation matrix](docs/SCREEN-STATUS.md) tracks each route and the as-yet unverified 1:1 pixel comparisons. A dedicated [Android emulator capture workflow](.github/workflows/android-screenshots.yml) generates real screenshot evidence; these are not interchangeable with concept images.
 

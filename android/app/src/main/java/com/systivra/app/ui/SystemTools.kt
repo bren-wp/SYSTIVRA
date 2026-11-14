@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,7 +65,7 @@ fun SensorLiveScreen() {
     val manager = remember(context) { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
     val available = remember(manager) {
         instrumentTypes.mapNotNull { (id, label) ->
-            manager.getDefaultSensor(id)?.let { Triple(id, label, it) }
+            runCatching { manager.getDefaultSensor(id) }.getOrNull()?.let { Triple(id, label, it) }
         }
     }
     var sensorId by rememberSaveable { mutableStateOf(available.firstOrNull()?.first ?: -1) }
@@ -82,10 +84,11 @@ fun SensorLiveScreen() {
                 accuracy = newAccuracy
             }
         }
-        val enabled = selected != null &&
+        val enabled = selected != null && runCatching {
             manager.registerListener(listener, selected, SensorManager.SENSOR_DELAY_UI)
+        }.getOrDefault(false)
         onDispose {
-            if (enabled) manager.unregisterListener(listener)
+            if (enabled) runCatching { manager.unregisterListener(listener) }
         }
     }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -171,6 +174,7 @@ fun AppUsageScreen() {
     val appOps = remember(context) { context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager }
     val usage = remember(context) { context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager }
     var refresh by remember { mutableStateOf(0) }
+    var showUsageDisclosure by remember { mutableStateOf(false) }
     val allowed = remember(refresh) { hasUsageAccess(appOps, context) }
     val top by produceState<List<Pair<String, Long>>>(
         initialValue = emptyList(), key1 = refresh, key2 = allowed
@@ -190,13 +194,20 @@ fun AppUsageScreen() {
             }.getOrDefault(emptyList())
         }
     }
+    if (showUsageDisclosure) UsageAccessConsentDialog(
+        dismiss = { showUsageDisclosure = false },
+        approve = {
+            showUsageDisclosure = false
+            openUsageSettings(context)
+        }
+    )
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("App usage — last 24 hours", fontWeight = FontWeight.Bold, fontSize = 22.sp) }
         item { Text("Optional Usage Access. No statistics leave the device.", color = Muted) }
         if (!allowed) {
             item { DetailCard("Permission required", "Allow Usage Access in Android settings.") }
             item { Button(onClick = {
-                context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                showUsageDisclosure = true
             }) { Text("Open Usage Access settings") } }
         } else {
             item { Button(onClick = { refresh++ }) { Text("Refresh usage") } }
@@ -261,13 +272,21 @@ fun PermissionCenterScreen() {
     val context = LocalContext.current
     val ops = remember(context) { context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager }
     var refresh by remember { mutableStateOf(0) }
+    var showUsageDisclosure by remember { mutableStateOf(false) }
     val usageAllowed = remember(refresh) { hasUsageAccess(ops, context) }
+    if (showUsageDisclosure) UsageAccessConsentDialog(
+        dismiss = { showUsageDisclosure = false },
+        approve = {
+            showUsageDisclosure = false
+            openUsageSettings(context)
+        }
+    )
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("Permission Center", fontWeight = FontWeight.Bold, fontSize = 24.sp) }
         item { DetailCard("Monitoring", "Uses Android platform APIs and requires no dangerous runtime permissions.") }
         item { DetailCard("Network state", "Normal system permission. No Internet permission requested.") }
         item { DetailCard("App Usage Access", if (usageAllowed) "Allowed" else "Not granted") }
-        item { Button(onClick = { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }) {
+        item { Button(onClick = { showUsageDisclosure = true }) {
             Text("Manage Usage Access")
         } }
         item { Button(onClick = { refresh++ }) { Text("Refresh status") } }
@@ -284,4 +303,26 @@ private fun DetailCard(title: String, content: String) {
             Text(content, fontSize = 13.sp, color = Muted)
         }
     }
+}
+
+private fun openUsageSettings(context: Context) {
+    runCatching { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
+}
+
+@Composable
+private fun UsageAccessConsentDialog(dismiss: () -> Unit, approve: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = dismiss,
+        title = { Text("Optional app usage access") },
+        text = {
+            Text(
+                "SYSTIVRA can read which apps were in the foreground and for how long. " +
+                    "Access is optional and used only to display local app activity. " +
+                    "You can revoke it in Android Settings at any time. No usage data is uploaded. " +
+                    "Core hardware monitoring functions without this access."
+            )
+        },
+        confirmButton = { TextButton(onClick = approve) { Text("Continue to Settings") } },
+        dismissButton = { TextButton(onClick = dismiss) { Text("Not now") } }
+    )
 }

@@ -2,13 +2,13 @@ name: SYSTIVRA Android screen QA
 on:
   workflow_dispatch:
   push:
-    branches: [feat/systivra-v070-stability-play-assets]
-    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "android/app/src/main/**"]
+    branches: [feat/systivra-v080-play-compliance-dependency-qa]
+    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/promote-real-play-screenshots.py", "android/app/src/main/**"]
 concurrency:
   group: systivra-visual-qa-${{ github.ref }}
   cancel-in-progress: true
 permissions:
-  contents: read
+  contents: write
 jobs:
   screen-capture:
     runs-on: ubuntu-latest
@@ -47,6 +47,23 @@ jobs:
           script: |
             bash tools/capture-android-screens.sh
             cd android && gradle :app:connectedDebugAndroidTest --no-daemon
+      - name: Validate 8 genuine Play phone captures
+        run: python3 tools/promote-real-play-screenshots.py
+      - name: Commit real screenshots after validation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add brending/google-play/real-screenshots
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets(play): authentic Android emulator captures, pending manual review [skip ci]'
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+      - name: Upload real Google Play candidate images
+        uses: actions/upload-artifact@v4
+        with:
+          name: systivra-real-screenshots-not-yet-manually-approved
+          path: brending/google-play/real-screenshots/*.png
+          if-no-files-found: error
       - name: Resize concept art for diagnostic comparison
         if: always()
         run: |

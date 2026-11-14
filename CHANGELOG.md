@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.0-preview.1] — 2026-11-15
+
+- Updated **AGP 9.4.0** (Gradle 9.6.0 compatible) and **AndroidX SplashScreen 1.2.0** from published stable releases.
+- Kept Kotlin 2.4.21, Compose BOM 2026.09.00, Activity 1.13.0, Lifecycle 2.11.0 and AndroidX Test 1.7.0 on verified stable versions.
+- Added Dependabot maintenance for Gradle libraries and GitHub Actions.
+- Added optional Usage Access disclosure and explicit action before opening Android Settings.
+- Protected sensor discovery/registration/unregistration against vendor-specific runtime errors.
+- Linked the in-app Privacy Center from About.
+- Created a strict real-screenshot promotion gate: only unedited 1080×1920 emulator captures, no simulated screenshots, plus focus/duplicate checks.
+- Android CI, lint, emulator capture and physical-device acceptance remain separate required quality gates; no crash-free or Google Play approval guarantee.
+
 ## [0.7.0-preview.1] — 2026-11-15
 
 - Released editable SYSTIVRA Google Play icon and feature artwork plus exact-sized PNG assets in `brending/google-play/`, with reproducible generation workflow.

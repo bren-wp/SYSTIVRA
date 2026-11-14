@@ -27,3 +27,7 @@
 - [Android app quality](https://developer.android.com/docs/quality-guidelines)
 
 **Status:** Preview. This repository does not certify Play approval, stability across all devices or visual 1:1 compliance.
+
+## November 15, 2026 dependency refresh
+
+AGP upgraded from 9.3.0 to 9.4.0; AndroidX Core SplashScreen upgraded from 1.0.1 to 1.2.0. Other AndroidX/Kotlin libraries remain on published stable versions (not alpha/RC). Dependabot PRs will propose future upgrades after CI checks. The core Android package already targets API 36 and supports minSdk 24. The latest Play listing and screenshot rules still need verification in Play Console before submission; no screenshot is considered store-ready merely because it exists in a CI artifact.
