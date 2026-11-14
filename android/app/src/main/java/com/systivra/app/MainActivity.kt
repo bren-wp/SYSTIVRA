@@ -11,6 +11,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.systivra.app.data.DeviceMetrics
 import com.systivra.app.data.DeviceSnapshot
 import com.systivra.app.ui.AppRoot
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
@@ -31,7 +33,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (isActive) {
-                    runCatching { metrics.capture() }.onSuccess {
+                    runCatching { withContext(Dispatchers.Default) { metrics.capture() } }.onSuccess {
                         live.value = it
                         history.value = (history.value + it).takeLast(60)
                         if (recording.value) recorded.value = (recorded.value + it).takeLast(900)
