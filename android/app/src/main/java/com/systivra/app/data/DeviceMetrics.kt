@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.hardware.Sensor
 import android.hardware.SensorManager
+import android.hardware.display.DisplayManager
+import android.view.Display
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
@@ -43,6 +45,8 @@ class DeviceMetrics(context: Context) {
     private val batteryManager = app.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
     private val sensorManager = app.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val powerManager = app.getSystemService(Context.POWER_SERVICE) as PowerManager
+    private val cpuSampler = CpuSampler()
+    private val detectedGpu by lazy { GpuProbe.read() }
 
     fun capture(): DeviceSnapshot {
         val memory = ActivityManager.MemoryInfo().also(activityManager::getMemoryInfo)
@@ -76,6 +80,20 @@ class DeviceMetrics(context: Context) {
             }
         } else null
         val dm = app.resources.displayMetrics
+        val reportedHz = (app.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
+            .getDisplay(Display.DEFAULT_DISPLAY)?.refreshRate
+        val health = when (intent?.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)) {
+            BatteryManager.BATTERY_HEALTH_GOOD -> "Good (Android reported)"
+            BatteryManager.BATTERY_HEALTH_OVERHEAT -> "Overheat"
+            BatteryManager.BATTERY_HEALTH_DEAD -> "Dead"
+            BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> "Over-voltage"
+            BatteryManager.BATTERY_HEALTH_COLD -> "Cold"
+            BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> "Unspecified failure"
+            else -> null
+        }
+        val millivolts = intent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
+            ?.takeIf { it > 0 }
+        val cpuLoad = cpuSampler.samplePercent()
         val detectedSensors = sensorManager.getSensorList(Sensor.TYPE_ALL)
         val name = listOf(Build.MANUFACTURER, Build.MODEL).filter { !it.isNullOrBlank() }.joinToString(" ")
         return DeviceSnapshot(
@@ -84,15 +102,11 @@ class DeviceMetrics(context: Context) {
             cpu = listOf(
                 Reading("SoC", if (Build.VERSION.SDK_INT >= 31) Build.SOC_MODEL?.takeIf(String::isNotBlank) else null, "Build.SOC_MODEL"),
                 Reading("ABI", Build.SUPPORTED_ABIS.firstOrNull(), "Build.SUPPORTED_ABIS"),
-                Reading("Logical processors", Runtime.getRuntime().availableProcessors().toString(), "Runtime"),
-                Reading("System-wide CPU load", null, "Restricted / device dependent"),
+                Reading("Available processors", Runtime.getRuntime().availableProcessors().toString(), "Runtime.availableProcessors"),
+                Reading("System-wide CPU load", cpuLoad, "/proc/stat delta (only when readable)"),
                 Reading("CPU temperature", null, "Not available via standard Android API")
             ),
-            gpu = listOf(
-                Reading("GPU load", null, "Restricted / device dependent"),
-                Reading("GPU temperature", null, "Restricted / device dependent"),
-                Reading("GPU renderer", null, "Validated EGL probe not implemented")
-            ),
+            gpu = detectedGpu,
             ram = listOf(
                 Reading("Total RAM", bytes(memory.totalMem), "ActivityManager.MemoryInfo"),
                 Reading("Available RAM", bytes(memory.availMem), "ActivityManager.MemoryInfo"),
@@ -108,7 +122,10 @@ class DeviceMetrics(context: Context) {
                 Reading("Charge level", level, "ACTION_BATTERY_CHANGED"),
                 Reading("Charging status", charging, "ACTION_BATTERY_CHANGED"),
                 Reading("Battery temperature", temp, "ACTION_BATTERY_CHANGED"),
-                Reading("Battery current", microAmps?.let { decimal(it / 1000.0) + " mA" }, "BatteryManager")
+                Reading("Battery current", microAmps?.let { decimal(it / 1000.0) + " mA" }, "BatteryManager"),
+                Reading("Android-reported health", health, "ACTION_BATTERY_CHANGED"),
+                Reading("Voltage", millivolts?.let { decimal(it / 1000.0) + " V" }, "ACTION_BATTERY_CHANGED"),
+                Reading("Technology", intent?.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)?.takeIf(String::isNotBlank), "ACTION_BATTERY_CHANGED")
             ),
             thermal = listOf(
                 Reading("Thermal status", thermalState, "PowerManager (API 29+)"),
@@ -117,7 +134,8 @@ class DeviceMetrics(context: Context) {
             ),
             display = listOf(
                 Reading("Logical resolution", dm.widthPixels.toString() + " × " + dm.heightPixels.toString() + " px", "Resources.DisplayMetrics"),
-                Reading("Density", dm.densityDpi.toString() + " dpi", "Resources.DisplayMetrics")
+                Reading("Density", dm.densityDpi.toString() + " dpi", "Resources.DisplayMetrics"),
+                Reading("Reported refresh rate", reportedHz?.takeIf { it > 0 }?.let { decimal(it.toDouble()) + " Hz" }, "DisplayManager")
             ),
             system = listOf(
                 Reading("Manufacturer", Build.MANUFACTURER, "Build"),
