@@ -1,7 +1,7 @@
 # SYSTIVRA — Google Play release gate (November 2026)
 
 ## Verified source configuration
-- Android package: `com.systivra.app`
+- Android package: `com.brendigo.systivra`
 - Android target API: **36**, meets the Play requirement for new app submissions since August 31, 2026.
 - Minimum API: **24**; test on Android 7.0 through Android 16 before publishing.
 - Splash → Dashboard, no registration/login, English language and dark appearance.

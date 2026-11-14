@@ -3,14 +3,14 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 android {
-    namespace = "com.systivra.app"
+    namespace = "com.brendigo.systivra"
     compileSdk = 37
     defaultConfig {
-        applicationId = "com.systivra.app"
+        applicationId = "com.brendigo.systivra"
         minSdk = 24
         targetSdk = 36
-        versionCode = 9
-        versionName = "0.8.0-preview.1"
+        versionCode = 10
+        versionName = "0.9.0-preview.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true }

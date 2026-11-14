@@ -25,7 +25,7 @@ SYSTIVRA by BRENDIGO.
 
 - **Suggested category:** Tools
 - **Primary language:** English (en-US)
-- **Application ID:** `com.systivra.app`
+- **Application ID:** `com.brendigo.systivra`
 - **Target API:** 36 (Android 16)
 - **Minimum API:** 24
 - **Store icon:** [512×512](assets/icon-512.png)
