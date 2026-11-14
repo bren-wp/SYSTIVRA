@@ -7,22 +7,28 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
 /**
- * Private, local SQLite storage for explicitly recorded device metrics.
- * Never records in the background and never stores device IDs or app usage.
+ * Local, private session-based history.
  *
- * At most 900 samples are retained. Writes are called from a dedicated
- * coroutine reader/writer, never from the main thread.
+ * Both schema versions preserve existing user samples. Only explicit
+ * foreground recording writes a sample. The app retains at most 900 samples
+ * globally to bound storage, and can delete one session or all history.
  */
-class RecordingStore(context: Context) : SQLiteOpenHelper(
-    context.applicationContext,
-    "systivra_recordings.db",
-    null,
-    DATABASE_VERSION
-) {
+class RecordingStore(
+    context: Context,
+    databaseName: String = "systivra_recordings.db"
+) : SQLiteOpenHelper(context.applicationContext, databaseName, null, DATABASE_VERSION) {
     override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL(
+            """CREATE TABLE recording_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                started_at INTEGER NOT NULL,
+                ended_at INTEGER
+            )""".trimIndent()
+        )
         db.execSQL(
             """CREATE TABLE metric_samples (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id INTEGER NOT NULL,
                 recorded_at INTEGER NOT NULL,
                 battery_charge TEXT,
                 battery_temp TEXT,
@@ -31,56 +37,136 @@ class RecordingStore(context: Context) : SQLiteOpenHelper(
                 cpu_load TEXT
             )""".trimIndent()
         )
-        db.execSQL("CREATE INDEX idx_metric_samples_time ON metric_samples(recorded_at)")
+        db.execSQL("CREATE INDEX idx_metric_samples_session_time ON metric_samples(session_id, recorded_at)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Schema version 1 only. Future schema revisions must preserve user data.
-        require(oldVersion == newVersion) {
-            "Recording database migration is required for version $oldVersion -> $newVersion"
+        if (oldVersion == 1 && newVersion == 2) {
+            db.execSQL(
+                """CREATE TABLE recording_sessions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    started_at INTEGER NOT NULL,
+                    ended_at INTEGER
+                )""".trimIndent()
+            )
+            db.execSQL("ALTER TABLE metric_samples ADD COLUMN session_id INTEGER NOT NULL DEFAULT 1")
+            db.rawQuery(
+                "SELECT MIN(recorded_at), MAX(recorded_at), COUNT(*) FROM metric_samples", null
+            ).use { row ->
+                if (row.moveToFirst() && row.getLong(2) > 0L) {
+                    val values = ContentValues().apply {
+                        put("id", 1L)
+                        put("started_at", row.getLong(0))
+                        put("ended_at", row.getLong(1))
+                    }
+                    db.insertOrThrow("recording_sessions", null, values)
+                }
+            }
+            db.execSQL("CREATE INDEX idx_metric_samples_session_time ON metric_samples(session_id, recorded_at)")
+            return
         }
+        error("No safe database migration from $oldVersion to $newVersion")
     }
 
-    fun readRecent(): List<DeviceSnapshot> {
-        val rows = mutableListOf<PersistedReading>()
-        readableDatabase.rawQuery(
-            "SELECT recorded_at, battery_charge, battery_temp, free_ram, thermal_status, cpu_load " +
-                "FROM metric_samples ORDER BY id DESC LIMIT ?",
-            arrayOf(MAX_SAMPLES.toString())
-        ).use { cursor ->
+    fun startSession(atMillis: Long = System.currentTimeMillis()): Long =
+        writableDatabase.insertOrThrow(
+            "recording_sessions", null,
+            ContentValues().apply { put("started_at", atMillis) }
+        )
+
+    fun stopSession(id: Long, atMillis: Long = System.currentTimeMillis()) {
+        writableDatabase.update(
+            "recording_sessions",
+            ContentValues().apply { put("ended_at", atMillis) },
+            "id = ? AND ended_at IS NULL",
+            arrayOf(id.toString())
+        )
+    }
+
+    fun readRecent(): List<DeviceSnapshot> = readSamples(null)
+
+    fun readSession(id: Long): List<DeviceSnapshot> = readSamples(id)
+
+    private fun readSamples(sessionId: Long?): List<DeviceSnapshot> {
+        val readings = mutableListOf<PersistedReading>()
+        val statement = "SELECT recorded_at, battery_charge, battery_temp, free_ram, thermal_status, cpu_load " +
+            "FROM metric_samples " +
+            (if (sessionId != null) "WHERE session_id = ? " else "") +
+            "ORDER BY id DESC LIMIT ?"
+        val args = if (sessionId == null) arrayOf(MAX_SAMPLES.toString())
+            else arrayOf(sessionId.toString(), MAX_SAMPLES.toString())
+        readableDatabase.rawQuery(statement, args).use { cursor ->
             while (cursor.moveToNext()) {
-                rows.add(
-                    PersistedReading(
-                        recordedAt = cursor.getLong(0),
-                        batteryCharge = nullable(cursor, 1),
-                        batteryTemperature = nullable(cursor, 2),
-                        availableMemory = nullable(cursor, 3),
-                        thermalStatus = nullable(cursor, 4),
-                        cpuLoad = nullable(cursor, 5)
-                    )
+                readings += PersistedReading(
+                    recordedAt = cursor.getLong(0),
+                    batteryCharge = cursor.stringOrNull(1),
+                    batteryTemperature = cursor.stringOrNull(2),
+                    availableMemory = cursor.stringOrNull(3),
+                    thermalStatus = cursor.stringOrNull(4),
+                    cpuLoad = cursor.stringOrNull(5)
                 )
             }
         }
-        return rows.asReversed().map(PersistedReading::toSnapshot)
+        return readings.asReversed().map(PersistedReading::toSnapshot)
     }
 
-    fun insert(snapshot: DeviceSnapshot) {
+    fun listSessions(): List<RecordedSession> {
+        val sessions = mutableListOf<RecordedSession>()
+        readableDatabase.rawQuery(
+            """SELECT s.id, s.started_at,
+                COALESCE(s.ended_at, MAX(m.recorded_at), s.started_at), COUNT(m.id)
+               FROM recording_sessions s
+               LEFT JOIN metric_samples m ON m.session_id = s.id
+               GROUP BY s.id
+               HAVING COUNT(m.id) > 0
+               ORDER BY s.id DESC LIMIT 100""".trimIndent(),
+            null
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                sessions += RecordedSession(
+                    id = cursor.getLong(0),
+                    startedAt = cursor.getLong(1),
+                    lastSampleAt = cursor.getLong(2),
+                    sampleCount = cursor.getInt(3)
+                )
+            }
+        }
+        return sessions
+    }
+
+    fun insert(sessionId: Long, snapshot: DeviceSnapshot) {
         val values = ContentValues().apply {
+            put("session_id", sessionId)
             put("recorded_at", snapshot.time)
             put("battery_charge", snapshot.battery.getOrNull(0)?.value)
             put("battery_temp", snapshot.battery.getOrNull(2)?.value)
             put("free_ram", snapshot.ram.getOrNull(1)?.value)
             put("thermal_status", snapshot.thermal.getOrNull(0)?.value)
-            put("cpu_load", snapshot.cpu.firstOrNull { it.name == "System-wide CPU load" }?.value)
+            put("cpu_load", snapshot.cpu.firstOrNull {
+                it.name == "System-wide CPU load"
+            }?.value)
         }
         val db = writableDatabase
         db.beginTransaction()
         try {
-            check(db.insertOrThrow("metric_samples", null, values) != -1L)
+            db.insertOrThrow("metric_samples", null, values)
             db.execSQL(
                 "DELETE FROM metric_samples WHERE id NOT IN " +
                     "(SELECT id FROM metric_samples ORDER BY id DESC LIMIT $MAX_SAMPLES)"
             )
+            pruneEmptySessions(db)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun deleteSession(id: Long) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            db.delete("metric_samples", "session_id = ?", arrayOf(id.toString()))
+            db.delete("recording_sessions", "id = ?", arrayOf(id.toString()))
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
@@ -88,19 +174,40 @@ class RecordingStore(context: Context) : SQLiteOpenHelper(
     }
 
     fun clear() {
-        writableDatabase.delete("metric_samples", null, null)
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            db.delete("metric_samples", null, null)
+            db.delete("recording_sessions", null, null)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
-    private fun nullable(cursor: Cursor, index: Int): String? =
-        if (cursor.isNull(index)) null else cursor.getString(index)
+    private fun pruneEmptySessions(db: SQLiteDatabase) {
+        db.execSQL(
+            "DELETE FROM recording_sessions WHERE id NOT IN " +
+                "(SELECT DISTINCT session_id FROM metric_samples)"
+        )
+    }
+
+    private fun Cursor.stringOrNull(column: Int): String? =
+        if (isNull(column)) null else getString(column)
 
     companion object {
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
         const val MAX_SAMPLES = 900
     }
 }
 
-/** Pure immutable value for SQL-to-domain reconstruction; no fabricated fields. */
+data class RecordedSession(
+    val id: Long,
+    val startedAt: Long,
+    val lastSampleAt: Long,
+    val sampleCount: Int
+)
+
 internal data class PersistedReading(
     val recordedAt: Long,
     val batteryCharge: String?,
