@@ -66,6 +66,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.systivra.app.data.RecordedSession
 import com.systivra.app.data.DeviceSnapshot
 import com.systivra.app.data.Reading
 import java.text.SimpleDateFormat
@@ -116,7 +117,8 @@ private val sections = listOf(
     "settings" to "Settings",
     "about" to "About SYSTIVRA",
     "device-detection" to "Device Detection",
-    "system-overview" to "System Overview"
+    "system-overview" to "System Overview",
+    "recording-library" to "Recording Library"
 )
 
 private val enabledRoutes = setOf(
@@ -128,7 +130,7 @@ private val enabledRoutes = setOf(
     "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
     "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
     "recording-session", "session-analysis", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
-    "overlay-configuration"
+    "overlay-configuration", "recording-library"
 )
 
 @Composable
@@ -141,7 +143,12 @@ fun AppRoot(
     onClearRecording: () -> Unit,
     initialRoute: String? = null,
     historyReady: Boolean = true,
-    historyStorageError: String? = null
+    historyStorageError: String? = null,
+    savedSessions: List<RecordedSession> = emptyList(),
+    selectedSessionId: Long? = null,
+    selectedSessionSamples: List<DeviceSnapshot> = emptyList(),
+    onSelectSession: (Long?) -> Unit = {},
+    onDeleteSession: (Long) -> Unit = {}
 ) {
     AppTheme {
         val appContext = LocalContext.current.applicationContext
@@ -223,14 +230,17 @@ fun AppRoot(
                     "cpu-cores" -> CpuCoreInspector(snapshot)
                     "charging-analysis" -> ChargingAnalysis(snapshot, samples)
                     "metric-fullscreen" -> FullscreenMetric(samples)
-                    "reports-export" -> ReportExportScreen(recorded)
+                    "reports-export" -> ReportExportScreen(if (selectedSessionId == null) recorded else selectedSessionSamples)
                     "sensor-live" -> SensorLiveScreen()
                     "network-details" -> NetworkDetailsScreen()
                     "app-usage" -> AppUsageScreen()
                     "alerts" -> AlertsScreen(snapshot)
                     "permission-center" -> PermissionCenterScreen()
                     "recording-session" -> RecordingSessionScreen(recorded, isRecording, historyReady, historyStorageError, onToggleRecording, onClearRecording, ::open)
-                    "session-analysis" -> SessionAnalysisScreen(recorded, ::open)
+                    "recording-library" -> RecordingLibraryScreen(
+                        savedSessions, isRecording, selectedSessionId, onSelectSession, onDeleteSession, ::open
+                    )
+                    "session-analysis" -> SessionAnalysisScreen(if (selectedSessionId == null) recorded else selectedSessionSamples, ::open)
                     "benchmark-center" -> BenchmarkCenterScreen(benchmark, onStart = {
                         benchmark.start(benchmarkScope)
                         open("benchmark-running")
@@ -240,7 +250,7 @@ fun AppRoot(
                     "diagnostic-results" -> DiagnosticResultsScreen()
                     "overlay-configuration" -> OverlayPreviewScreen(snapshot)
                     "hardware-explorer" -> HardwareExplorer(::open)
-                    "live-monitor" -> LiveMonitor(snapshot, samples, recorded, ::open)
+                    "live-monitor" -> LiveMonitor(snapshot, samples, recorded, savedSessions, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
                     "component-test" -> ComponentTest()
                     "history" -> History(samples, ::open)
@@ -389,7 +399,7 @@ private fun MetricScreen(readings: List<Reading>, subtitle: String) {
 }
 
 @Composable
-private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, recorded: List<DeviceSnapshot>, open: (String) -> Unit) {
+private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, recorded: List<DeviceSnapshot>, savedSessions: List<RecordedSession>, open: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
         item { Text("Foreground live monitoring · no fabricated metrics", color = Muted, fontSize = 13.sp) }
         item {
@@ -418,7 +428,7 @@ private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>,
         item { LinkCard("Available RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable") { open("memory-details") } }
         item { LinkCard("Android thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
         item { LinkCard("Live history", "Last " + samples.size + " readings · temporary") { open("history") } }
-        item { LinkCard("Saved recordings", recorded.size.toString() + " samples · local SQLite storage") { open("recording-session") } }
+        item { LinkCard("Recording Library", savedSessions.size.toString() + " saved sessions") { open("recording-library") } }
         item { LinkCard("Session Recorder", "Explicit, foreground-only recording") { open("recording-session") } }
         item { LinkCard("Full-screen chart", "Battery history in focus") { open("metric-fullscreen") } }
         item { LinkCard("Performance HUD", "Customize the in-app overlay preview") { open("overlay-configuration") } }
@@ -521,6 +531,7 @@ private fun Settings(open: (String) -> Unit) {
             }
         }
         item { LinkCard("Reports & CSV export", "Export locally recorded session readings") { open("reports-export") } }
+        item { LinkCard("Recording Library", "View, export or delete selected recordings") { open("recording-library") } }
         item { LinkCard("System Health", "Measurement availability, not a fabricated score") { open("system-health") } }
         item { LinkCard("Privacy Center", "Review access and local data policy") { open("privacy-center") } }
         item { LinkCard("All planned screens", "Browse implemented and upcoming destinations") { open("all-screens") } }

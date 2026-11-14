@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         data class Add(val snapshot: DeviceSnapshot) : StorageAction
         data object Clear : StorageAction
         data class Delete(val sessionId: Long) : StorageAction
-        data class Select(val sessionId: Long) : StorageAction
+        data class Select(val sessionId: Long?) : StorageAction
     }
 
     // A single IO consumer orders the actions, including start/stop and deletion.

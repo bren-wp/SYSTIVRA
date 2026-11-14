@@ -55,7 +55,8 @@ fun RecordingSessionScreen(
                 }
             }
         }
-        item { Button(enabled = readings.isNotEmpty(), onClick = { open("session-analysis") }) { Text("Analyze session") } }
+        item { Button(enabled = readings.isNotEmpty(), onClick = { open("session-analysis") }) { Text("Analyze recorded samples") } }
+        item { Button(onClick = { open("recording-library") }) { Text("Open Recording Library") } }
         item { Button(enabled = readings.isNotEmpty(), onClick = { open("reports-export") }) { Text("Export current session") } }
         item { Text("Sampling pauses when SYSTIVRA leaves the foreground. At most 900 entries are retained locally. Database backup is disabled.", color = Muted, fontSize = 12.sp) }
         if (storageError != null) item { Text(storageError, color = Cyan, fontSize = 12.sp) }
