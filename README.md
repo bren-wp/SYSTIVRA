@@ -31,7 +31,8 @@ Many Android monitoring apps display device numbers without explaining their ori
 - ⚡ **Live monitoring** — battery, charging, RAM, storage, thermal state, and optional system CPU load.
 - 🧠 **Hardware intelligence** — inspect CPU architecture, OpenGL GPU driver, Android version, display refresh rate and sensors.
 - 🩺 **Honest diagnostics** — interactive display/touch and vibration tests with user-confirmed outcomes.
-- 📊 **Recording Library** — separate sessions, recorded sample analysis, local CSV export, safe per-session deletion.
+- 📊 **Recording Library** — separate sessions, recorded sample analysis, local CSV/JSON export, safe per-session deletion.
+- 📉 **Session Insights** — recorded battery trends and temperature statistics, with unavailable-safe calculations.
 - 🔎 **Transparent measurements** — unavailable CPU/GPU temperatures, external FPS and permissions are never invented.
 - 🎮 **Performance Lab** — bounded, cancellable CPU test with a thermal safety cutoff.
 - 🧭 **Live sensors** — observe Android-provided axes, units and calibration status.
@@ -76,7 +77,7 @@ Many Android monitoring apps display device numbers without explaining their ori
 | 🧭 Sensors | Inventory and live values from supported sensors | SensorManager |
 | 📈 Monitoring | Adjustable foreground sampling, battery chart, opt-in grouped SQLite recording library (900 samples total), analysis and per-session export | Local persistence; no background service |
 | 🧪 Diagnostics | User-confirmed display color/touch test with saved result | Camera/microphone/speaker tests not implemented |
-| 📄 Reports | On-device CSV export via Android file picker | Foreground session |
+| 📄 Reports | CSV and JSON export via Android file picker | Explicit user action; no uploads |
 | 🖥️ GPU / CPU | OpenGL renderer/vendor/version; optional /proc/stat load | Hardware temperature and global GPU load may be unavailable |
 | 🧪 Benchmark | Bounded, cancellable 2-second single-worker CPU test | Not comparable with standardized benchmark suites |
 | 🌐 Network | Network state and platform bandwidth estimate | ACCESS_NETWORK_STATE only; no Internet permission |
@@ -145,7 +146,7 @@ Further work includes richer multi-session analysis, cross-app overlay support, 
 
 ## 🔏 Privacy & license
 
-No account is required, no telemetry backend is needed for the core app, and no INTERNET permission is requested in the current Android build (ACCESS_NETWORK_STATE is used only to inspect network status). Live session readings remain in memory; only user-started recordings are saved to a private local SQLite database (up to 900 samples across sessions), without Android backup. CSV export is initiated by the user.
+No account is required, no telemetry backend is needed for the core app, and no INTERNET permission is requested in the current Android build (ACCESS_NETWORK_STATE is used only to inspect network status). Live session readings remain in memory; only user-started recordings are saved to a private local SQLite database (up to 900 samples across sessions), without Android backup. CSV/JSON export is initiated by the user.
 
 SYSTIVRA source code is distributed under the [MIT License](LICENSE).
 

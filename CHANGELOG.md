@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0-preview.1] — 2026-11-14
+
+- Introduced **Session Insights** using measured battery charge and temperature with unavailable-safe calculations and a real historical chart.
+- Added optional net battery percentage-point rate only for sufficiently long sample intervals, with explicit limitations.
+- Implemented on-device JSON export alongside CSV using the system document picker.
+- JSON v1 schema preserves explicit nulls, escapes special characters and excludes device identity.
+- Added deterministic JUnit tests for trends, short intervals, unknown data and JSON encoding.
+- Updated navigation, Recording Library, README and privacy documentation.
+- Enhanced emulator screenshot QA inventory: 36 original app routes plus Recording Library and Session Insights. The system Splash requires a separate capture.
+- **Pixel-perfect 1:1 is unverified**. No newly generated concept reference for Session Insights was claimed.
+
 ## [0.5.0-preview.1] — 2026-11-14
 
 - Session-based SQLite schema v2 with non-destructive v1 data migration.

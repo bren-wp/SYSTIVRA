@@ -10,7 +10,7 @@ Use JDK 17+, Gradle 9.6.0 and Android SDK Platform 37.0:
 
 The APK is a development **debug build**. The release AAB is **unsigned** until an authorized private signing key is supplied. Never commit a key or password.
 
-## Implemented capabilities (v0.5.0-preview.1)
+## Implemented capabilities (v0.6.0-preview.1)
 
 - Battery status, charge level, temperature, current if reported, Android-reported health and voltage.
 - RAM and internal storage, refresh rate and system/device metadata.
@@ -19,11 +19,13 @@ The APK is a development **debug build**. The release AAB is **unsigned** until 
 - Live SensorManager axes and units, unregistered when the user leaves that screen.
 - Optional Usage Access statistics after Android system authorization.
 - Network state without Internet access.
-- User-controlled grouped SQLite sessions (max 900 total samples), per-session analysis, deletion and CSV export; the database stays private and is not backed up.
+- User-controlled grouped SQLite sessions (max 900 total samples), per-session analysis, deletion and CSV/JSON export; the database stays private and is not backed up.
 - Local on-screen battery/thermal alert thresholds, adjustable sampling interval.
 - Two-second bounded CPU microbenchmark with cancel and Android thermal safeguard.
 - User-confirmed display and touch diagnostic results.
 - Customizable in-app HUD preview (not an overlay over other apps).
+- Session Insights: actual battery percentage range, mean, net change, observed rate (only when time span is sufficient), temperature distribution and reported thermal-state counts.
+- JSON reports with explicit null for missing metrics; no device identifiers or account details in report.
 - Clear Unavailable states when restricted or unsupported.
 
 ## Known limitations
@@ -43,3 +45,9 @@ The SQLite schema is version 2. Its migration from v1 retains all existing metri
 ## Diagnostic additions
 
 A manual vibration pulse test requires only the normal Android VIBRATE permission, supports API 24+, and stores a **user-confirmed** result. It does not automatically classify hardware as functional.
+
+## v0.6 report integrity
+
+The JSON document follows a documented v1 schema and uses RFC 8259 string escaping. Its metrics include timestamp, battery level and temperature, free RAM, thermal state and optional CPU load. Missing metrics are represented by JSON null rather than zero. CSV remains available. Both formats require the user to choose a destination in the Android system document picker; no background upload occurs.
+
+The session insights calculations never infer battery health, capacity or remaining lifetime. A net battery percentage-point change per hour is shown only when there are at least two valid samples separated by a minute or more; the result is not a certified charging/discharging rate.

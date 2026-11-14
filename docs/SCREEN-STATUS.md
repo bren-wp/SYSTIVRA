@@ -58,7 +58,7 @@ References exported: **37**. Each PNG is a **concept rendering**, not a verified
 ## What remains outside the 37 routable destinations
 
 - Cross-application overlay / foreground-service permissions are **not implemented**. The HUD page is an interactive in-app preview only.
-- Persisted history (Room/SQL), advanced GPU/CPU temperatures and multi-platform benchmarking remain future work.
+- Recorded history exists in private SQLite. Additional long-term analytics, restricted GPU/CPU temperatures and broader benchmarks remain future work.
 - Test results for microphone, speaker, camera and all hardware sensors are not yet implemented.
 - Do not treat nonfunctional concepts as production-complete merely because their routes exist.
 
@@ -69,3 +69,7 @@ Foreground-only user recordings are now stored in an app-private SQLite database
 ## v0.5 session-management addition
 
 The Recording Library is an additional real in-app screen beyond the original 37 design references. It inherits the shared Compose design system but has **no approved image baseline yet**; do not count its implementation as visual 1:1 compliance. The existing 37 design references and new Recording Library both require real screenshot comparison and device tests. The display/touch and vibration diagnostics remain manually user-confirmed.
+
+## v0.6 analytics and visual scope
+
+**Session Insights** is an additional screen beyond the 37 reference concepts. The recording library and Session Insights have no approved pixel-perfect baseline and must not be called 1:1. Automated emulator capture now targets 38 app screens (36 original in-app references plus these two extra screens). The Android system Splash must be captured and reviewed independently. Actual image diffs, touch interactions, font scaling and multiple device densities remain mandatory acceptance gates.

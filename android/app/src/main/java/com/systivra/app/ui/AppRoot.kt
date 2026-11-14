@@ -653,7 +653,7 @@ private fun About() {
             PanelCard {
                 Text("SYSTIVRA", color = Cyan, fontWeight = FontWeight.Black, fontSize = 28.sp)
                 Text("Advanced Device Monitor & Diagnostics", color = Muted)
-                Text("Version 0.5.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Version 0.6.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
             }
         }
         item {
