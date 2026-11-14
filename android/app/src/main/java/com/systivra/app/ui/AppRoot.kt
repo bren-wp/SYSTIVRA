@@ -1,6 +1,7 @@
 package com.systivra.app.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,6 +32,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -46,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
@@ -170,7 +173,14 @@ fun AppRoot(
                                 }, contentDescription = label, modifier = Modifier.size(24.dp))
                             },
                             label = { Text(label, fontSize = 10.sp) },
-                            alwaysShowLabel = true
+                            alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Purple,
+                                selectedTextColor = Purple,
+                                indicatorColor = Color(0xFF27224B),
+                                unselectedIconColor = Muted,
+                                unselectedTextColor = Muted
+                            )
                         )
                     }
                 }
@@ -244,7 +254,7 @@ fun AppRoot(
 @Composable
 private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, open: (String) -> Unit) {
     val cards = listOf(
-        Triple("CPU", snapshot.cpu.firstOrNull()?.display ?: "Unavailable", "cpu-details"),
+        Triple("CPU", snapshot.cpu.firstOrNull { it.name == "System-wide CPU load" }?.display ?: "Unavailable", "cpu-details"),
         Triple("RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable", "memory-details"),
         Triple("Storage", snapshot.storage.getOrNull(1)?.display ?: "Unavailable", "storage-details"),
         Triple("Battery", snapshot.battery.firstOrNull()?.display ?: "Unavailable", "battery-details")
@@ -262,10 +272,27 @@ private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, o
             Text(snapshot.name, color = Muted, fontSize = 14.sp)
         }
         item {
-            PanelCard {
-                Text("Device Overview", fontWeight = FontWeight.Bold, fontSize = 19.sp)
-                Text("Actual Android data · updates every 2 seconds while visible.",
-                    fontSize = 12.sp, color = Muted)
+            PanelCard(onClick = { open("device-and-android") }) {
+                Row(horizontalArrangement = Arrangement.spacedBy(13.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        Modifier.size(58.dp)
+                            .background(
+                                Brush.linearGradient(listOf(Color(0xFF128FED), Purple, Color(0xFF172E65))),
+                                RoundedCornerShape(14.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("S", color = Color.White, fontWeight = FontWeight.Black, fontSize = 32.sp)
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(snapshot.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        Text("Android " + (snapshot.system.firstOrNull { it.name == "Android" }?.display ?: "Unavailable"),
+                            fontSize = 12.sp, color = Muted)
+                        Text(if (snapshot.time > 0) "● MONITORING ACTIVE" else "Detecting device…",
+                            fontSize = 11.sp, color = Mint)
+                    }
+                }
+                Text("View system information ›", color = Cyan, fontSize = 12.sp)
             }
         }
         items(cards.chunked(2)) { pair ->
@@ -567,9 +594,16 @@ private fun PanelCard(onClick: (() -> Unit)? = null, content: @Composable () -> 
             if (onClick == null) Modifier else Modifier.clickable(onClick = onClick)
         ),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Panel)
+        colors = CardDefaults.cardColors(containerColor = Panel),
+        border = BorderStroke(1.dp, Color(0xFF233A5A)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            Modifier.fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Raised, Panel)))
+                .padding(17.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             content()
         }
     }
