@@ -57,6 +57,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -272,6 +273,7 @@ private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, o
         Triple("Battery", snapshot.battery.firstOrNull()?.display ?: "Unavailable", "battery-details")
     )
     LazyColumn(
+        modifier = Modifier.testTag("dashboard-scroll"),
         contentPadding = PaddingValues(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
