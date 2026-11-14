@@ -263,7 +263,7 @@ fun AppRoot(
                     "component-test" -> ComponentTest()
                     "history" -> History(samples, ::open)
                     "settings" -> Settings(::open)
-                    "about" -> About()
+                    "about" -> About(::open)
                     "all-screens" -> ScreenCatalog(::open)
                     "cpu-details" -> MetricScreen(snapshot.cpu, "Platform processor capabilities")
                     "gpu-details" -> MetricScreen(snapshot.gpu, "GPU readings are restricted on many devices")
@@ -648,7 +648,7 @@ private fun Planned(title: String) {
 }
 
 @Composable
-private fun About() {
+private fun About(open: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             PanelCard {
@@ -663,6 +663,7 @@ private fun About() {
                 Text("No account or tracking, and no Internet permission. Optional Usage Access is user-controlled.", color = Muted)
             }
         }
+        item { LinkCard("Privacy details", "See data retention, export and optional permissions") { open("privacy-center") } }
         item {
             PanelCard {
                 Text("Transparent measurements", fontWeight = FontWeight.Bold)
