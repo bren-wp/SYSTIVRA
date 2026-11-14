@@ -14,6 +14,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +41,7 @@ import java.util.TimeZone
 @Composable
 fun ReportExportScreen(samples: List<DeviceSnapshot>) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var result by remember { mutableStateOf("No report exported yet.") }
     val snapshot = samples.toList()
     val csvDocument = rememberLauncherForActivityResult(
@@ -45,13 +50,18 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
         if (uri == null) {
             result = "Export canceled."
         } else {
-            result = runCatching {
-                val csv = buildSessionCsv(snapshot)
-                val output = context.contentResolver.openOutputStream(uri)
-                    ?: error("The selected document cannot be opened.")
-                output.bufferedWriter(Charsets.UTF_8).use { it.write(csv) }
-                "Exported " + snapshot.size + " samples successfully."
-            }.getOrElse { "Export failed: " + (it.localizedMessage ?: "Unknown error") }
+            result = "Exporting CSV…"
+            scope.launch {
+                result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val csv = buildSessionCsv(snapshot)
+                        val output = context.contentResolver.openOutputStream(uri)
+                            ?: error("The selected document cannot be opened.")
+                        output.bufferedWriter(Charsets.UTF_8).use { it.write(csv) }
+                        "Exported " + snapshot.size + " CSV samples successfully."
+                    }.getOrElse { "Export failed: " + (it.localizedMessage ?: "Unknown error") }
+                }
+            }
         }
     }
     val jsonDocument = rememberLauncherForActivityResult(
@@ -60,14 +70,19 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
         if (uri == null) {
             result = "Export canceled."
         } else {
-            result = runCatching {
-                val output = context.contentResolver.openOutputStream(uri)
-                    ?: error("The selected document cannot be opened.")
-                output.bufferedWriter(Charsets.UTF_8).use {
-                    it.write(buildSessionJson(snapshot))
+            result = "Exporting JSON…"
+            scope.launch {
+                result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val output = context.contentResolver.openOutputStream(uri)
+                            ?: error("The selected document cannot be opened.")
+                        output.bufferedWriter(Charsets.UTF_8).use {
+                            it.write(buildSessionJson(snapshot))
+                        }
+                        "Exported " + snapshot.size + " JSON samples successfully."
+                    }.getOrElse { "Export failed: " + (it.localizedMessage ?: "Unknown error") }
                 }
-                "Exported " + snapshot.size + " JSON samples successfully."
-            }.getOrElse { "Export failed: " + (it.localizedMessage ?: "Unknown error") }
+            }
         }
     }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
