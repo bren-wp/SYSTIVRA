@@ -1,4 +1,5 @@
 name: Publish SYSTIVRA preview release
+# Re-run after fixing Android instrumented-test compilation.
 on:
   workflow_dispatch:
   push:
