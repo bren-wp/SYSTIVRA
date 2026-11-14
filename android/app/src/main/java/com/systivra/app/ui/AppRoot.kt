@@ -1,5 +1,10 @@
 package com.systivra.app.ui
 
+import android.content.Context
+import android.os.Build
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.os.VibrationEffect
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -465,6 +470,20 @@ private fun ComponentTest() {
     var color by rememberSaveable { mutableIntStateOf(0) }
     var verdict by rememberSaveable { mutableStateOf(verdictPrefs.getString("display_touch", "Not assessed") ?: "Not assessed") }
     val colors = listOf(Color.Red, Color.Green, Color.Blue, Color.White, Color.Black)
+    val vibrator = remember(context) {
+        if (Build.VERSION.SDK_INT >= 31) {
+            (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager)
+                ?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            (context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)
+        }
+    }
+    val hasVibrator = vibrator?.hasVibrator() == true
+    var vibrationFeedback by rememberSaveable { mutableStateOf("Not tested") }
+    var vibrationVerdict by rememberSaveable {
+        mutableStateOf(verdictPrefs.getString("vibration", "Not assessed") ?: "Not assessed")
+    }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("Tap the panel and inspect each color. Confirm the result manually.", color = Muted) }
         item {
@@ -491,6 +510,41 @@ private fun ComponentTest() {
                     Button(onClick = {
                         verdict = "Fail (user-confirmed)"
                         verdictPrefs.edit().putString("display_touch", verdict).apply()
+                    }) { Text("Fail") }
+                }
+            }
+        }
+        item {
+            PanelCard {
+                Text("Vibration test", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(
+                    if (hasVibrator) "Trigger a short pulse and confirm whether you feel it."
+                    else "This device does not report a vibrator.",
+                    color = Muted, fontSize = 13.sp
+                )
+                Text(vibrationFeedback, color = Muted, fontSize = 12.sp)
+                Button(enabled = hasVibrator, onClick = {
+                    vibrationFeedback = runCatching {
+                        if (Build.VERSION.SDK_INT >= 26) {
+                            vibrator?.vibrate(
+                                VibrationEffect.createOneShot(200L, VibrationEffect.DEFAULT_AMPLITUDE)
+                            )
+                        } else {
+                            @Suppress("DEPRECATION")
+                            vibrator?.vibrate(200L)
+                        }
+                        "Pulse requested. Did you feel it?"
+                    }.getOrElse { "Vibration could not be started" }
+                }) { Text("Test vibration") }
+                Text("User-confirmed result: " + vibrationVerdict, color = Mint)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(enabled = hasVibrator, onClick = {
+                        vibrationVerdict = "Pass (user-confirmed)"
+                        verdictPrefs.edit().putString("vibration", vibrationVerdict).apply()
+                    }) { Text("Pass") }
+                    Button(enabled = hasVibrator, onClick = {
+                        vibrationVerdict = "Fail (user-confirmed)"
+                        verdictPrefs.edit().putString("vibration", vibrationVerdict).apply()
                     }) { Text("Fail") }
                 }
             }
