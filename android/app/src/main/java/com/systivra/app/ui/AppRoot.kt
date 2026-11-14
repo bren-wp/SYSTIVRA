@@ -108,6 +108,7 @@ private val sections = listOf(
     "metric-fullscreen" to "Metric Fullscreen",
     "recording-session" to "Recording Session",
     "session-analysis" to "Session Analysis",
+    "session-insights" to "Session Insights",
     "alerts" to "Alerts",
     "diagnostics-center" to "Diagnostics Center",
     "component-test" to "Component Test",
@@ -134,7 +135,7 @@ private val enabledRoutes = setOf(
     "about", "device-detection", "system-overview",
     "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
     "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
-    "recording-session", "session-analysis", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
+    "recording-session", "session-analysis", "session-insights", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
     "overlay-configuration", "recording-library"
 )
 
@@ -246,6 +247,7 @@ fun AppRoot(
                         savedSessions, isRecording, selectedSessionId, onSelectSession, onDeleteSession, ::open
                     )
                     "session-analysis" -> SessionAnalysisScreen(if (selectedSessionId == null) recorded else selectedSessionSamples, ::open)
+                    "session-insights" -> SessionInsightsScreen(if (selectedSessionId == null) recorded else selectedSessionSamples, ::open)
                     "benchmark-center" -> BenchmarkCenterScreen(benchmark, onStart = {
                         benchmark.start(benchmarkScope)
                         open("benchmark-running")
@@ -434,6 +436,7 @@ private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>,
         item { LinkCard("Android thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
         item { LinkCard("Live history", "Last " + samples.size + " readings · temporary") { open("history") } }
         item { LinkCard("Recording Library", savedSessions.size.toString() + " saved sessions") { open("recording-library") } }
+        item { LinkCard("Session Insights", "Review battery trends from saved samples") { open("session-insights") } }
         item { LinkCard("Session Recorder", "Explicit, foreground-only recording") { open("recording-session") } }
         item { LinkCard("Full-screen chart", "Battery history in focus") { open("metric-fullscreen") } }
         item { LinkCard("Performance HUD", "Customize the in-app overlay preview") { open("overlay-configuration") } }
@@ -584,7 +587,8 @@ private fun Settings(open: (String) -> Unit) {
                 )
             }
         }
-        item { LinkCard("Reports & CSV export", "Export locally recorded session readings") { open("reports-export") } }
+        item { LinkCard("Reports · CSV & JSON", "Export locally recorded readings") { open("reports-export") } }
+        item { LinkCard("Session Insights", "Battery trends and measured thermal statistics") { open("session-insights") } }
         item { LinkCard("Recording Library", "View, export or delete selected recordings") { open("recording-library") } }
         item { LinkCard("System Health", "Measurement availability, not a fabricated score") { open("system-health") } }
         item { LinkCard("Privacy Center", "Review access and local data policy") { open("privacy-center") } }

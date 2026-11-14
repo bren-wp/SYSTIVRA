@@ -85,7 +85,8 @@ fun SessionAnalysisScreen(readings: List<DeviceSnapshot>, open: (String) -> Unit
             item { SummaryCard("Average battery charge", if (charge.isNotEmpty()) oneDecimal(charge.average()) + "%" else "Unavailable") }
             item { SummaryCard("Thermal states", if (status.isEmpty()) "Unavailable" else
                 status.entries.joinToString("\n") { it.key + ": " + it.value.toString() }) }
-            item { Button(onClick = { open("reports-export") }) { Text("Export CSV") } }
+            item { Button(onClick = { open("session-insights") }) { Text("Detailed session insights") } }
+            item { Button(onClick = { open("reports-export") }) { Text("Export CSV or JSON") } }
         }
     }
 }

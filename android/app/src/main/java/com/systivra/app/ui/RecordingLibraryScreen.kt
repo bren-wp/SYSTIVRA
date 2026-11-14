@@ -88,6 +88,10 @@ fun RecordingLibraryScreen(
                         onSelect(null)
                         open("session-analysis")
                     }) { Text("Analyze all") }
+                    Button(onClick = {
+                        onSelect(null)
+                        open("session-insights")
+                    }) { Text("All session insights") }
                 }
             }
         }
@@ -122,8 +126,12 @@ fun RecordingLibraryScreen(
                     }) { Text("Analyze") }
                     OutlinedButton(onClick = {
                         onSelect(session.id)
+                        open("session-insights")
+                    }) { Text("Session insights") }
+                    OutlinedButton(onClick = {
+                        onSelect(session.id)
                         open("reports-export")
-                    }) { Text("Export CSV") }
+                    }) { Text("Export CSV or JSON") }
                     OutlinedButton(
                         enabled = !isRecording,
                         onClick = { pendingDelete = session }
