@@ -2,7 +2,7 @@ name: SYSTIVRA Android screen QA
 on:
   workflow_dispatch:
   push:
-    branches: [feat/systivra-v080-play-compliance-dependency-qa]
+    branches: [feat/systivra-v090-brendigo-application-id]
     paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/promote-real-play-screenshots.py", "android/app/src/main/**"]
 concurrency:
   group: systivra-visual-qa-${{ github.ref }}
@@ -34,7 +34,7 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon
       - name: Install capture validator
         run: python3 -m pip install --quiet Pillow
-      - name: Capture emulator screens
+      - name: Capture actual Brendigo application screens
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
