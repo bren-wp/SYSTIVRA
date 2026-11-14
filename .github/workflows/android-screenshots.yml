@@ -38,7 +38,10 @@ jobs:
           profile: pixel_6
           emulator-boot-timeout: 600
           disable-animations: true
-          script: bash tools/capture-android-screens.sh
+          script: |
+            cd android && gradle :app:connectedDebugAndroidTest --no-daemon
+            cd ..
+            bash tools/capture-android-screens.sh
       - name: Resize design concepts for comparison
         if: always()
         run: |
