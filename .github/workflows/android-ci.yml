@@ -29,6 +29,8 @@ jobs:
       - name: Assemble debug APK
         working-directory: android
         run: gradle :app:lintDebug :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:bundleRelease --stacktrace --no-daemon
+      - name: Verify compiled APK has the exact BRENDIGO ID
+        run: bash tools/verify_apk_id.sh
       - uses: actions/upload-artifact@v4
         with:
           name: systivra-debug-apk

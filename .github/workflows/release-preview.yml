@@ -37,6 +37,8 @@ jobs:
       - name: Test, build debug APK and unsigned release AAB
         working-directory: android
         run: gradle :app:lintDebug :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:bundleRelease --no-daemon --stacktrace
+      - name: Verify compiled APK has the exact BRENDIGO ID
+        run: bash tools/verify_apk_id.sh
       - name: Package full source, builds and checksums
         shell: bash
         run: |
