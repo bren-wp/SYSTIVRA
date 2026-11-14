@@ -99,7 +99,8 @@ private val enabledRoutes = setOf(
     "memory-details", "storage-details", "battery-details", "thermal-details",
     "display-details", "device-and-android", "sensor-explorer", "live-monitor",
     "diagnostics-center", "component-test", "history", "settings",
-    "about", "device-detection", "system-overview"
+    "about", "device-detection", "system-overview",
+    "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export"
 )
 
 @Composable
@@ -151,11 +152,17 @@ fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
                 }
                 when (route) {
                     "dashboard" -> Dashboard(snapshot, ::open)
+                    "system-health" -> SystemHealth(snapshot, ::open)
+                    "privacy-center" -> PrivacyCenter()
+                    "cpu-cores" -> CpuCoreInspector(snapshot)
+                    "charging-analysis" -> ChargingAnalysis(snapshot, samples)
+                    "metric-fullscreen" -> FullscreenMetric(samples)
+                    "reports-export" -> ReportExportScreen(samples)
                     "hardware-explorer" -> HardwareExplorer(::open)
                     "live-monitor" -> LiveMonitor(snapshot, samples, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
                     "component-test" -> ComponentTest()
-                    "history" -> History(samples)
+                    "history" -> History(samples, ::open)
                     "settings" -> Settings(::open)
                     "about" -> About()
                     "all-screens" -> ScreenCatalog(::open)
@@ -220,6 +227,7 @@ private fun Dashboard(snapshot: DeviceSnapshot, open: (String) -> Unit) {
         item { LinkCard("Thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
         item { LinkCard("Hardware explorer", "CPU, GPU, sensors and device properties") { open("hardware-explorer") } }
         item { LinkCard("Monitoring", "Live battery, RAM and thermal readings") { open("live-monitor") } }
+        item { LinkCard("Charging analysis", "Compare measured battery readings") { open("charging-analysis") } }
         item { LinkCard("Diagnostics", "Interactive tests, no fake health scores") { open("diagnostics-center") } }
     }
 }
@@ -357,6 +365,9 @@ private fun Settings(open: (String) -> Unit) {
                 Text("Refreshes every 2 seconds only while the Activity is started.", color = Muted)
             }
         }
+        item { LinkCard("Reports & CSV export", "Export locally recorded session readings") { open("reports-export") } }
+        item { LinkCard("System Health", "Measurement availability, not a fabricated score") { open("system-health") } }
+        item { LinkCard("Privacy Center", "Review access and local data policy") { open("privacy-center") } }
         item { LinkCard("All planned screens", "Browse implemented and upcoming destinations") { open("all-screens") } }
         item { LinkCard("Hardware Explorer", "See device data") { open("hardware-explorer") } }
         item { LinkCard("About SYSTIVRA", "Version, privacy and source limitations") { open("about") } }
@@ -364,12 +375,13 @@ private fun Settings(open: (String) -> Unit) {
 }
 
 @Composable
-private fun History(samples: List<DeviceSnapshot>) {
+private fun History(samples: List<DeviceSnapshot>, open: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Text("In-memory session history · " + samples.size + " samples", color = Muted)
             Text("Not written to disk. Persistent recording is planned.", color = Muted, fontSize = 12.sp)
         }
+        item { LinkCard("Export session as CSV", "Choose a destination using Android Files") { open("reports-export") } }
         items(samples.reversed()) { entry ->
             PanelCard {
                 Text(SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(entry.time)),
@@ -413,7 +425,7 @@ private fun About() {
             PanelCard {
                 Text("SYSTIVRA", color = Cyan, fontWeight = FontWeight.Black, fontSize = 28.sp)
                 Text("Advanced Device Monitor & Diagnostics", color = Muted)
-                Text("Version 0.1.0 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Version 0.2.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
             }
         }
         item {
