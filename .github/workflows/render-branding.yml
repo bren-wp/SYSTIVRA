@@ -1,0 +1,36 @@
+name: Export SYSTIVRA screen PNGs
+on:
+  push:
+    paths:
+      - "brending/screens/*.svg"
+      - "brending/icon.svg"
+      - "brending/logo.svg"
+      - "brending/app-icon.svg"
+      - "tools/render-branding.mjs"
+      - ".github/workflows/render-branding.yml"
+permissions:
+  contents: write
+jobs:
+  render:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install renderer
+        run: npm install --no-save sharp@0.34.4
+      - name: Generate PNGs
+        run: node tools/render-branding.mjs
+      - name: Commit PNG previews
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add brending/rendered
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: render SYSTIVRA PNG concept gallery"
+            git fetch origin "$GITHUB_REF_NAME"
+            git rebase "origin/$GITHUB_REF_NAME"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
