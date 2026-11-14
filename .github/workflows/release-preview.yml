@@ -31,7 +31,7 @@ jobs:
           "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "9.6.0"
+          gradle-version: "9.9.1"
       - name: Test, build debug APK and unsigned release AAB
         working-directory: android
         run: gradle :app:lintDebug :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:bundleRelease --no-daemon --stacktrace
