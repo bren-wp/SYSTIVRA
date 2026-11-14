@@ -124,13 +124,16 @@ fun AppRoot(
     recorded: List<DeviceSnapshot>,
     isRecording: Boolean,
     onToggleRecording: () -> Unit,
-    onClearRecording: () -> Unit
+    onClearRecording: () -> Unit,
+    initialRoute: String? = null
 ) {
     AppTheme {
         val appContext = LocalContext.current.applicationContext
         val benchmark = remember { BenchmarkController(appContext) }
         val benchmarkScope = rememberCoroutineScope()
-        var route by rememberSaveable { mutableStateOf("dashboard") }
+        var route by rememberSaveable {
+            mutableStateOf(initialRoute?.takeIf { id -> sections.any { it.first == id } } ?: "dashboard")
+        }
         var parent by rememberSaveable { mutableStateOf("dashboard") }
         fun open(id: String) {
             if (route != id) {

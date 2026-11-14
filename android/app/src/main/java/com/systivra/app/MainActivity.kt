@@ -1,6 +1,7 @@
 package com.systivra.app
 
 import android.os.Bundle
+import android.content.pm.ApplicationInfo
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -47,9 +48,12 @@ class MainActivity : ComponentActivity() {
             val samples = history.collectAsStateWithLifecycle().value
             val recordedSamples = recorded.collectAsStateWithLifecycle().value
             val isRecording = recording.collectAsStateWithLifecycle().value
+            val qaRoute = if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0)
+                intent?.getStringExtra("qa_route") else null
             AppRoot(snapshot, samples, recordedSamples, isRecording,
                 onToggleRecording = { recording.value = !recording.value },
-                onClearRecording = { if (!recording.value) recorded.value = emptyList() }
+                onClearRecording = { if (!recording.value) recorded.value = emptyList() },
+                initialRoute = qaRoute
             )
         }
     }
