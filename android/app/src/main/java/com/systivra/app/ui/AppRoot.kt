@@ -34,6 +34,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -106,12 +109,24 @@ private val enabledRoutes = setOf(
     "display-details", "device-and-android", "sensor-explorer", "live-monitor",
     "diagnostics-center", "component-test", "history", "settings",
     "about", "device-detection", "system-overview",
-    "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export"
+    "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
+    "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
+    "recording-session", "session-analysis", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results"
 )
 
 @Composable
-fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
+fun AppRoot(
+    snapshot: DeviceSnapshot,
+    samples: List<DeviceSnapshot>,
+    recorded: List<DeviceSnapshot>,
+    isRecording: Boolean,
+    onToggleRecording: () -> Unit,
+    onClearRecording: () -> Unit
+) {
     AppTheme {
+        val appContext = LocalContext.current.applicationContext
+        val benchmark = remember { BenchmarkController(appContext) }
+        val benchmarkScope = rememberCoroutineScope()
         var route by rememberSaveable { mutableStateOf("dashboard") }
         var parent by rememberSaveable { mutableStateOf("dashboard") }
         fun open(id: String) {
@@ -170,7 +185,21 @@ fun AppRoot(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
                     "cpu-cores" -> CpuCoreInspector(snapshot)
                     "charging-analysis" -> ChargingAnalysis(snapshot, samples)
                     "metric-fullscreen" -> FullscreenMetric(samples)
-                    "reports-export" -> ReportExportScreen(samples)
+                    "reports-export" -> ReportExportScreen(if (recorded.isNotEmpty()) recorded else samples)
+                    "sensor-live" -> SensorLiveScreen()
+                    "network-details" -> NetworkDetailsScreen()
+                    "app-usage" -> AppUsageScreen()
+                    "alerts" -> AlertsScreen(snapshot)
+                    "permission-center" -> PermissionCenterScreen()
+                    "recording-session" -> RecordingSessionScreen(recorded, isRecording, onToggleRecording, onClearRecording, ::open)
+                    "session-analysis" -> SessionAnalysisScreen(recorded, ::open)
+                    "benchmark-center" -> BenchmarkCenterScreen(benchmark, onStart = {
+                        benchmark.start(benchmarkScope)
+                        open("benchmark-running")
+                    })
+                    "benchmark-running" -> BenchmarkRunningScreen(benchmark, ::open)
+                    "benchmark-results" -> BenchmarkResultsScreen(benchmark)
+                    "diagnostic-results" -> DiagnosticResultsScreen()
                     "hardware-explorer" -> HardwareExplorer(::open)
                     "live-monitor" -> LiveMonitor(snapshot, samples, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
@@ -263,6 +292,7 @@ private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, o
         item { LinkCard("Hardware explorer", "CPU, GPU, sensors and device properties") { open("hardware-explorer") } }
         item { LinkCard("Monitoring", "Live battery, RAM and thermal readings") { open("live-monitor") } }
         item { LinkCard("Charging analysis", "Compare measured battery readings") { open("charging-analysis") } }
+        item { LinkCard("CPU core inspector", "Supported cores and available metrics") { open("cpu-cores") } }
         item { LinkCard("Diagnostics", "Interactive tests, no fake health scores") { open("diagnostics-center") } }
     }
 }
@@ -331,6 +361,8 @@ private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>,
         item { LinkCard("Available RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable") { open("memory-details") } }
         item { LinkCard("Android thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
         item { LinkCard("Temporary history", "Last " + samples.size + " samples · memory only") { open("history") } }
+        item { LinkCard("Session Recorder", "Explicit, foreground-only recording") { open("recording-session") } }
+        item { LinkCard("Full-screen chart", "Battery history in focus") { open("metric-fullscreen") } }
     }
 }
 
@@ -346,6 +378,9 @@ private fun Diagnostics(open: (String) -> Unit) {
         }
         item { LinkCard("Display & touch test", "Interactive color and touch panel") { open("component-test") } }
         item { LinkCard("Sensors", "Inventory of detected sensor devices") { open("sensor-explorer") } }
+        item { LinkCard("Live sensor readings", "Read sensor axes and metadata") { open("sensor-live") } }
+        item { LinkCard("CPU benchmark", "Bounded workload with thermal cutoff") { open("benchmark-center") } }
+        item { LinkCard("Diagnostic results", "Locally confirmed display/touch test") { open("diagnostic-results") } }
         item { LinkCard("Thermal status", "Android platform status, where supported") { open("thermal-details") } }
         item { LinkCard("Other planned tests", "Full development inventory and status") { open("all-screens") } }
     }
@@ -405,6 +440,10 @@ private fun Settings(open: (String) -> Unit) {
         item { LinkCard("Privacy Center", "Review access and local data policy") { open("privacy-center") } }
         item { LinkCard("All planned screens", "Browse implemented and upcoming destinations") { open("all-screens") } }
         item { LinkCard("Hardware Explorer", "See device data") { open("hardware-explorer") } }
+        item { LinkCard("Network state", "See active connection without network requests") { open("network-details") } }
+        item { LinkCard("App Usage", "Optional system Usage Access") { open("app-usage") } }
+        item { LinkCard("Alerts", "Local battery and thermal thresholds") { open("alerts") } }
+        item { LinkCard("Permission Center", "See granted Android access") { open("permission-center") } }
         item { LinkCard("About SYSTIVRA", "Version, privacy and source limitations") { open("about") } }
     }
 }
