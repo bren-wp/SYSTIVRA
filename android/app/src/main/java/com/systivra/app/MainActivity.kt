@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val metrics = DeviceMetrics(applicationContext)
+        val preferences = getSharedPreferences("systivra_settings", MODE_PRIVATE)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (isActive) {
@@ -35,7 +36,7 @@ class MainActivity : ComponentActivity() {
                         history.value = (history.value + it).takeLast(60)
                         if (recording.value) recorded.value = (recorded.value + it).takeLast(900)
                     }
-                    delay(2_000L)
+                    delay(preferences.getInt("sampling_seconds", 2).coerceIn(1, 10) * 1_000L)
                 }
             }
         }

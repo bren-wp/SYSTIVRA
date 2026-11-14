@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Slider
+import kotlin.math.roundToInt
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
@@ -431,6 +433,13 @@ private fun ComponentTest() {
 
 @Composable
 private fun Settings(open: (String) -> Unit) {
+    val context = LocalContext.current
+    val preferences = remember(context) {
+        context.getSharedPreferences("systivra_settings", android.content.Context.MODE_PRIVATE)
+    }
+    var samplingSeconds by rememberSaveable {
+        mutableIntStateOf(preferences.getInt("sampling_seconds", 2).coerceIn(1, 10))
+    }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
         item {
             PanelCard {
@@ -442,7 +451,16 @@ private fun Settings(open: (String) -> Unit) {
         item {
             PanelCard {
                 Text("Monitoring", fontWeight = FontWeight.Bold)
-                Text("Refreshes every 2 seconds only while the Activity is started.", color = Muted)
+                Text("Refresh interval: " + samplingSeconds + " seconds · foreground only", color = Muted)
+                Slider(
+                    value = samplingSeconds.toFloat(),
+                    valueRange = 1f..10f,
+                    steps = 8,
+                    onValueChange = {
+                        samplingSeconds = it.roundToInt().coerceIn(1, 10)
+                        preferences.edit().putInt("sampling_seconds", samplingSeconds).apply()
+                    }
+                )
             }
         }
         item { LinkCard("Reports & CSV export", "Export locally recorded session readings") { open("reports-export") } }
