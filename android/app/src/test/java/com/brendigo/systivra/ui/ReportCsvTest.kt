@@ -1,7 +1,7 @@
-package com.systivra.app.ui
+package com.brendigo.systivra.ui
 
-import com.systivra.app.data.DeviceSnapshot
-import com.systivra.app.data.Reading
+import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.Reading
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
