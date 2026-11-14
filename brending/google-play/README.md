@@ -14,3 +14,7 @@ Official editable vector sources: [source/](source/). Generated, precisely sized
 Before publishing, capture at least 2 actual phone screenshots (4 at 1080 × 1920 recommended), validate the privacy policy/Data Safety form, review optional Usage Access disclosure, test signing and ensure Play listing claims match functionality.
 
 **Brand**: midnight navy, cyan, blue, purple, mint; English only, SYSTIVRA by BRENDIGO.
+
+## Real screenshots upload gate
+
+The [Android screen QA workflow](../../.github/workflows/android-screenshots.yml) checks that SYSTIVRA owns the focused window and prevents the earlier Quickstep/System UI ANR screenshots from being mistaken for app shots. The [Play promotion script](../../tools/promote-real-play-screenshots.py) accepts only eight unmodified 1080×1920 captures, and refuses to fabricate/upscale. Its outputs, when validation succeeds, are placed in `real-screenshots/` pending final manual review. Until those exist, **do not upload the concept images to Google Play**.

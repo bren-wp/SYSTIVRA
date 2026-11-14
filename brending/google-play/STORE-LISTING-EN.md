@@ -7,7 +7,7 @@ Monitor Android hardware, record device metrics, and export local reports.
 
 **Full description**
 
-SYSTIVRA gives you a clear view of the device information Android makes available.
+SYSTIVRA gives you a clear view of the device information Android makes available, with a premium dark design and an English interface.
 
 Explore battery charge and charging state, available memory and internal storage, Android version and device details, supported sensors, and platform-reported thermal information. Where supported, view live hardware measurements.
 
