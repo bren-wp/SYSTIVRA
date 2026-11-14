@@ -61,3 +61,7 @@ References exported: **37**. Each PNG is a **concept rendering**, not a verified
 - Persisted history (Room/SQL), advanced GPU/CPU temperatures and multi-platform benchmarking remain future work.
 - Test results for microphone, speaker, camera and all hardware sensors are not yet implemented.
 - Do not treat nonfunctional concepts as production-complete merely because their routes exist.
+
+## v0.4.0 data retention clarification
+
+Foreground-only user recordings are now stored in an app-private SQLite database, capped at 900 samples. Recording stops when the app is backgrounded. The user can clear saved samples or export them to CSV through a system file picker. This does not establish visual 1:1 certification.

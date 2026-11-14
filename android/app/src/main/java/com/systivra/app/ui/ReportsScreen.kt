@@ -56,7 +56,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Text("Session Report", fontWeight = FontWeight.Bold, fontSize = 25.sp)
-            Text("Your device readings remain on your phone unless you explicitly export them.", color = Muted)
+            Text("Saved recordings remain on this device unless you explicitly export them.", color = Muted)
         }
         item {
             Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
@@ -72,7 +72,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                 }
             }
         }
-        item { Text("No persistent recording yet. Data from this foreground session is lost when the process ends.", color = Muted, fontSize = 12.sp) }
+        item { Text("Saved recordings persist privately in SQLite across app restarts; this export copies them only to the destination you choose.", color = Muted, fontSize = 12.sp) }
     }
 }
 

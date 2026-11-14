@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0-preview.1] — 2026-11-14
+
+- Private SQLite persistence for user-initiated monitoring sessions, capped at 900 samples.
+- Restored samples survive app restarts and can be cleared explicitly without root or storage permissions.
+- Serialized database writes, restore on launch, ready state, and error visibility on recorder screen.
+- Preserved field contracts for battery, thermal and free RAM in saved CSV exports and session summaries.
+- SQLite reopen/clear instrumentation tests and reconstruction unit tests.
+- Reconfigured emulator screenshot workflow after earlier ADB broken-pipe boot failure; API 33.
+- Real Splash no longer mislabeled as a delayed Dashboard screenshot.
+- All 37 pixel-perfect screen comparisons **remain unverified** pending actual screenshots and manual QA.
+
 ## [0.3.0-preview.2] — 2026-11-14
 
 - Fixed nested in-app back-stack navigation.

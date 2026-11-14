@@ -138,7 +138,9 @@ fun AppRoot(
     isRecording: Boolean,
     onToggleRecording: () -> Unit,
     onClearRecording: () -> Unit,
-    initialRoute: String? = null
+    initialRoute: String? = null,
+    historyReady: Boolean = true,
+    historyStorageError: String? = null
 ) {
     AppTheme {
         val appContext = LocalContext.current.applicationContext
@@ -220,13 +222,13 @@ fun AppRoot(
                     "cpu-cores" -> CpuCoreInspector(snapshot)
                     "charging-analysis" -> ChargingAnalysis(snapshot, samples)
                     "metric-fullscreen" -> FullscreenMetric(samples)
-                    "reports-export" -> ReportExportScreen(if (recorded.isNotEmpty()) recorded else samples)
+                    "reports-export" -> ReportExportScreen(recorded)
                     "sensor-live" -> SensorLiveScreen()
                     "network-details" -> NetworkDetailsScreen()
                     "app-usage" -> AppUsageScreen()
                     "alerts" -> AlertsScreen(snapshot)
                     "permission-center" -> PermissionCenterScreen()
-                    "recording-session" -> RecordingSessionScreen(recorded, isRecording, onToggleRecording, onClearRecording, ::open)
+                    "recording-session" -> RecordingSessionScreen(recorded, isRecording, historyReady, historyStorageError, onToggleRecording, onClearRecording, ::open)
                     "session-analysis" -> SessionAnalysisScreen(recorded, ::open)
                     "benchmark-center" -> BenchmarkCenterScreen(benchmark, onStart = {
                         benchmark.start(benchmarkScope)
@@ -237,7 +239,7 @@ fun AppRoot(
                     "diagnostic-results" -> DiagnosticResultsScreen()
                     "overlay-configuration" -> OverlayPreviewScreen(snapshot)
                     "hardware-explorer" -> HardwareExplorer(::open)
-                    "live-monitor" -> LiveMonitor(snapshot, samples, ::open)
+                    "live-monitor" -> LiveMonitor(snapshot, samples, recorded, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
                     "component-test" -> ComponentTest()
                     "history" -> History(samples, ::open)
@@ -385,7 +387,7 @@ private fun MetricScreen(readings: List<Reading>, subtitle: String) {
 }
 
 @Composable
-private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, open: (String) -> Unit) {
+private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, recorded: List<DeviceSnapshot>, open: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
         item { Text("Foreground live monitoring · no fabricated metrics", color = Muted, fontSize = 13.sp) }
         item {
@@ -413,7 +415,8 @@ private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>,
         }
         item { LinkCard("Available RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable") { open("memory-details") } }
         item { LinkCard("Android thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
-        item { LinkCard("Temporary history", "Last " + samples.size + " samples · memory only") { open("history") } }
+        item { LinkCard("Live history", "Last " + samples.size + " readings · temporary") { open("history") } }
+        item { LinkCard("Saved recordings", recorded.size.toString() + " samples · local SQLite storage") { open("recording-session") } }
         item { LinkCard("Session Recorder", "Explicit, foreground-only recording") { open("recording-session") } }
         item { LinkCard("Full-screen chart", "Battery history in focus") { open("metric-fullscreen") } }
         item { LinkCard("Performance HUD", "Customize the in-app overlay preview") { open("overlay-configuration") } }
@@ -579,7 +582,7 @@ private fun About() {
             PanelCard {
                 Text("SYSTIVRA", color = Cyan, fontWeight = FontWeight.Black, fontSize = 28.sp)
                 Text("Advanced Device Monitor & Diagnostics", color = Muted)
-                Text("Version 0.3.0-preview.2 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Version 0.4.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
             }
         }
         item {

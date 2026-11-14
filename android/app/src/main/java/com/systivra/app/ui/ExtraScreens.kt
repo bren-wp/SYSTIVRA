@@ -58,7 +58,7 @@ fun PrivacyCenter() {
         "Account" to "No login or registration required.",
         "Network" to "The app has no INTERNET permission or analytics SDK.",
         "Device information" to "Measurements are read locally through Android system APIs.",
-        "Storage" to "Current session history stays in memory. CSV export requires your explicit file choice.",
+        "Storage" to "Live monitoring stays in memory. Recording is opt-in and persists in private SQLite storage (up to 900 samples). CSV export needs your explicit file choice.",
         "Camera and microphone" to "Not requested in this version.",
         "Background monitoring" to "Sampling stops when the app is no longer in the foreground."
     )
