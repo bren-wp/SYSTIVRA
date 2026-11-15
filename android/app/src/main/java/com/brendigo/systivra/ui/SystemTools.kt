@@ -62,10 +62,10 @@ private val instrumentTypes = listOf(
 @Composable
 fun SensorLiveScreen() {
     val context = LocalContext.current
-    val manager = remember(context) { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
+    val manager = remember(context) { context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager }
     val available = remember(manager) {
         instrumentTypes.mapNotNull { (id, label) ->
-            runCatching { manager.getDefaultSensor(id) }.getOrNull()?.let { Triple(id, label, it) }
+            runCatching { manager?.getDefaultSensor(id) }.getOrNull()?.let { Triple(id, label, it) }
         }
     }
     var sensorId by rememberSaveable { mutableStateOf(available.firstOrNull()?.first ?: -1) }
@@ -84,11 +84,13 @@ fun SensorLiveScreen() {
                 accuracy = newAccuracy
             }
         }
-        val enabled = selected != null && runCatching {
-            manager.registerListener(listener, selected, SensorManager.SENSOR_DELAY_UI)
-        }.getOrDefault(false)
+        val enabled = if (manager != null && selected != null) {
+            runCatching {
+                manager.registerListener(listener, selected, SensorManager.SENSOR_DELAY_UI)
+            }.getOrDefault(false)
+        } else false
         onDispose {
-            if (enabled) runCatching { manager.unregisterListener(listener) }
+            if (enabled) runCatching { manager?.unregisterListener(listener) }
         }
     }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -143,10 +145,10 @@ private fun unitForSensor(type: Int): String = when(type) {
 fun NetworkDetailsScreen() {
     val context = LocalContext.current
     val cm = remember(context) {
-        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
     }
-    val network = cm.activeNetwork
-    val caps = network?.let(cm::getNetworkCapabilities)
+    val network = runCatching { cm?.activeNetwork }.getOrNull()
+    val caps = runCatching { network?.let { cm?.getNetworkCapabilities(it) } }.getOrNull()
     val transport = when {
         caps == null -> "No active network"
         caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> "VPN"
@@ -161,7 +163,8 @@ fun NetworkDetailsScreen() {
         item { DetailCard("Transport", transport) }
         item { DetailCard("Validated Internet", caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             ?.let { if (it) "Yes" else "No" } ?: "Unavailable") }
-        item { DetailCard("Metered network", if (network == null) "Unavailable" else if (cm.isActiveNetworkMetered) "Yes" else "No") }
+        item { DetailCard("Metered network", if (network == null || cm == null) "Unavailable" else
+            runCatching { if (cm.isActiveNetworkMetered) "Yes" else "No" }.getOrDefault("Unavailable")) }
         item { DetailCard("Reported downstream bandwidth", caps?.linkDownstreamBandwidthKbps
             ?.takeIf { it > 0 }?.toString()?.plus(" Kbps") ?: "Unavailable") }
         item { Text("Link bandwidth is a platform estimate, not a measured transfer speed.", color = Muted, fontSize = 12.sp) }
@@ -171,8 +174,8 @@ fun NetworkDetailsScreen() {
 @Composable
 fun AppUsageScreen() {
     val context = LocalContext.current
-    val appOps = remember(context) { context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager }
-    val usage = remember(context) { context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager }
+    val appOps = remember(context) { context.getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager }
+    val usage = remember(context) { context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager }
     var refresh by remember { mutableStateOf(0) }
     var showUsageDisclosure by remember { mutableStateOf(false) }
     val allowed = remember(refresh) { hasUsageAccess(appOps, context) }
@@ -182,7 +185,7 @@ fun AppUsageScreen() {
         value = if (!allowed) emptyList() else withContext(Dispatchers.IO) {
             runCatching {
                 val now = System.currentTimeMillis()
-                usage.queryUsageStats(
+                usage?.queryUsageStats(
                     UsageStatsManager.INTERVAL_DAILY,
                     now - 24L * 60 * 60 * 1000, now
                 ).orEmpty()
@@ -218,11 +221,14 @@ fun AppUsageScreen() {
     }
 }
 
-private fun hasUsageAccess(appOps: AppOpsManager, context: Context): Boolean {
-    val mode = if (Build.VERSION.SDK_INT >= 29)
-        appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
-    else appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
-    return mode == AppOpsManager.MODE_ALLOWED
+private fun hasUsageAccess(appOps: AppOpsManager?, context: Context): Boolean {
+    if (appOps == null) return false
+    return runCatching {
+        val mode = if (Build.VERSION.SDK_INT >= 29)
+            appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+        else appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+        mode == AppOpsManager.MODE_ALLOWED
+    }.getOrDefault(false)
 }
 
 @Composable
@@ -270,7 +276,7 @@ fun AlertsScreen(snapshot: DeviceSnapshot) {
 @Composable
 fun PermissionCenterScreen() {
     val context = LocalContext.current
-    val ops = remember(context) { context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager }
+    val ops = remember(context) { context.getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager }
     var refresh by remember { mutableStateOf(0) }
     var showUsageDisclosure by remember { mutableStateOf(false) }
     val usageAllowed = remember(refresh) { hasUsageAccess(ops, context) }
