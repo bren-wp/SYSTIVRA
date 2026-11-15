@@ -1,7 +1,6 @@
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.assert
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
