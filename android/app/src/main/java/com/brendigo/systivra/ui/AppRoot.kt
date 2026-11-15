@@ -863,7 +863,7 @@ private fun Settings(open: (String) -> Unit) {
 
 @Composable
 private fun ScreenCatalog(open: (String) -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(modifier = Modifier.testTag("screen-catalog-scroll"), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item { Text("Available screens and device tools", color = Muted) }
         items(sections.filter { enabledRoutes.contains(it.first) }) { (id, label) ->
             LinkCard(label, "Open $label") {
