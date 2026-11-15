@@ -26,10 +26,10 @@ class NavigationSmokeTest {
         rule.onNodeWithTag("dashboard-scroll")
             .performScrollToNode(hasText("Hardware explorer", ignoreCase = true))
         rule.onNodeWithText("Hardware explorer", ignoreCase = true).performClick()
-        rule.onNodeWithText("Inspect components and their real data sources").assertExists()
-        rule.onNodeWithText("CPU").performClick()
+        rule.onNodeWithText("Explore components").assertExists()
+        rule.onNodeWithText("CPU and SoC").performClick()
         rule.onNodeWithText("Platform processor capabilities").assertExists()
         rule.onNodeWithText("‹").performClick()
-        rule.onNodeWithText("Inspect components and their real data sources").assertExists()
+        rule.onNodeWithText("Explore components").assertExists()
     }
 }
