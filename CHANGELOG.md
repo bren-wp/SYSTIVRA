@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased — PR #20 native-viewport visual iteration]
+
+- Split development into a new PR after #19 merged; no writes to the production main branch.
+- Added independent native 390 × 844 SVG reference rendering and real-emulator screenshot capture, with enforced matching physical dimensions and a per-screen absolute image-diff report. Existing Play-resolution captures remain unchanged.
+- Rebuilt CPU, GPU, Memory, Storage, Battery, Thermal, Display, Device & Android and Sensor Explorer first viewports using the source reference heading, hero or honest measured chart, and four clickable metric rows.
+- Preserved actual Android readings, their source and explicit unavailable states beneath the reference layout. Chart lines only appear when enough real numeric samples exist.
+- Added unit tests for the nine reference layout specifications, an Android test for functional reading navigation, and updated the CPU nested-navigation smoke test.
+- Corrected a shell portability issue: the Android emulator runner uses POSIX sh; all bash-specific commands now execute in an explicit bash script.
+- This iteration **does not certify 1:1 parity**. Native viewport screenshot and functional QA remain acceptance gates; original 37-screen certification is 0/37.
+
 ## [Unreleased — PR #19 visual parity and screen QA]
 
 - Corrected transparent Compose foreground inheritance so headings remain light and legible across the midnight theme; added instrumented color regression coverage.
