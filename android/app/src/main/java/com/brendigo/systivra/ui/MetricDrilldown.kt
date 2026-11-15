@@ -2,7 +2,6 @@ package com.brendigo.systivra.ui
 
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.data.Reading
-import java.util.Locale
 
 /**
  * Connects the four original SVG action labels with truthful Android readings.
@@ -108,7 +107,7 @@ internal fun filterDeviceReadings(readings: List<Reading>, query: String): List<
 
 /** Parses ONLY units produced by DeviceMetrics.bytes(). No synthetic readings. */
 internal fun parseReadableBytes(value: String?): Double? {
-    val match = Regex("""^([0-9]+(?:\\.[0-9]+)?) (GiB|MiB)$""").matchEntire(value ?: "")
+    val match = Regex("""^([0-9]+(?:\.[0-9]+)?) (GiB|MiB)$""").matchEntire(value ?: "")
         ?: return null
     val amount = match.groupValues[1].toDoubleOrNull() ?: return null
     val factor = if (match.groupValues[2] == "GiB") 1_073_741_824.0 else 1_048_576.0
