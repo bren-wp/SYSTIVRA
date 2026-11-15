@@ -9,6 +9,9 @@ on:
     paths: [".github/workflows/release-preview.yml"]
 permissions:
   contents: write
+concurrency:
+  group: systivra-preview-release-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   publish:
     runs-on: ubuntu-latest
