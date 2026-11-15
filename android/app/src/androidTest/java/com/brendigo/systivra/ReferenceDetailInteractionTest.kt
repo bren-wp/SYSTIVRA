@@ -2,6 +2,8 @@ package com.brendigo.systivra
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performScrollToIndex
@@ -31,8 +33,10 @@ class ReferenceDetailInteractionTest {
         rule.onNodeWithText("Power information").assertExists()
         rule.onNodeWithText("Charge level").performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("77%").assertExists()
-        rule.onNodeWithText("Source: ACTION_BATTERY_CHANGED").assertExists()
+        rule.onNodeWithTag("selected-metric-battery-details")
+            .assert(hasAnyDescendant(hasText("77%")))
+        rule.onNodeWithTag("selected-metric-battery-details")
+            .assert(hasAnyDescendant(hasText("Source: ACTION_BATTERY_CHANGED")))
     }
 
     @Test fun unavailableSensorDataIsNotInvented() {
@@ -49,7 +53,8 @@ class ReferenceDetailInteractionTest {
         rule.onNodeWithText("Available sensors").assertExists()
         rule.onNodeWithText("Gyroscope").performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Unavailable").assertExists()
+        rule.onNodeWithTag("selected-metric-sensor-explorer")
+            .assert(hasAnyDescendant(hasText("Unavailable")))
     }
     @Test fun selectedCpuCardShowsTheMappedReadingInsteadOfAnUnrelatedValue() {
         rule.setContent {
@@ -67,8 +72,10 @@ class ReferenceDetailInteractionTest {
         }
         rule.onNodeWithText("Architecture").performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("arm64-v8a").assertExists()
-        rule.onNodeWithText("Source: Build.SUPPORTED_ABIS").assertExists()
+        rule.onNodeWithTag("selected-metric-cpu-details")
+            .assert(hasAnyDescendant(hasText("arm64-v8a")))
+        rule.onNodeWithTag("selected-metric-cpu-details")
+            .assert(hasAnyDescendant(hasText("Source: Build.SUPPORTED_ABIS")))
     }
 
     @Test fun memoryHistoryCardNavigatesToRealSavedSessionScreen() {
