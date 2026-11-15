@@ -106,7 +106,7 @@ internal fun ReferenceDetailScreen(
         }
         item {
             if (spec.hasChart) ReferenceMeasuredChart(measured)
-            else ReferenceHeroCard { open("device-and-android") }
+            else ReferenceHeroCard { open(if (route == "device-and-android") "system-overview" else "device-and-android") }
         }
         item { Spacer(Modifier.height(7.dp)) }
         items(spec.rows.size) { index ->
