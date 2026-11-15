@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [feat/systivra-v100-reference-parity-play-previews]
-    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/promote-real-play-screenshots.py", "tools/validate_application_id.py", "brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/**", "android/app/src/main/**"]
+    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/summarize-visual-qa.py", "tools/promote-real-play-screenshots.py", "tools/validate_application_id.py", "brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/**", "android/app/src/main/**"]
 concurrency:
   group: systivra-visual-qa-${{ github.ref }}
   cancel-in-progress: true
@@ -86,6 +86,11 @@ jobs:
         continue-on-error: true
         run: |
           python3 tools/visual-diff.py --reference qa/reference-scaled --actual qa/screenshots --output qa/diff
+      - name: Summarize actual reference deviations
+        if: always()
+        run: |
+          python3 tools/summarize-visual-qa.py --report qa/diff/report.csv --output qa/diff/summary.md
+          cat qa/diff/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Report screenshot inventory
         if: always()
         run: |
