@@ -2,8 +2,8 @@ name: SYSTIVRA Android screen QA
 on:
   workflow_dispatch:
   push:
-    branches: [feat/systivra-v090-brendigo-application-id]
-    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/promote-real-play-screenshots.py", "tools/validate_application_id.py", "android/app/src/main/**"]
+    branches: [feat/systivra-v100-reference-parity-play-previews]
+    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/promote-real-play-screenshots.py", "tools/validate_application_id.py", "brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/**", "android/app/src/main/**"]
 concurrency:
   group: systivra-visual-qa-${{ github.ref }}
   cancel-in-progress: true
@@ -72,15 +72,17 @@ jobs:
           python3 -m pip install --user --quiet Pillow
           python3 - <<'PY'
           from pathlib import Path
-          from PIL import Image
+          from shutil import copyfile
           target=Path('qa/reference-scaled')
+          source=Path('brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS')
           target.mkdir(parents=True,exist_ok=True)
-          for ref in sorted(Path('brending/rendered').glob('[0-9][0-9]-*.png')):
+          for ref in sorted(source.glob('[0-9][0-9]-*-REFERENCE.png')):
               if ref.name.startswith('01-splash'):
-                  continue # Android system splash must be captured separately
-              with Image.open(ref) as original:
-                  original.convert('RGBA').resize((390,844)).save(target/ref.name)
-          print('References:',len(list(target.glob('*.png'))))
+                  continue  # transient system splash needs separate evidence
+              copyfile(ref,target/ref.name.replace('-REFERENCE.png','.png'))
+          if len(list(target.glob('*.png'))) != 36:
+              raise SystemExit('Expected exactly 36 original in-app references')
+          print('Original 1080x1920 references:',len(list(target.glob('*.png'))))
           PY
       - name: Report pixel differences (not a passing 1:1 gate)
         if: always()
@@ -96,7 +98,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: systivra-validated-emulator-screenshots-and-diffs
+          name: systivra-v100-reference-parity-diff-and-app-evidence
           path: |
             qa/screenshots/
             qa/debug/

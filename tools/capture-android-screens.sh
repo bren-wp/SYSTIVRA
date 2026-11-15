@@ -8,6 +8,8 @@ mkdir -p qa/screenshots qa/debug
 adb wait-for-device
 adb install -r "$APK"
 adb shell input keyevent 82 || true
+# Suppress Android immersive-mode first-run tutorial that previously obscured screenshots.
+adb shell settings put secure immersive_mode_confirmations confirmed || true
 # Do NOT set wm size/density: restarting Quickstep caused the older QA screenshots to show ANR dialogs.
 adb shell wm size
 adb shell wm density
