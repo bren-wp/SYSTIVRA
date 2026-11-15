@@ -11,7 +11,7 @@ permissions:
   contents: write
 jobs:
   screen-capture:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +36,12 @@ jobs:
         run: python3 -m pip install --quiet Pillow
       - name: Validate BRENDIGO application identity
         run: python3 tools/validate_application_id.py
+      - name: Enable Android emulator hardware acceleration
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm || { echo "::error::KVM device missing on runner"; exit 1; }
+          sudo chmod a+rw /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm || { echo "::error::KVM inaccessible"; exit 1; }
       - name: Capture actual Brendigo application screens
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -45,7 +51,7 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-animations: true
-          emulator-options: -no-window -no-snapshot -gpu swiftshader_indirect -noaudio
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
           script: |
             bash tools/capture-android-screens.sh
             cd android && gradle :app:connectedDebugAndroidTest --no-daemon
