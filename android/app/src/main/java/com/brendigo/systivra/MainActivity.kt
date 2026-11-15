@@ -44,6 +44,16 @@ class MainActivity : ComponentActivity() {
     private val selectedSamples = MutableStateFlow<List<DeviceSnapshot>>(emptyList())
     private val recording = MutableStateFlow(false)
 
+    override fun onStop() {
+        // Foreground-only recording: end an active session before leaving the screen.
+        // The ordered storage actor processes queued samples before Stop.
+        if (recording.value) {
+            recording.value = false
+            actions.trySend(StorageAction.Stop)
+        }
+        super.onStop()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -51,6 +61,7 @@ class MainActivity : ComponentActivity() {
         val store = RecordingStore(applicationContext)
 
         lifecycleScope.launch(Dispatchers.IO) {
+            try {
             fun refresh() {
                 recorded.value = store.readRecent()
                 sessions.value = store.listSessions()
@@ -98,7 +109,9 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-            store.close()
+            } finally {
+                store.close()
+            }
         }
 
         val preferences = getSharedPreferences("systivra_settings", MODE_PRIVATE)

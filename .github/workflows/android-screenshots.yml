@@ -3,15 +3,15 @@ on:
   workflow_dispatch:
   push:
     branches: [feat/systivra-v100-reference-parity-play-previews]
-    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/promote-real-play-screenshots.py", "tools/validate_application_id.py", "brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/**", "android/app/src/main/**"]
+    paths: [".github/workflows/android-screenshots.yml", "tools/capture-android-screens.sh", "tools/validate-android-screens.py", "tools/summarize-visual-qa.py", "tools/promote-real-play-screenshots.py", "tools/validate_application_id.py", "brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/**", "android/app/src/main/**"]
 concurrency:
   group: systivra-visual-qa-${{ github.ref }}
   cancel-in-progress: true
 permissions:
-  contents: write
+  contents: read
 jobs:
   screen-capture:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +36,12 @@ jobs:
         run: python3 -m pip install --quiet Pillow
       - name: Validate BRENDIGO application identity
         run: python3 tools/validate_application_id.py
+      - name: Enable Android emulator hardware acceleration
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm || { echo "::error::KVM device missing on runner"; exit 1; }
+          sudo chmod a+rw /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm || { echo "::error::KVM inaccessible"; exit 1; }
       - name: Capture actual Brendigo application screens
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -45,21 +51,12 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-animations: true
-          emulator-options: -no-window -no-snapshot -gpu swiftshader_indirect -noaudio
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
           script: |
             bash tools/capture-android-screens.sh
             cd android && gradle :app:connectedDebugAndroidTest --no-daemon
       - name: Validate 8 genuine Play phone captures
         run: python3 tools/promote-real-play-screenshots.py
-      - name: Commit real screenshots after validation
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add brending/google-play/real-screenshots
-          if ! git diff --cached --quiet; then
-            git commit -m 'assets(play): authentic Android emulator captures, pending manual review [skip ci]'
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
       - name: Upload real Google Play candidate images
         uses: actions/upload-artifact@v7
         with:
@@ -89,6 +86,11 @@ jobs:
         continue-on-error: true
         run: |
           python3 tools/visual-diff.py --reference qa/reference-scaled --actual qa/screenshots --output qa/diff
+      - name: Summarize actual reference deviations
+        if: always()
+        run: |
+          python3 tools/summarize-visual-qa.py --report qa/diff/report.csv --output qa/diff/summary.md
+          cat qa/diff/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Report screenshot inventory
         if: always()
         run: |

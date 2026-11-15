@@ -81,3 +81,22 @@ The first code changes in the `feat/systivra-v100-reference-parity-play-previews
 The original 37 references are preserved under `brending/screens/*.svg` and available as 1080 × 1920 previews (side margins only; no stretching or cropping) in `brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/`. They must not be submitted as real Play screenshots.
 
 An invalid Android build workflow configuration was identified (artifact-upload `with:` attached directly to a `run` step). That syntax has been fixed and CI re-enabled for this branch. Screenshot QA remains a separate acceptance gate.
+
+## v0.10.0-preview.2 safety and navigation iteration
+
+- Recording Session now requests explicit confirmation before deleting all locally saved sessions and samples. Cancellation does not invoke deletion.
+- Leaving the foreground ends active recording; the storage worker closes the database in a cancellation-safe `finally` block.
+- The bottom navigation retains the correct selected root tab while navigating nested screens.
+- Production UI no longer shows the development screen inventory label or incorrectly claims that persistent recording is still planned.
+- Added a Compose instrumentation test for deletion confirmation. Its execution result is tracked by CI; until that CI is green, the behavior is not certified.
+- **Visual validation remains 0/37 verified 1:1**. These changes do not claim pixel-perfect parity, device compatibility, or completion of full functional and security audits.
+
+## Subsequent PR #19 visual-alignment work (not yet certified)
+
+- Priority screen screenshots reviewed from the successful 38-capture Android 33 workflow. The raw 36-reference diff report averages 83.810% changed pixels, including viewport mismatch and system UI rasterization.
+- The shared `AppTheme` now supplies the correct light `LocalContentColor` for transparent containers, addressing black top titles visible in real captures.
+- Hardware Explorer's initial top inset matches Dashboard, Live Monitor and Diagnostics Center.
+- Settings and About now use the existing reference heading, 128dp hero and four 69dp metric rows, and preserve actual interactions with dialogs/navigation/external browser intents. Existing secondary tools are retained below the first reference viewport.
+- Screen-scoped regression tests cover Settings and About navigation and dark foreground inheritance.
+- Automatic Google Play screenshot commits are disabled pending manual approval. Screenshots remain downloadable as CI evidence.
+- **Verified 1:1 count remains 0/37** until new screenshots after these changes have undergone correct same-viewport diff, dynamic content review, and accessibility checks.

@@ -1,6 +1,8 @@
 package com.brendigo.systivra.ui
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Build
@@ -28,7 +30,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
 import kotlin.math.roundToInt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Dashboard
@@ -172,6 +176,7 @@ fun AppRoot(
             )
         }
         val route = navigationStack.lastOrNull() ?: "dashboard"
+        val selectedTab = navigationStack.firstOrNull()?.takeIf { entry -> tabs.any { it.first == entry } } ?: "dashboard"
         fun open(id: String) {
             if (route == id) return
             navigationStack = if (tabs.any { it.first == id }) {
@@ -210,7 +215,7 @@ fun AppRoot(
                             Text(
                                 label,
                                 fontSize = 12.sp,
-                                color = if (route == id || (route !in tabs.map { it.first } && id == "dashboard"))
+                                color = if (selectedTab == id)
                                     Cyan else Muted,
                                 maxLines = 1
                             )
@@ -220,7 +225,7 @@ fun AppRoot(
             }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
-                if (route != "dashboard" && route !in setOf("hardware-explorer", "live-monitor", "diagnostics-center")) {
+                if (route !in setOf("dashboard", "hardware-explorer", "live-monitor", "diagnostics-center", "settings", "about")) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -429,7 +434,7 @@ private fun HardwareExplorer(open: (String) -> Unit) {
     )
     LazyColumn(
         modifier = Modifier.testTag("hardware-explorer-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 27.dp, bottom = 28.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
@@ -748,40 +753,74 @@ private fun ComponentTest() {
 private fun Settings(open: (String) -> Unit) {
     val context = LocalContext.current
     val preferences = remember(context) {
-        context.getSharedPreferences("systivra_settings", android.content.Context.MODE_PRIVATE)
+        context.getSharedPreferences("systivra_settings", Context.MODE_PRIVATE)
     }
     var samplingSeconds by rememberSaveable {
         mutableIntStateOf(preferences.getInt("sampling_seconds", 2).coerceIn(1, 10))
     }
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
-        item {
-            PanelCard {
-                Text("Appearance", fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                Text("Dark theme · English", color = Muted)
-                Text("Splash → Dashboard · no sign-in or onboarding", color = Muted, fontSize = 12.sp)
-            }
-        }
-        item {
-            PanelCard {
-                Text("Monitoring", fontWeight = FontWeight.Bold)
-                Text("Refresh interval: " + samplingSeconds + " seconds · foreground only", color = Muted)
-                Slider(
-                    value = samplingSeconds.toFloat(),
-                    valueRange = 1f..10f,
-                    steps = 8,
-                    onValueChange = {
-                        samplingSeconds = it.roundToInt().coerceIn(1, 10)
-                        preferences.edit().putInt("sampling_seconds", samplingSeconds).apply()
+    var activeDialog by rememberSaveable { mutableStateOf<String?>(null) }
+
+    if (activeDialog != null) {
+        AlertDialog(
+            onDismissRequest = { activeDialog = null },
+            title = { Text(activeDialog.orEmpty()) },
+            text = {
+                when (activeDialog) {
+                    "Appearance" -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("SYSTIVRA uses its midnight dark theme and English interface.")
+                        Text("No account, onboarding or unsupported theme toggle is required.", color = Muted)
                     }
-                )
+                    "Update interval" -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("Refresh interval: ${samplingSeconds} seconds (foreground only)")
+                        Slider(
+                            value = samplingSeconds.toFloat(),
+                            valueRange = 1f..10f,
+                            steps = 8,
+                            onValueChange = { value ->
+                                samplingSeconds = value.roundToInt().coerceIn(1, 10)
+                                preferences.edit().putInt("sampling_seconds", samplingSeconds).apply()
+                            }
+                        )
+                        Text("Applied to live device sampling and saved for future launches.", color = Muted)
+                    }
+                    "Units" -> Text("Measurements use the units supplied by Android. Unit conversion is not currently supported, so no nonfunctional selector is shown.")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { activeDialog = null }) { Text("Close") }
+            }
+        )
+    }
+
+    LazyColumn(
+        modifier = Modifier.testTag("settings-scroll"),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Column {
+                Text("Settings", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Preferences", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Customize your experience", fontSize = 13.sp, color = Muted)
+                Spacer(Modifier.height(18.dp))
             }
         }
+        item { ReferenceHeroCard { open("device-and-android") } }
+        item { Spacer(Modifier.height(7.dp)) }
+        item { ReferenceMetricRow("Appearance", "◇", 0) { activeDialog = "Appearance" } }
+        item { ReferenceMetricRow("Update interval", "▤", 1) { activeDialog = "Update interval" } }
+        item { ReferenceMetricRow("Units", "◉", 2) { activeDialog = "Units" } }
+        item { ReferenceMetricRow("Privacy", "⌁", 3) { open("privacy-center") } }
+        item { Spacer(Modifier.height(116.dp)) }
+        item { Text("More tools", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
         item { LinkCard("Reports · CSV & JSON", "Export locally recorded readings") { open("reports-export") } }
         item { LinkCard("Session Insights", "Battery trends and measured thermal statistics") { open("session-insights") } }
         item { LinkCard("Recording Library", "View, export or delete selected recordings") { open("recording-library") } }
         item { LinkCard("System Health", "Measurement availability, not a fabricated score") { open("system-health") } }
         item { LinkCard("Privacy Center", "Review access and local data policy") { open("privacy-center") } }
-        item { LinkCard("All planned screens", "Browse implemented and upcoming destinations") { open("all-screens") } }
+        item { LinkCard("Screen catalog", "Browse available screens and tools") { open("all-screens") } }
         item { LinkCard("Hardware Explorer", "See device data") { open("hardware-explorer") } }
         item { LinkCard("Network state", "See active connection without network requests") { open("network-details") } }
         item { LinkCard("App Usage", "Optional system Usage Access") { open("app-usage") } }
@@ -796,9 +835,10 @@ private fun History(samples: List<DeviceSnapshot>, open: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Text("In-memory session history · " + samples.size + " samples", color = Muted)
-            Text("Not written to disk. Persistent recording is planned.", color = Muted, fontSize = 12.sp)
+            Text("Recent readings are held in memory. Saved sessions can be opened in Recording Library.", color = Muted, fontSize = 12.sp)
         }
         item { LinkCard("Export session as CSV", "Choose a destination using Android Files") { open("reports-export") } }
+        item { LinkCard("Recording Library", "View and manage locally saved sessions") { open("recording-library") } }
         items(samples.reversed()) { entry ->
             PanelCard {
                 Text(SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(entry.time)),
@@ -815,9 +855,9 @@ private fun History(samples: List<DeviceSnapshot>, open: (String) -> Unit) {
 @Composable
 private fun ScreenCatalog(open: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { Text("Development inventory · planned modules are clearly marked", color = Muted) }
-        items(sections) { (id, label) ->
-            LinkCard(label, if (enabledRoutes.contains(id)) "Available foundation" else "Planned · not implemented") {
+        item { Text("Available screens and device tools", color = Muted) }
+        items(sections.filter { enabledRoutes.contains(it.first) }) { (id, label) ->
+            LinkCard(label, "Open $label") {
                 open(id)
             }
         }
@@ -837,25 +877,50 @@ private fun Planned(title: String) {
 
 @Composable
 private fun About(open: (String) -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val context = LocalContext.current
+    var browserError by remember { mutableStateOf(false) }
+    fun openBrowser(url: String) {
+        browserError = runCatching {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }.isFailure
+    }
+
+    LazyColumn(
+        modifier = Modifier.testTag("about-scroll"),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         item {
-            PanelCard {
-                Text("SYSTIVRA", color = Cyan, fontWeight = FontWeight.Black, fontSize = 28.sp)
-                Text("Advanced Device Monitor & Diagnostics", color = Muted)
-                Text("Version 0.10.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+            Column {
+                Text("About SYSTIVRA", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Version and licenses", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Open development", fontSize = 13.sp, color = Muted)
+                Spacer(Modifier.height(18.dp))
             }
         }
+        item { ReferenceHeroCard { open("device-and-android") } }
+        item { Spacer(Modifier.height(7.dp)) }
+        item { ReferenceMetricRow("Source code", "◇", 0) { openBrowser("https://github.com/bren-wp/SYSTIVRA") } }
+        item { ReferenceMetricRow("MIT license", "▤", 1) { openBrowser("https://github.com/bren-wp/SYSTIVRA/blob/main/LICENSE") } }
+        item { ReferenceMetricRow("Device support", "◉", 2) { open("device-and-android") } }
+        item { ReferenceMetricRow("Privacy", "⌁", 3) { open("privacy-center") } }
+        if (browserError) {
+            item { Text("No browser could open the link. Check that a web browser is installed.", color = Muted) }
+        }
+        item { Spacer(Modifier.height(116.dp)) }
         item {
             PanelCard {
-                Text("Privacy-first", fontWeight = FontWeight.Bold)
-                Text("No account or tracking, and no Internet permission. Optional Usage Access is user-controlled.", color = Muted)
+                Text("SYSTIVRA by BRENDIGO", color = Cyan, fontWeight = FontWeight.Bold)
+                Text("Version 0.10.0-preview.2 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Privacy-first Android system monitor and diagnostics", color = Muted)
             }
         }
-        item { LinkCard("Privacy details", "See data retention, export and optional permissions") { open("privacy-center") } }
         item {
             PanelCard {
                 Text("Transparent measurements", fontWeight = FontWeight.Bold)
-                Text("CPU and GPU temperatures are not universally readable through Android APIs. Unsupported values are shown as Unavailable.", color = Muted)
+                Text("Unsupported CPU or GPU temperatures and other restricted Android values are shown as Unavailable.", color = Muted)
             }
         }
     }

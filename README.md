@@ -33,7 +33,7 @@ Many Android monitoring apps display device numbers without explaining their ori
 - ⚡ **Live monitoring** — battery, charging, RAM, storage, thermal state, and optional system CPU load.
 - 🧠 **Hardware intelligence** — inspect CPU architecture, OpenGL GPU driver, Android version, display refresh rate and sensors.
 - 🩺 **Honest diagnostics** — interactive display/touch and vibration tests with user-confirmed outcomes.
-- 📊 **Recording Library** — separate sessions, recorded sample analysis, local CSV/JSON export, safe per-session deletion.
+- 📊 **Recording Library** — separate sessions, recorded sample analysis, local CSV/JSON export, confirmed per-session and all-recordings deletion.
 - 📉 **Session Insights** — recorded battery trends and temperature statistics, with unavailable-safe calculations.
 - 🔎 **Transparent measurements** — unavailable CPU/GPU temperatures, external FPS and permissions are never invented.
 - 🎮 **Performance Lab** — bounded, cancellable CPU test with a thermal safety cutoff.
