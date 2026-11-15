@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0-preview.2] — 2026-11-15
+
+- Added irreversible-deletion confirmation for all saved recording sessions and samples, including a cancel-path Compose UI test.
+- Explicitly stop foreground-only recordings when the activity leaves the screen; close SQLite store in a cancellation-safe finally block.
+- Correct nested bottom-navigation selection and remove development inventory/stale persistence copy from the user interface.
+- Incremented Android versionCode to 12. Existing v0.10.0-preview.1 release remains immutable.
+- Actual emulator/device visual comparison, full functional tests, accessibility, security, and real-device validation are **still required**. No screen is certified 1:1.
+
 ## [Reference parity work in progress] — 2026-11-15
 
 - Exported all original **37 design screens** into unmodified-layout 1080 × 1920 reference previews, contact sheet and downloadable ZIP on GitHub.
