@@ -172,6 +172,7 @@ fun AppRoot(
             )
         }
         val route = navigationStack.lastOrNull() ?: "dashboard"
+        val selectedTab = navigationStack.firstOrNull()?.takeIf { entry -> tabs.any { it.first == entry } } ?: "dashboard"
         fun open(id: String) {
             if (route == id) return
             navigationStack = if (tabs.any { it.first == id }) {
@@ -210,7 +211,7 @@ fun AppRoot(
                             Text(
                                 label,
                                 fontSize = 12.sp,
-                                color = if (route == id || (route !in tabs.map { it.first } && id == "dashboard"))
+                                color = if (selectedTab == id)
                                     Cyan else Muted,
                                 maxLines = 1
                             )
@@ -781,7 +782,7 @@ private fun Settings(open: (String) -> Unit) {
         item { LinkCard("Recording Library", "View, export or delete selected recordings") { open("recording-library") } }
         item { LinkCard("System Health", "Measurement availability, not a fabricated score") { open("system-health") } }
         item { LinkCard("Privacy Center", "Review access and local data policy") { open("privacy-center") } }
-        item { LinkCard("All planned screens", "Browse implemented and upcoming destinations") { open("all-screens") } }
+        item { LinkCard("Screen catalog", "Browse available screens and tools") { open("all-screens") } }
         item { LinkCard("Hardware Explorer", "See device data") { open("hardware-explorer") } }
         item { LinkCard("Network state", "See active connection without network requests") { open("network-details") } }
         item { LinkCard("App Usage", "Optional system Usage Access") { open("app-usage") } }
@@ -796,9 +797,10 @@ private fun History(samples: List<DeviceSnapshot>, open: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Text("In-memory session history · " + samples.size + " samples", color = Muted)
-            Text("Not written to disk. Persistent recording is planned.", color = Muted, fontSize = 12.sp)
+            Text("Recent readings are held in memory. Saved sessions can be opened in Recording Library.", color = Muted, fontSize = 12.sp)
         }
         item { LinkCard("Export session as CSV", "Choose a destination using Android Files") { open("reports-export") } }
+        item { LinkCard("Recording Library", "View and manage locally saved sessions") { open("recording-library") } }
         items(samples.reversed()) { entry ->
             PanelCard {
                 Text(SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(entry.time)),
@@ -815,9 +817,9 @@ private fun History(samples: List<DeviceSnapshot>, open: (String) -> Unit) {
 @Composable
 private fun ScreenCatalog(open: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { Text("Development inventory · planned modules are clearly marked", color = Muted) }
-        items(sections) { (id, label) ->
-            LinkCard(label, if (enabledRoutes.contains(id)) "Available foundation" else "Planned · not implemented") {
+        item { Text("Available screens and device tools", color = Muted) }
+        items(sections.filter { enabledRoutes.contains(it.first) }) { (id, label) ->
+            LinkCard(label, "Open $label") {
                 open(id)
             }
         }
