@@ -78,7 +78,9 @@ class NavigationSmokeTest {
         rule.onNodeWithText("CPU and SoC").performClick()
         rule.onNodeWithText("Processor overview").assertExists()
         rule.onNodeWithText("Architecture").assertExists()
-        rule.onNodeWithText("‹").performClick()
+        // Reference-detail screens use Android system Back; they intentionally
+        // do not render the legacy inline back arrow in the design viewport.
+        androidx.test.espresso.Espresso.pressBack()
         rule.onNodeWithText("Explore components").assertExists()
     }
 }
