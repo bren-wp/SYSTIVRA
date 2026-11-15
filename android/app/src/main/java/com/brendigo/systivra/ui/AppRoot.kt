@@ -1,6 +1,8 @@
 package com.brendigo.systivra.ui
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Build
@@ -223,7 +225,7 @@ fun AppRoot(
             }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
-                if (route !in setOf("dashboard", "hardware-explorer", "live-monitor", "diagnostics-center", "settings")) {
+                if (route !in setOf("dashboard", "hardware-explorer", "live-monitor", "diagnostics-center", "settings", "about")) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -875,25 +877,50 @@ private fun Planned(title: String) {
 
 @Composable
 private fun About(open: (String) -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val context = LocalContext.current
+    var browserError by remember { mutableStateOf(false) }
+    fun openBrowser(url: String) {
+        browserError = runCatching {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }.isFailure
+    }
+
+    LazyColumn(
+        modifier = Modifier.testTag("about-scroll"),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Column {
+                Text("About SYSTIVRA", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Version and licenses", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Open development", fontSize = 13.sp, color = Muted)
+                Spacer(Modifier.height(18.dp))
+            }
+        }
+        item { ReferenceHeroCard { open("device-and-android") } }
+        item { Spacer(Modifier.height(7.dp)) }
+        item { ReferenceMetricRow("Source code", "◇", 0) { openBrowser("https://github.com/bren-wp/SYSTIVRA") } }
+        item { ReferenceMetricRow("MIT license", "▤", 1) { openBrowser("https://github.com/bren-wp/SYSTIVRA/blob/main/LICENSE") } }
+        item { ReferenceMetricRow("Device support", "◉", 2) { open("device-and-android") } }
+        item { ReferenceMetricRow("Privacy", "⌁", 3) { open("privacy-center") } }
+        if (browserError) {
+            item { Text("No browser could open the link. Check that a web browser is installed.", color = Muted) }
+        }
+        item { Spacer(Modifier.height(116.dp)) }
         item {
             PanelCard {
-                Text("SYSTIVRA", color = Cyan, fontWeight = FontWeight.Black, fontSize = 28.sp)
-                Text("Advanced Device Monitor & Diagnostics", color = Muted)
+                Text("SYSTIVRA by BRENDIGO", color = Cyan, fontWeight = FontWeight.Bold)
                 Text("Version 0.10.0-preview.2 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Privacy-first Android system monitor and diagnostics", color = Muted)
             }
         }
-        item {
-            PanelCard {
-                Text("Privacy-first", fontWeight = FontWeight.Bold)
-                Text("No account or tracking, and no Internet permission. Optional Usage Access is user-controlled.", color = Muted)
-            }
-        }
-        item { LinkCard("Privacy details", "See data retention, export and optional permissions") { open("privacy-center") } }
         item {
             PanelCard {
                 Text("Transparent measurements", fontWeight = FontWeight.Bold)
-                Text("CPU and GPU temperatures are not universally readable through Android APIs. Unsupported values are shown as Unavailable.", color = Muted)
+                Text("Unsupported CPU or GPU temperatures and other restricted Android values are shown as Unavailable.", color = Muted)
             }
         }
     }
