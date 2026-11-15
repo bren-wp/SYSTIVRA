@@ -7,11 +7,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +40,25 @@ fun RecordingSessionScreen(
     clear: () -> Unit,
     open: (String) -> Unit
 ) {
+    var confirmClear by rememberSaveable { mutableStateOf(false) }
+    if (confirmClear) {
+        AlertDialog(
+            onDismissRequest = { confirmClear = false },
+            title = { Text("Delete all recordings?") },
+            text = {
+                Text("All saved recording sessions and their samples will be permanently deleted from this device. This cannot be undone.")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmClear = false
+                    if (ready && !active) clear()
+                }) { Text("Delete all") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmClear = false }) { Text("Cancel") }
+            }
+        )
+    }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Text("Session Recorder", fontWeight = FontWeight.Bold, fontSize = 24.sp)
@@ -51,7 +76,7 @@ fun RecordingSessionScreen(
                         Text("Recorded span: " + (elapsed / 1000L).toString() + " seconds", color = Muted)
                     }
                     Button(enabled = ready, onClick = toggle) { Text(if (active) "Stop recording" else if (ready) "Start recording" else "Loading saved history…") }
-                    Button(enabled = ready && !active && readings.isNotEmpty(), onClick = clear) { Text("Clear recorded samples") }
+                    Button(enabled = ready && !active && readings.isNotEmpty(), onClick = { confirmClear = true }) { Text("Delete all saved recordings") }
                 }
             }
         }
