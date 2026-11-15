@@ -42,7 +42,12 @@ jobs:
           done
           test "$installed" -eq 1
           python3 -m pip install --quiet Pillow CairoSVG
-          command -v ffmpeg
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            echo "ffmpeg is not preinstalled on this runner; installing system package"
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg
+          fi
+          ffmpeg -hide_banner -version | head -n 1
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "9.9.1"
