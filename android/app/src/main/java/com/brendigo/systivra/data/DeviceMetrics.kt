@@ -117,7 +117,7 @@ class DeviceMetrics(context: Context) {
             gpu = detectedGpu,
             ram = listOf(
                 Reading("Total RAM", memory?.totalMem?.takeIf { it > 0L }?.let(::bytes), "ActivityManager.MemoryInfo"),
-                Reading("Available RAM", memory?.availMem?.takeIf { it >= 0L && memory.totalMem > 0L }?.let(::bytes), "ActivityManager.MemoryInfo"),
+                Reading("Available RAM", memory?.takeIf { it.totalMem > 0L && it.availMem >= 0L }?.let { bytes(it.availMem) }, "ActivityManager.MemoryInfo"),
                 Reading("Used RAM", memory?.takeIf { it.totalMem > 0L }?.let { bytes((it.totalMem - it.availMem).coerceAtLeast(0L)) }, "Derived from ActivityManager"),
                 Reading("Low memory", memory?.takeIf { it.totalMem > 0L }?.let { if (it.lowMemory) "Yes" else "No" }, "ActivityManager.MemoryInfo")
             ),
