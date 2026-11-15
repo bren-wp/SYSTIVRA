@@ -25,7 +25,7 @@ SYSTIVRA by BRENDIGO.
 
 - **Suggested category:** Tools
 - **Primary language:** English (en-US)
-- **Application ID:** `com.systivra.app`
+- **Canonical Application ID (new Play listing):** `com.brendigo.systivra`
 - **Target API:** 36 (Android 16)
 - **Minimum API:** 24
 - **Store icon:** [512×512](assets/icon-512.png)
@@ -41,3 +41,5 @@ Official guidance:
 - https://support.google.com/googleplay/android-developer/answer/9866151
 - https://support.google.com/googleplay/android-developer/answer/11926878
 - https://support.google.com/googleplay/android-developer/answer/10144311
+
+**IMPORTANT:** Older SYSTIVRA previews used a different Android package ID. The current application and Google Play listing must use `com.brendigo.systivra` only. Previous APKs and snapshots are not proof of the current identity. Screenshots submitted to Play must come from the new, verified build.

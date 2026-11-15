@@ -1,12 +1,15 @@
 # SYSTIVRA Android
 
+**Canonical package ID: `com.brendigo.systivra`.** Both `namespace` and `applicationId` are exact and checked in GitHub CI. Old-ID installations cannot receive an in-place update to the new package or access its private SQLite data; treat this as a separate Google Play app listing.
+
 Native Kotlin + Jetpack Compose, Android API 24+; English-only dark UI; Splash → direct Dashboard with no login or onboarding.
 
 ## Run tests and build
 
-Use JDK 17+, Gradle 9.6.0 and Android SDK Platform 37.0:
+Use JDK 17+, Gradle 9.9.1 and Android SDK Platform 37.0:
 
-    gradle :app:testDebugUnitTest :app:assembleDebug :app:bundleRelease
+    python3 ../tools/validate_application_id.py
+    gradle :app:lintDebug :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:bundleRelease
 
 The APK is a development **debug build**. The release AAB is **unsigned** until an authorized private signing key is supplied. Never commit a key or password.
 

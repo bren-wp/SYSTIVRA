@@ -3,6 +3,8 @@
 <img src="brending/rendered/systivra-app-icon.png" alt="SYSTIVRA app icon" width="132" height="132">
 
 # SYSTIVRA
+
+**Android application ID: `com.brendigo.systivra` (exact, canonical, enforced in CI).**
 ### Advanced Device Monitor & Diagnostics
 
 **Know your device. Monitor what Android actually reports.**
@@ -150,6 +152,11 @@ Every milestone is designed to publish:
 See [Releases](https://github.com/bren-wp/SYSTIVRA/releases) for builds. Preview builds are **not production-certified**. Release automation will not publish artifacts when compilation or unit tests fail.
 
 ## 🧪 Quality & roadmap
+
+**v0.9 identity migration:** every Kotlin package, source path, instrumented test, `namespace`, `applicationId` and screenshot test identifier was migrated to `com.brendigo.systivra`. CI refuses builds with mismatched IDs. This creates a **new app identity** in Google Play; installations and local recordings from the old ID do not transfer automatically. Previous preview APKs must not be used to test the new application identity.
+
+**Dependencies:** stable AGP 9.4.0, Gradle 9.9.1 (security fixes), Kotlin 2.4.21, Compose BOM 2026.09.00, coroutines 1.11.0, Activity 1.13.0, Lifecycle 2.11.0. See [dependency audit](docs/DEPENDENCY-AUDIT-2026-11.md).
+
 
 Dependency security and version status: [November 2026 stable dependency audit](docs/DEPENDENCY-AUDIT-2026-11.md). Stable AGP 9.4.0 and AndroidX SplashScreen 1.2.0; optional Usage Access now includes an affirmative explanation before Android system settings.
 

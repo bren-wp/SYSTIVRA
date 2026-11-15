@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Capture only ACTUAL focused Android app screens; never save Quickstep or System UI ANRs.
-APP=com.systivra.app
+APP=com.brendigo.systivra
 ACTIVITY="$APP/.MainActivity"
 APK=android/app/build/outputs/apk/debug/app-debug.apk
 mkdir -p qa/screenshots qa/debug

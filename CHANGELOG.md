@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0-preview.1] — 2026-11-15
+
+- Migrated **all** 24 Kotlin source and test files from the previous namespace into `com.brendigo.systivra`, including directory paths.
+- Set Android `applicationId` and `namespace` exactly to `com.brendigo.systivra`; versionCode=10.
+- Updated screenshots, marketing metadata and Google Play policies to the canonical Brendigo ID.
+- Added `tools/validate_application_id.py` and mandatory CI pre-release checks to prevent accidental reversion.
+- Upgraded **Gradle to 9.9.1**, addressing documented security vulnerabilities, and **kotlinx.coroutines to 1.11.0**.
+- Kept latest available **stable** AGP 9.4.0, Kotlin 2.4.21, Compose BOM 2026.09.00, Activity 1.13.0, Core-KTX 1.19.1, Lifecycle 2.11.0, SplashScreen 1.2.0.
+- Started authentic Android screenshot QA with updated package ID. Images are not claimed to be valid until verified against real application UI and Play requirements.
+- **Breaking identity change**: Google Play considers the new application ID a new app; no automatic upgrade/data migration from the previous package.
+
 ## [0.8.0-preview.1] — 2026-11-15
 
 - Updated **AGP 9.4.0** (Gradle 9.6.0 compatible) and **AndroidX SplashScreen 1.2.0** from published stable releases.
