@@ -1,0 +1,159 @@
+name: Publish SYSTIVRA v0.11.0 developer preview
+# Immutable preview publication with real compiled archives and evidence gates.
+# No 1:1 certification and no production Google Play signature are claimed.
+on:
+  push:
+    branches: [feat/systivra-v011-five-screen-preview]
+    paths: [".github/workflows/release-v011-preview.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: systivra-v011-preview-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Check the immutable tag and Android version metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: bren-wp/SYSTIVRA
+        run: |
+          set -euo pipefail
+          grep -F 'applicationId = "com.brendigo.systivra"' android/app/build.gradle.kts
+          grep -F 'versionCode = 13' android/app/build.gradle.kts
+          grep -F 'versionName = "0.11.0-preview.1"' android/app/build.gradle.kts
+          test -s docs/releases/v0.11.0-preview.1.md
+          if gh release view v0.11.0-preview.1 >/dev/null 2>&1; then
+            echo "::error::This immutable GitHub release exists; refusing overwrite"
+            exit 1
+          fi
+      - name: Install Android SDK 37 with network retry
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDK_MANAGER"
+          yes | "$SDK_MANAGER" --licenses >/dev/null || true
+          installed=0
+          for attempt in 1 2 3; do
+            if "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"; then
+              installed=1
+              break
+            fi
+            echo "::warning::Android SDK installation retry $attempt"
+            sleep 12
+          done
+          test "$installed" -eq 1
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.9.1"
+      - name: Confirm BRENDIGO package identity
+        run: python3 tools/validate_application_id.py
+      - name: Run lint, unit tests, compile device tests and build actual APK/AAB
+        working-directory: android
+        run: |
+          gradle :app:lintDebug :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin \
+            :app:assembleDebug :app:bundleRelease --no-daemon --stacktrace
+      - name: Enable hardware-accelerated emulator
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm || { echo "::error::KVM unavailable"; exit 1; }
+          sudo chmod a+rw /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+      - name: Run full connected Android UI and navigation tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          emulator-boot-timeout: 600
+          disable-animations: true
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
+          script: bash tools/run-android-instrumentation.sh
+      - name: Require all independent viewport, Splash and responsive QA jobs to have passed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: bren-wp/SYSTIVRA
+        run: |
+          set -euo pipefail
+          for workflow in android-reference-viewport.yml android-responsive-qa.yml android-splash-cold-start.yml; do
+            echo "Checking $workflow on $GITHUB_REF_NAME"
+            completed="$(gh api "repos/$GH_REPO/actions/workflows/$workflow/runs?branch=$GITHUB_REF_NAME&per_page=20" \
+              --jq '[.workflow_runs[] | select(.conclusion == "success")] | length')"
+            if ! [[ "$completed" =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error::No successful independent QA run found for $workflow"
+              exit 1
+            fi
+          done
+      - name: Verify compiled APK identity, version and ZIP integrity
+        run: |
+          set -euo pipefail
+          bash tools/verify_apk_id.sh
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          BUNDLE=android/app/build/outputs/bundle/release/app-release.aab
+          test -s "$APK"
+          test -s "$BUNDLE"
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          AAPT="$(find "$SDK_ROOT/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          identity="$("$AAPT" dump badging "$APK" | sed -n '1p')"
+          echo "$identity"
+          echo "$identity" | grep -F "name='com.brendigo.systivra'"
+          echo "$identity" | grep -F "versionCode='13'"
+          echo "$identity" | grep -F "versionName='0.11.0-preview.1'"
+          unzip -t "$APK" >/dev/null
+          unzip -t "$BUNDLE" >/dev/null
+      - name: Package genuine APK, AAB, exact source, artwork and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=v0.11.0-preview.1
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/SYSTIVRA-$VERSION-debug.apk"
+          cp android/app/build/outputs/bundle/release/app-release.aab "dist/SYSTIVRA-$VERSION-unsigned.aab"
+          git archive --format=zip --output="dist/SYSTIVRA-$VERSION-source.zip" HEAD
+          cp brending/google-play/assets/SYSTIVRA-Play-Graphics.zip "dist/SYSTIVRA-$VERSION-play-artwork.zip"
+          cp brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/SYSTIVRA-37-REFERENCE-PREVIEWS-1080x1920.zip \
+            "dist/SYSTIVRA-$VERSION-reference-designs-NOT-screenshots.zip"
+          cd dist
+          for asset in SYSTIVRA-$VERSION-*; do test -s "$asset"; done
+          sha256sum SYSTIVRA-$VERSION-* > SHA256SUMS.txt
+          sha256sum -c SHA256SUMS.txt
+      - name: Publish immutable GitHub pre-release with true compiled assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: bren-wp/SYSTIVRA
+        run: |
+          set -euo pipefail
+          TAG=v0.11.0-preview.1
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::Release tag already exists; never overwrite published assets"
+            exit 1
+          fi
+          gh release create "$TAG" dist/* \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "SYSTIVRA v0.11.0 Preview 1" \
+            --notes-file docs/releases/v0.11.0-preview.1.md
+          gh release view "$TAG" --json tagName,isPrerelease,assets \
+            --jq '{tag: .tagName, prerelease: .isPrerelease, files: [.assets[].name]}'
+      - name: Retain exact release binaries and diagnostic logs as CI evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: systivra-v0.11.0-preview.1-builds-and-checksums
+          path: |
+            dist/*
+            qa/instrumentation/
+            android/app/build/outputs/androidTest-results/connected/
+          if-no-files-found: warn
