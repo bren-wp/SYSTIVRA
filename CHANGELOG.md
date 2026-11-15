@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased — PR #19 visual parity and screen QA]
+
+- Corrected transparent Compose foreground inheritance so headings remain light and legible across the midnight theme; added instrumented color regression coverage.
+- Matched Hardware Explorer heading offset to the shared Dashboard / Monitor / Diagnostics reference grid.
+- Rebuilt Settings and About entry screens around the original header, hero card and four reference rows, with working interval, privacy, device information, source-code and license controls.
+- Kept fixed theme and device-provided units transparent rather than displaying fake toggles. Preserved existing Settings features below the reference section.
+- Inspected genuine 38-screen Android emulator evidence, compared all 36 original in-app reference layouts and documented measured differences; no screen certified 1:1.
+- Added a CSV-to-Markdown visual QA summary and removed CI auto-commit of unapproved Play screenshots.
+- Existing v0.10.0-preview.2 release is unchanged; these are in-progress PR changes until new tests pass.
+
 ## [0.10.0-preview.2] — 2026-11-15
 
 - Added irreversible-deletion confirmation for all saved recording sessions and samples, including a cancel-path Compose UI test.
