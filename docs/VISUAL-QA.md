@@ -63,3 +63,32 @@ The earlier reference comparison used **letterboxed 1080 × 1920 previews of 390
 A dedicated `ui/ReferenceDetails.kt` now implements the intended design vocabulary for nine screens: CPU Details, GPU Details, Memory Details, Storage Details, Battery Details, Thermal Details, Display Details, Device & Android and Sensor Explorer. Each has the matching two-line heading, tertiary caption, original hero or measured chart block, and four clickable reference rows. A click moves to the real Android reading cards and their sources below the first viewport. Historical chart lines are drawn only if Android supplied at least two numeric percentage samples. Missing data is explicitly labeled; no fake charts or invented CPU/GPU temperatures.
 
 **Current acceptance status: 0/37 originals certified 1:1.** Remaining work includes native-viewport diff review, final typography/insets/icon refinements for every destination, initial system Splash, 360/412/600/800 viewport testing, TalkBack, user-flow tests and real-device confirmation. CI builds, screenshots or matching layout structure **do not by themselves** certify 1:1.
+
+
+## PR #22 — truthful action details and native viewport auditing (2026-11-15)
+
+After PR #21 was merged, the last verified native-width 390 × 844 emulator comparison
+([run #43667371243](https://github.com/bren-wp/SYSTIVRA/actions/runs/43667371243))
+had **36/36** non-Splash original reference comparisons, mean absolute RGB error
+**5.138%** and mean changed pixels **67.202%**. These are raw color differences
+from concept boards, not a pixel-perfect match: **0/37 originals certified 1:1**.
+
+PR #22 preserves the original four-row entrance layout for each hardware detail
+route. Below the first viewport, users can view the selected mapped Android
+measurement, availability, source label, perform an offline reading search, and
+copy a valid reading. Real measured samples may populate the memory percentage
+chart; no fabricated chart is substituted for absent device data. History session
+selection now targets the actual locally stored session.
+
+The Python visual-QA summary previously carried the *old* 1080 × 1920 letterbox
+caveat into native 390 × 844 test reports. The current script takes
+`--geometry native` in the [native viewport workflow](../.github/workflows/android-reference-viewport.yml)
+so the evidence correctly distinguishes native SVG rasterization from letterboxed
+marketing previews. Differences caused by Android OS bars and reference-only
+illustrative graphs are still real visual differences; they must not be hidden
+or interpreted as a verified 1:1 pass.
+
+**Acceptance pending:** completed APK/AAB lint/unit build, connected emulator UI
+tests, fresh full-screen native visual comparison, separate Android Splash
+capture, other densities/sizes, actual-device safety checks, and final icon,
+font, insets and responsive-layout corrections across all 37 references.
