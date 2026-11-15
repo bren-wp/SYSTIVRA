@@ -45,5 +45,9 @@ for ref in brending/screens/*.svg; do
 done
 capture 38-recording-library recording-library
 capture 39-session-insights session-insights
-python3 tools/validate-android-screens.py "$SCREENSHOT_DIR"
+validation_args=()
+if [[ -n "${EXPECTED_CAPTURE_WIDTH:-}" && -n "${EXPECTED_CAPTURE_HEIGHT:-}" ]]; then
+  validation_args+=(--width "$EXPECTED_CAPTURE_WIDTH" --height "$EXPECTED_CAPTURE_HEIGHT")
+fi
+python3 tools/validate-android-screens.py "$SCREENSHOT_DIR" "${validation_args[@]}"
 echo "Captured $(find "$SCREENSHOT_DIR" -name '*.png' | wc -l) app screenshots; Splash requires separate startup capture."
