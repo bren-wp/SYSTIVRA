@@ -36,6 +36,9 @@ Many Android monitoring apps display device numbers without explaining their ori
 - 📊 **Recording Library** — separate sessions, recorded sample analysis, local CSV/JSON export, confirmed per-session and all-recordings deletion.
 - 📉 **Session Insights** — recorded battery trends and temperature statistics, with unavailable-safe calculations.
 - 🔎 **Transparent measurements** — unavailable CPU/GPU temperatures, external FPS and permissions are never invented.
+- 🧭 **Actionable hardware metrics** — tap a reference card to inspect its exact real Android reading and source; search readings offline and copy measured values on-device.
+- 📈 **RAM usage history** — derived percentage chart from actual available/total RAM readings when a sufficient sample history exists; no invented trend data.
+- 🗂️ **Selected session navigation** — History cards select the corresponding private saved session before opening Recording Library.
 - 🎮 **Performance Lab** — bounded, cancellable CPU test with a thermal safety cutoff.
 - 🧭 **Live sensors** — observe Android-provided axes, units and calibration status.
 - 🔔 **Local alerts** — configurable, on-screen battery and thermal thresholds.
