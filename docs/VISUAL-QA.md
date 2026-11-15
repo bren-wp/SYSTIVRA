@@ -92,3 +92,49 @@ or interpreted as a verified 1:1 pass.
 tests, fresh full-screen native visual comparison, separate Android Splash
 capture, other densities/sizes, actual-device safety checks, and final icon,
 font, insets and responsive-layout corrections across all 37 references.
+
+
+## PR #23 — highest-difference native screens and independent Splash / responsiveness QA
+
+Source baseline: [PR #22 native capture #43766977134](https://github.com/bren-wp/SYSTIVRA/actions/runs/43766977134).
+The **36/36** non-Splash original screens were compared at **390×844** physical
+pixels, **67.202% mean changed pixels**, and **5.144% mean RGB MAE**. Five
+priority routes were:
+
+| Reference | Route | Changed pixels before this iteration |
+|---|---|---:|
+| 31 Benchmark Results | benchmark-results | 93.676% |
+| 20 App Usage | app-usage | 87.874% |
+| 24 Session Analysis | session-analysis | 87.390% |
+| 30 Benchmark Running | benchmark-running | 83.353% |
+| 08 CPU Core Inspector | cpu-cores | 83.171% |
+
+These five routes now use shared original-reference heading, measured-data
+chart or SYSTIVRA hero, and four clickable reference rows. True metric
+availability, benchmark cancellation, optional app usage permissions, recorded
+session analysis and CPU inspection remain reachable in dedicated detail
+destinations; no synthetic benchmark progress or per-core measurements.
+Green CI does not certify design parity.
+
+### New separate QA workflows
+
+1. [Splash cold start](../.github/workflows/android-splash-cold-start.yml):
+   launches a clean Android 33 emulator at 390×844, begins a genuine screen
+   recording **before** launching the app, retains the video/temporal frames,
+   validates changed frames and archives a contact sheet alongside (but clearly
+   separate from) the original 01-Splash SVG render. This does not certify
+   1:1 and cannot guarantee capture of an OS animation frame on every device.
+2. [Responsive capture](../.github/workflows/android-responsive-qa.yml):
+   captures **8 actual routes at each of four viewport sizes** (360×800,
+   412×915, 600×960, 800×1280), with a 130% accessibility font-scale
+   variation at 412×915, for 32 genuine Android screenshots. It rejects blank,
+   wrong-sized and grossly duplicated captures.
+3. [Native 390×844 QA](../.github/workflows/android-reference-viewport.yml):
+   captures 38 actual in-app destinations and compares the 36 original in-app
+   screenshots with the native SVG rasters; it independently runs Android
+   instrumented tests, collecting JUnit evidence and Logcat on failure.
+
+All results are *diagnostic*, not approvals. Physical-device checks, color/font
+rasterization and touch targets, all 37 reference screens (particularly the
+system Splash), multiple OS versions, TalkBack, landscape and insets must be
+reviewed before any 1:1 or release-ready claim.
