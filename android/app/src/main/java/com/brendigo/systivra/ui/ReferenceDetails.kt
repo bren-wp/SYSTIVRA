@@ -94,21 +94,12 @@ internal fun ReferenceDetailScreen(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text(spec.title, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text(spec.subtitle, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text(spec.description, fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading(spec.title, spec.subtitle, spec.description) }
         item {
             if (spec.hasChart) ReferenceMeasuredChart(measured)
             else ReferenceHeroCard { open(if (route == "device-and-android") "system-overview" else "device-and-android") }
         }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         items(spec.rows.size) { index ->
             ReferenceMetricRow(spec.rows[index], listOf("◇", "▤", "◉", "⌁")[index], index) {
                 // Each reference row is an actual action: show the complete device report below.
