@@ -341,18 +341,9 @@ private fun Dashboard(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Dashboard", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Your device at a glance", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Live information", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Dashboard", "Your device at a glance", "Live information") }
         item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         items(primary) { (label, symbol, path) ->
             ReferenceMetricRow(label, symbol, primary.indexOfFirst { it.first == label }) {
                 open(path)
@@ -468,18 +459,9 @@ private fun HardwareExplorer(open: (String) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Hardware Explorer", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Explore components", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Hardware information", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Hardware Explorer", "Explore components", "Hardware information") }
         item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         items(primary) { (name, symbol, path) ->
             ReferenceMetricRow(name, symbol, primary.indexOfFirst { it.first == name }) {
                 open(path)
@@ -537,16 +519,7 @@ private fun LiveMonitor(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Live Monitor", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("System readings", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Real-time activity", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Live Monitor", "System readings", "Real-time activity") }
         item {
             Card(
                 modifier = Modifier.fillMaxWidth().height(172.dp).clickable { open("metric-fullscreen") },
@@ -579,7 +552,7 @@ private fun LiveMonitor(
                 }
             }
         }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         items(rows) { (label, symbol, path) ->
             ReferenceMetricRow(label, symbol, rows.indexOfFirst { it.first == label }) { open(path) }
         }
@@ -612,18 +585,9 @@ private fun Diagnostics(open: (String) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Diagnostics Center", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Hardware checks", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Opt-in device testing", color = Muted, fontSize = 13.sp)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Diagnostics Center", "Hardware checks", "Opt-in device testing") }
         item { ReferenceHeroCard { open("diagnostic-results") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         items(rows) { (label, icon, path) ->
             ReferenceMetricRow(label, icon, rows.indexOfFirst { it.first == label }) { open(path) }
         }
@@ -828,18 +792,9 @@ private fun Settings(open: (String) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Settings", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Preferences", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Customize your experience", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Settings", "Preferences", "Customize your experience") }
         item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         item { ReferenceMetricRow("Appearance", "◇", 0) { activeDialog = "Appearance" } }
         item { ReferenceMetricRow("Update interval", "▤", 1) { activeDialog = "Update interval" } }
         item { ReferenceMetricRow("Units", "◉", 2) { activeDialog = "Units" } }
@@ -899,18 +854,9 @@ private fun About(open: (String) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("About SYSTIVRA", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Version and licenses", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Open development", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("About SYSTIVRA", "Version and licenses", "Open development") }
         item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         item { ReferenceMetricRow("Source code", "◇", 0) { openBrowser("https://github.com/bren-wp/SYSTIVRA") } }
         item { ReferenceMetricRow("MIT license", "▤", 1) { openBrowser("https://github.com/bren-wp/SYSTIVRA/blob/main/LICENSE") } }
         item { ReferenceMetricRow("Device support", "◉", 2) { open("device-and-android") } }
