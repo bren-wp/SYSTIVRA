@@ -285,7 +285,7 @@ fun AppRoot(
                         ), open = ::open
                     )
                     "component-test-interactive" -> ComponentTest()
-                    "history" -> History(samples, ::open)
+                    "history" -> ReferenceHistory(samples, savedSessions, ::open)
                     "settings" -> Settings(::open)
                     "about" -> About(::open)
                     "all-screens" -> ScreenCatalog(::open)
@@ -858,28 +858,6 @@ private fun Settings(open: (String) -> Unit) {
         item { LinkCard("Alerts", "Local battery and thermal thresholds") { open("alerts") } }
         item { LinkCard("Permission Center", "See granted Android access") { open("permission-center") } }
         item { LinkCard("About SYSTIVRA", "Version, privacy and source limitations") { open("about") } }
-    }
-}
-
-@Composable
-private fun History(samples: List<DeviceSnapshot>, open: (String) -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item {
-            Text("In-memory session history · " + samples.size + " samples", color = Muted)
-            Text("Recent readings are held in memory. Saved sessions can be opened in Recording Library.", color = Muted, fontSize = 12.sp)
-        }
-        item { LinkCard("Export session as CSV", "Choose a destination using Android Files") { open("reports-export") } }
-        item { LinkCard("Recording Library", "View and manage locally saved sessions") { open("recording-library") } }
-        items(samples.reversed()) { entry ->
-            PanelCard {
-                Text(SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(entry.time)),
-                    color = Cyan, fontWeight = FontWeight.Bold)
-                Text("Battery: " + (entry.battery.firstOrNull()?.display ?: "Unavailable"),
-                    fontSize = 13.sp)
-                Text("Free RAM: " + (entry.ram.getOrNull(1)?.display ?: "Unavailable"),
-                    fontSize = 13.sp)
-            }
-        }
     }
 }
 
