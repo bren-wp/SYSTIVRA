@@ -3,6 +3,7 @@ package com.brendigo.systivra
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.material3.Text
 import com.brendigo.systivra.ui.AppTheme
 import org.junit.Assert.assertEquals
