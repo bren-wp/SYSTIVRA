@@ -152,7 +152,7 @@ private fun ReferenceMeasuredChart(points: List<Float>) {
         ) {
             Text("Live data chart", fontSize = 13.sp, color = Muted)
             if (points.size >= 2) {
-                Canvas(Modifier.fillMaxWidth().height(96.dp)) {
+                Canvas(Modifier.fillMaxWidth().height(78.dp)) {
                     val gap = size.width / (points.size - 1).toFloat()
                     points.zipWithNext().forEachIndexed { i, pair ->
                         drawLine(
@@ -166,7 +166,7 @@ private fun ReferenceMeasuredChart(points: List<Float>) {
                 }
                 Text("Recorded device samples · measured percentages", fontSize = 11.sp, color = Muted)
             } else {
-                Box(Modifier.fillMaxWidth().height(96.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxWidth().height(78.dp), contentAlignment = Alignment.Center) {
                     Text("Waiting for measured samples", color = Muted, fontSize = 12.sp)
                 }
                 Text("No illustrative or fabricated readings", fontSize = 11.sp, color = Muted)
