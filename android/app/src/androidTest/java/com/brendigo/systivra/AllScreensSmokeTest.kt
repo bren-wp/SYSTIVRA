@@ -31,7 +31,8 @@ class AllScreensSmokeTest {
         "system-overview", "recording-library", "all-screens",
         "component-test-interactive", "device-capacity",
         "cpu-cores-data", "app-usage-controls", "session-analysis-data",
-        "benchmark-running-controls", "benchmark-results-data"
+        "benchmark-running-controls", "benchmark-results-data",
+        "recording-session-controls", "permission-center-controls"
     )
 
     @Test
