@@ -4,7 +4,7 @@ name: SYSTIVRA 390x844 reference viewport QA
 on:
   workflow_dispatch:
   push:
-    branches: [feat/systivra-visual-parity-390dp-qa, fix/systivra-qa-stability-20261115, feat/systivra-reference-actions-metrics-20261115]
+    branches: [feat/systivra-visual-parity-390dp-qa, fix/systivra-qa-stability-20261115, feat/systivra-reference-actions-metrics-20261115, feat/priority-five-screen-parity-and-splash-qa]
     paths:
       - ".github/workflows/android-reference-viewport.yml"
       - "android/app/src/main/**"

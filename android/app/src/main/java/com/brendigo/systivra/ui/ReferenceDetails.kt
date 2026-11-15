@@ -212,7 +212,7 @@ internal fun ReferenceDetailScreen(
 
 /** Never draw a decorative trend that could be mistaken for actual measurements. */
 @Composable
-private fun ReferenceMeasuredChart(points: List<Float>) {
+internal fun ReferenceMeasuredChart(points: List<Float>) {
     Card(
         modifier = Modifier.fillMaxWidth().height(170.dp),
         shape = RoundedCornerShape(18.dp),

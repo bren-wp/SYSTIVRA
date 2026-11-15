@@ -1,0 +1,77 @@
+name: SYSTIVRA responsive viewport capture
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/priority-five-screen-parity-and-splash-qa]
+    paths:
+      - ".github/workflows/android-responsive-qa.yml"
+      - "tools/capture-responsive-priority.sh"
+      - "tools/validate-responsive-priority.py"
+      - "android/app/src/main/**"
+permissions:
+  contents: read
+concurrency:
+  group: systivra-responsive-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  responsive-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install required Android SDK and Pillow
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDK_MANAGER"
+          yes | "$SDK_MANAGER" --licenses >/dev/null || true
+          installed=0
+          for attempt in 1 2 3; do
+            if "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"; then
+              installed=1
+              break
+            fi
+            echo "::warning::Android SDK download retry $attempt"
+            sleep 12
+          done
+          test "$installed" -eq 1
+          python3 -m pip install --quiet Pillow
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.9.1"
+      - name: Build the actual Android application for responsive captures
+        working-directory: android
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Enable KVM
+        run: |
+          test -e /dev/kvm || { echo "::error::KVM unavailable"; exit 1; }
+          sudo chmod a+rw /dev/kvm
+      - name: Capture eight actual routes at four sizes, including 130% font scale
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
+          script: bash tools/capture-responsive-priority.sh
+      - name: Display responsive QA summary
+        if: always()
+        run: |
+          if test -s qa/responsive/responsive-summary.md; then
+            cat qa/responsive/responsive-summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Archive all 32 real emulator screenshots and diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: systivra-responsive-four-viewports-real-captures
+          path: qa/responsive/
+          if-no-files-found: warn

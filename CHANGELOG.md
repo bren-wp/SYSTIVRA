@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased — PR #23 five high-difference references and device QA]
+
+- Rebuilt **Benchmark Results, App Usage, Session Analysis, Benchmark Running, CPU Core Inspector** reference entry screens with original 390×844 headings, honest charts/hero and four interactive actions.
+- Kept existing performance, UsageStats, session analytics, export and CPU inspection functions available through dedicated detail routes, with real Android values and explicit unsupported states; benchmark Stop retains actual cancellation.
+- Added original-first-viewport metric mapping unit tests, Compose interaction tests and five full-functionality routes to crash/no-immediate-ANR screen smoke tests.
+- Added a separate pre-launch Android system Splash video with extracted frames, native original SVG and manual-review contact sheet, without pretending a post-launch screenshot is a Splash.
+- Added responsive QA at 360×800, 412×915 (130% font), 600×960 and 800×1280 with real focused-app captures and geometry/blank-image validation.
+- No fabricated benchmark progress, CPU-core activity or scores. All 37 design references still require independent 1:1 certification.
+
 ## [Unreleased — PR #22 device metric interactions]
 
 - Matched original first-viewport reference layout while connecting all nine hardware detail screens' metric rows to their correct real Android readings, sources and explicit unavailable states instead of a generic report jump.

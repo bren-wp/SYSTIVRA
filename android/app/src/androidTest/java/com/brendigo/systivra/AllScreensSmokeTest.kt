@@ -29,7 +29,10 @@ class AllScreensSmokeTest {
         "overlay-configuration", "history", "reports-export",
         "permission-center", "settings", "about", "device-detection",
         "system-overview", "recording-library", "all-screens",
-        "component-test-interactive", "device-capacity"
+        "component-test-interactive", "device-capacity",
+        "cpu-cores-data", "app-usage-controls", "session-analysis-data",
+        "benchmark-running-controls", "benchmark-results-data",
+        "recording-session-controls", "permission-center-controls"
     )
 
     @Test

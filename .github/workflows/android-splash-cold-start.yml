@@ -1,0 +1,78 @@
+name: SYSTIVRA genuine cold-start Splash QA
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/priority-five-screen-parity-and-splash-qa]
+    paths:
+      - ".github/workflows/android-splash-cold-start.yml"
+      - "tools/capture-splash-cold-start.sh"
+      - "tools/validate-splash-capture.py"
+      - "android/app/src/main/**"
+      - "brending/screens/01-splash.svg"
+permissions:
+  contents: read
+concurrency:
+  group: systivra-splash-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  cold-start-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install Android SDK 37 and image validation dependencies
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDK_MANAGER"
+          yes | "$SDK_MANAGER" --licenses >/dev/null || true
+          installed=0
+          for attempt in 1 2 3; do
+            if "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"; then
+              installed=1
+              break
+            fi
+            echo "::warning::Android SDK package retry $attempt"
+            sleep 12
+          done
+          test "$installed" -eq 1
+          python3 -m pip install --quiet Pillow CairoSVG
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            echo "ffmpeg is not preinstalled on this runner; installing system package"
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg
+          fi
+          ffmpeg -hide_banner -version | head -n 1
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.9.1"
+      - name: Build genuine debuggable SYSTIVRA APK
+        working-directory: android
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Allow emulator KVM acceleration
+        run: |
+          test -e /dev/kvm || { echo "::error::KVM unavailable"; exit 1; }
+          sudo chmod a+rw /dev/kvm
+      - name: Cold-start screenrecord BEFORE launching the real app
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
+          script: bash tools/capture-splash-cold-start.sh
+      - name: Preserve cold-start video, frame audit and unmodified reference
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: systivra-real-cold-start-splash-evidence
+          path: qa/splash/
+          if-no-files-found: warn
