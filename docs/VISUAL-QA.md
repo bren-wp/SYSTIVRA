@@ -43,3 +43,23 @@ Evidence: https://github.com/bren-wp/SYSTIVRA/actions/runs/43661286066
 **Google Play screenshot safety:** only genuine emulator evidence is permitted. The screenshot CI no longer auto-commits unreviewed Play images. All eight candidate Play screenshots require human design review; screenshots with readability or layout defects are not approved marketing assets.
 
 Next acceptance stages: (1) re-run actual Android 33 screenshots after theme correction; (2) align viewport/aspect ratio and insets with an approved device baseline without image stretching; (3) fix per-screen typography, cards, icon/illustration placement and scroll states; (4) verify actions, TalkBack and device-specific dynamic readings; (5) authorize a stricter visual regression gate only for independently reviewed, same-viewport baselines.
+
+## PR #20 — native 390 × 844 design-geometry capture (2026-11-15)
+
+The earlier reference comparison used **letterboxed 1080 × 1920 previews of 390 × 844 SVG designs** versus actual 1080 × 1920 Android captures. Its last published result on PR #19 was **36/36 compared, 82.430% average pixels changed and 6.274% RGB MAE**, but that number combines genuine design differences with viewport incompatibility. **It is not a per-component layout accuracy measurement.**
+
+[Native-viewport workflow](../.github/workflows/android-reference-viewport.yml) now:
+
+1. Renders the unaltered `brending/screens/02..37` SVGs at their **original physical 390 × 844 pixel viewport**, using CairoSVG. Design PNGs are labeled as **references**, never real app screenshots.
+2. Builds the actual Android APK, boots an Android 33 emulator with KVM, and explicitly configures `wm size 390x844` and `wm density 160`. Checks both emulator overrides rather than silently resizing screenshots in post-processing.
+3. Uses the real app's Debug-only `qa_route` launch path to capture 36 in-app reference routes plus two additional real app screens. Validates the **exact 390 × 844 screenshot geometry**, route focus, and unique image content.
+4. Compares each unmodified SVG raster with its corresponding genuine app capture using `tools/visual-diff.py`, archiving per-screen absolute RGB errors, changed-pixel percentages, and diff PNGs. These are **diagnostic-only** thresholds (100% allowed), not an acceptance gate or pixel-perfect certificate.
+5. Publishes a per-screen Markdown summary and original capture evidence as a GitHub Actions artifact. System Splash remains a separately required cold-launch artifact.
+
+**CI implementation note:** `reactivecircus/android-emulator-runner` invokes its script through `/bin/sh`; Bash-specific `pipefail` must be placed in `tools/capture-reference-viewport.sh` and run via `bash`. The first native-viewport run #43664238079 failed at the shell adapter before app screenshots; a fix was committed and rerun.
+
+### Reference-aligned functional details
+
+A dedicated `ui/ReferenceDetails.kt` now implements the intended design vocabulary for nine screens: CPU Details, GPU Details, Memory Details, Storage Details, Battery Details, Thermal Details, Display Details, Device & Android and Sensor Explorer. Each has the matching two-line heading, tertiary caption, original hero or measured chart block, and four clickable reference rows. A click moves to the real Android reading cards and their sources below the first viewport. Historical chart lines are drawn only if Android supplied at least two numeric percentage samples. Missing data is explicitly labeled; no fake charts or invented CPU/GPU temperatures.
+
+**Current acceptance status: 0/37 originals certified 1:1.** Remaining work includes native-viewport diff review, final typography/insets/icon refinements for every destination, initial system Splash, 360/412/600/800 viewport testing, TalkBack, user-flow tests and real-device confirmation. CI builds, screenshots or matching layout structure **do not by themselves** certify 1:1.
