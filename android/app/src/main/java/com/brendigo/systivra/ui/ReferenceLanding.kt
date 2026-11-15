@@ -36,18 +36,9 @@ internal fun ReferenceLanding(
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text(title, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text(subtitle, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text(caption, fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading(title, subtitle, caption) }
         item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         itemsIndexed(actions) { index, action ->
             ReferenceMetricRow(
                 action.title,
