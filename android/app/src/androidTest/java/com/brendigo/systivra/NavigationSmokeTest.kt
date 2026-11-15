@@ -61,6 +61,8 @@ class NavigationSmokeTest {
         rule.onNodeWithTag("settings-scroll")
             .performScrollToNode(hasText("Screen catalog"))
         rule.onNodeWithText("Screen catalog").performClick()
+        rule.onNodeWithTag("screen-catalog-scroll")
+            .performScrollToNode(hasText("Device Detection"))
         rule.onNodeWithText("Device Detection").performClick()
         rule.onNodeWithText("Hardware capabilities").assertExists()
         rule.onNodeWithText("Memory and storage").performClick()
