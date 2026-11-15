@@ -31,7 +31,16 @@ jobs:
           SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
           test -n "$SDK_MANAGER"
           yes | "$SDK_MANAGER" --licenses >/dev/null || true
-          "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
+          installed=0
+          for attempt in 1 2 3; do
+            if "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"; then
+              installed=1
+              break
+            fi
+            echo "::warning::Android SDK package retry $attempt"
+            sleep 12
+          done
+          test "$installed" -eq 1
           python3 -m pip install --quiet Pillow CairoSVG
           command -v ffmpeg
       - uses: gradle/actions/setup-gradle@v4
