@@ -78,7 +78,8 @@ jobs:
             --max-mae-percent 100 --max-changed-percent 100
           python3 tools/summarize-visual-qa.py \
             --report qa/reference-viewport/diff/report.csv \
-            --output qa/reference-viewport/diff/summary.md
+            --output qa/reference-viewport/diff/summary.md \
+            --geometry native
           cat qa/reference-viewport/diff/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload actual 390x844 captures and reproducible reference evidence
         if: always()
