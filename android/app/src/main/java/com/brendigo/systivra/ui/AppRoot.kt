@@ -14,6 +14,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -229,7 +232,8 @@ fun AppRoot(
                     tabs.forEach { (id, label, _) ->
                         Box(
                             modifier = Modifier.weight(1f).fillMaxSize()
-                                .clickable { open(id) },
+                                .clickable(role = Role.Tab) { open(id) }
+                                .semantics { stateDescription = if (selectedTab == id) "Selected" else "Not selected" },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -489,7 +493,8 @@ internal fun ReferenceMetricRow(
     val tone = if (index % 2 == 0) Color(0xFF153B68) else Color(0xFF34245B)
     val glyphColor = if (index % 2 == 0) Cyan else Color(0xFFC39BFF)
     Card(
-        modifier = Modifier.fillMaxWidth().height(69.dp).clickable { onClick() },
+        modifier = Modifier.fillMaxWidth().height(69.dp)
+            .clickable(role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
         border = BorderStroke(1.dp, Color(0xFF223654))
@@ -508,7 +513,8 @@ internal fun ReferenceMetricRow(
                 Modifier.weight(1f).padding(start = 13.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(label, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(label, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("Details / availability", fontSize = 12.sp, color = Muted)
             }
             Text("›", color = Muted, fontSize = 22.sp)
