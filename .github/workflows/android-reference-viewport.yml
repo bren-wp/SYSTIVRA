@@ -9,6 +9,7 @@ on:
       - ".github/workflows/android-reference-viewport.yml"
       - "android/app/src/main/**"
       - "tools/capture-android-screens.sh"
+      - "tools/capture-reference-viewport.sh"
       - "tools/validate-android-screens.py"
       - "tools/render-reference-viewport.py"
       - "tools/summarize-visual-qa.py"
@@ -63,19 +64,7 @@ jobs:
           emulator-boot-timeout: 600
           disable-animations: true
           emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
-          script: |
-            set -euo pipefail
-            adb wait-for-device
-            adb shell wm size 390x844
-            adb shell wm density 160
-            adb shell settings put system font_scale 1.0
-            sleep 8
-            adb shell wm size | grep -F "Override size: 390x844"
-            adb shell wm density | grep -F "Override density: 160"
-            SCREENSHOT_DIR=qa/reference-viewport/screenshots \
-            DEBUG_DIR=qa/reference-viewport/debug \
-            EXPECTED_CAPTURE_WIDTH=390 EXPECTED_CAPTURE_HEIGHT=844 \
-              bash tools/capture-android-screens.sh
+          script: bash tools/capture-reference-viewport.sh
       - name: Compare matching viewport pixels (diagnostic, not an acceptance claim)
         run: |
           python3 tools/visual-diff.py \
