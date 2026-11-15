@@ -20,9 +20,9 @@ for(const name of names){
   if(m.width>W||m.height>H)throw Error("Cannot fit "+name);
   const outfile=path.join(out,name.replace(".svg","-REFERENCE.png"));
   await sharp(background).composite([{input:rendered,left:Math.floor((W-m.width)/2),top:Math.floor((H-m.height)/2)}])
-    .flatten({background:"#08111D"}).png({compressionLevel:9}).toFile(outfile);
+    .flatten({background:"#08111D"}).removeAlpha().png({compressionLevel:9,palette:false}).toFile(outfile);
   const verify=await sharp(outfile).metadata();
-  if(verify.width!==W||verify.height!==H||verify.hasAlpha)throw Error("Wrong output for "+name);
+  if(verify.width!==W||verify.height!==H||verify.hasAlpha)throw Error("Wrong output for "+name+": "+JSON.stringify({width:verify.width,height:verify.height,channels:verify.channels,hasAlpha:verify.hasAlpha}));
   meta.screens.push({reference:name,preview:path.basename(outfile),sha256:crypto.createHash("sha256").update(svg).digest("hex")});
   const tile=await sharp(outfile).resize({width:162,height:288,fit:"contain"}).toBuffer();
   const i=tiles.length;
