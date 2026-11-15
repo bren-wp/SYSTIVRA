@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased — PR #22 device metric interactions]
+
+- Matched original first-viewport reference layout while connecting all nine hardware detail screens' metric rows to their correct real Android readings, sources and explicit unavailable states instead of a generic report jump.
+- Added offline reading search by name, value or Android source; added local Clipboard copy actions without new permissions, below the design reference viewport.
+- Added a measured used-RAM chart derived from Android MemoryInfo when the required samples exist, validating units, bounds, missing metrics and finite values; no synthetic chart points.
+- Memory > History opens saved sessions; tapping one History session selects its correct ID before navigating to the private Recording Library.
+- Added pure unit tests, Compose instrumented tests, and native 390×844 screenshot plus independent emulator CI coverage.
+- The 37 design references are not all pixel-perfect certified; no release should be tagged without full QA and valid deliverables.
+
 ## [Unreleased — PR #20 native-viewport visual iteration]
 
 - Split development into a new PR after #19 merged; no writes to the production main branch.
