@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity() {
         val store = RecordingStore(applicationContext)
 
         lifecycleScope.launch(Dispatchers.IO) {
+            var activeId: Long? = null
             try {
             fun refresh() {
                 recorded.value = store.readRecent()
@@ -72,11 +73,14 @@ class MainActivity : ComponentActivity() {
                 storageError.value = "Saved history could not be opened"
             } else {
                 storageReady.value = true
-                var activeId: Long? = null
                 for (action in actions) {
                     runCatching {
                         when (action) {
-                            StorageAction.Start -> activeId = null
+                            StorageAction.Start -> {
+                                // A second Start must not orphan the previous active session.
+                                activeId?.let(store::stopSession)
+                                activeId = null
+                            }
                             StorageAction.Stop -> {
                                 activeId?.let(store::stopSession)
                                 activeId = null
@@ -110,7 +114,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             } finally {
-                store.close()
+                // The Activity scope may cancel before the queued Stop is consumed.
+                // Seal the active session before closing the app-private database.
+                runCatching { activeId?.let(store::stopSession) }
+                runCatching { store.close() }
             }
         }
 

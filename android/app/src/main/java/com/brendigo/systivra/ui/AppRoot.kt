@@ -134,7 +134,9 @@ private val sections = listOf(
     "device-detection" to "Device Detection",
     "system-overview" to "System Overview",
     "recording-library" to "Recording Library",
-    "all-screens" to "Screen Catalog"
+    "all-screens" to "Screen Catalog",
+    "component-test-interactive" to "Component Test Controls",
+    "device-capacity" to "Memory & Storage"
 )
 
 private val enabledRoutes = setOf(
@@ -146,7 +148,8 @@ private val enabledRoutes = setOf(
     "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
     "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
     "recording-session", "session-analysis", "session-insights", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
-    "overlay-configuration", "recording-library", "all-screens"
+    "overlay-configuration", "recording-library", "all-screens",
+    "component-test-interactive", "device-capacity"
 )
 
 @Composable
@@ -271,8 +274,18 @@ fun AppRoot(
                     "hardware-explorer" -> HardwareExplorer(::open)
                     "live-monitor" -> LiveMonitor(snapshot, samples, recorded, savedSessions, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
-                    "component-test" -> ComponentTest()
-                    "history" -> History(samples, ::open)
+                    "component-test" -> ReferenceLanding(
+                        route = "component-test", title = "Component Test",
+                        subtitle = "Interactive testing", caption = "Explicit user confirmation",
+                        actions = listOf(
+                            ReferenceAction("Run test", "component-test-interactive"),
+                            ReferenceAction("Check result", "diagnostic-results"),
+                            ReferenceAction("Skip test", "diagnostics-center"),
+                            ReferenceAction("Permission state", "permission-center")
+                        ), open = ::open
+                    )
+                    "component-test-interactive" -> ComponentTest()
+                    "history" -> ReferenceHistory(samples, savedSessions, ::open)
                     "settings" -> Settings(::open)
                     "about" -> About(::open)
                     "all-screens" -> ScreenCatalog(::open)
@@ -291,8 +304,17 @@ fun AppRoot(
 
                     "display-details" -> ReferenceDetailScreen("display-details", snapshot.display, samples, ::open)
                     "device-and-android" -> ReferenceDetailScreen("device-and-android", snapshot.system, samples, ::open)
-                    "device-detection", "system-overview" ->
-                        MetricScreen(snapshot.system, "Device identifiers and Android version")
+                    "device-detection" -> ReferenceLanding(
+                        route = "device-detection", title = "Device Detection",
+                        subtitle = "Hardware capabilities", caption = "Supported Android APIs",
+                        actions = listOf(
+                            ReferenceAction("Device model", "device-and-android"),
+                            ReferenceAction("Memory and storage", "device-capacity"),
+                            ReferenceAction("Available sensors", "sensor-explorer")
+                        ), open = ::open
+                    )
+                    "device-capacity" -> MetricScreen(snapshot.ram + snapshot.storage, "Device RAM and internal storage")
+                    "system-overview" -> MetricScreen(snapshot.system, "Device identifiers and Android version")
 
                     "sensor-explorer" -> ReferenceDetailScreen("sensor-explorer", snapshot.sensors, samples, ::open)
                     else -> Planned(sections.firstOrNull { it.first == route }?.second ?: "Feature")
@@ -319,18 +341,9 @@ private fun Dashboard(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Dashboard", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Your device at a glance", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Live information", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Dashboard", "Your device at a glance", "Live information") }
         item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         items(primary) { (label, symbol, path) ->
             ReferenceMetricRow(label, symbol, primary.indexOfFirst { it.first == label }) {
                 open(path)
@@ -446,18 +459,9 @@ private fun HardwareExplorer(open: (String) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Hardware Explorer", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Explore components", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Hardware information", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Hardware Explorer", "Explore components", "Hardware information") }
         item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         items(primary) { (name, symbol, path) ->
             ReferenceMetricRow(name, symbol, primary.indexOfFirst { it.first == name }) {
                 open(path)
@@ -515,16 +519,7 @@ private fun LiveMonitor(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Live Monitor", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("System readings", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Real-time activity", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Live Monitor", "System readings", "Real-time activity") }
         item {
             Card(
                 modifier = Modifier.fillMaxWidth().height(172.dp).clickable { open("metric-fullscreen") },
@@ -557,7 +552,7 @@ private fun LiveMonitor(
                 }
             }
         }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         items(rows) { (label, symbol, path) ->
             ReferenceMetricRow(label, symbol, rows.indexOfFirst { it.first == label }) { open(path) }
         }
@@ -590,18 +585,9 @@ private fun Diagnostics(open: (String) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Diagnostics Center", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Hardware checks", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Opt-in device testing", color = Muted, fontSize = 13.sp)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Diagnostics Center", "Hardware checks", "Opt-in device testing") }
         item { ReferenceHeroCard { open("diagnostic-results") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         items(rows) { (label, icon, path) ->
             ReferenceMetricRow(label, icon, rows.indexOfFirst { it.first == label }) { open(path) }
         }
@@ -806,18 +792,9 @@ private fun Settings(open: (String) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("Settings", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Preferences", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Customize your experience", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("Settings", "Preferences", "Customize your experience") }
         item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         item { ReferenceMetricRow("Appearance", "◇", 0) { activeDialog = "Appearance" } }
         item { ReferenceMetricRow("Update interval", "▤", 1) { activeDialog = "Update interval" } }
         item { ReferenceMetricRow("Units", "◉", 2) { activeDialog = "Units" } }
@@ -840,30 +817,8 @@ private fun Settings(open: (String) -> Unit) {
 }
 
 @Composable
-private fun History(samples: List<DeviceSnapshot>, open: (String) -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item {
-            Text("In-memory session history · " + samples.size + " samples", color = Muted)
-            Text("Recent readings are held in memory. Saved sessions can be opened in Recording Library.", color = Muted, fontSize = 12.sp)
-        }
-        item { LinkCard("Export session as CSV", "Choose a destination using Android Files") { open("reports-export") } }
-        item { LinkCard("Recording Library", "View and manage locally saved sessions") { open("recording-library") } }
-        items(samples.reversed()) { entry ->
-            PanelCard {
-                Text(SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(entry.time)),
-                    color = Cyan, fontWeight = FontWeight.Bold)
-                Text("Battery: " + (entry.battery.firstOrNull()?.display ?: "Unavailable"),
-                    fontSize = 13.sp)
-                Text("Free RAM: " + (entry.ram.getOrNull(1)?.display ?: "Unavailable"),
-                    fontSize = 13.sp)
-            }
-        }
-    }
-}
-
-@Composable
 private fun ScreenCatalog(open: (String) -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(modifier = Modifier.testTag("screen-catalog-scroll"), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item { Text("Available screens and device tools", color = Muted) }
         items(sections.filter { enabledRoutes.contains(it.first) }) { (id, label) ->
             LinkCard(label, "Open $label") {
@@ -899,18 +854,9 @@ private fun About(open: (String) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("About SYSTIVRA", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Version and licenses", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Open development", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("About SYSTIVRA", "Version and licenses", "Open development") }
         item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         item { ReferenceMetricRow("Source code", "◇", 0) { openBrowser("https://github.com/bren-wp/SYSTIVRA") } }
         item { ReferenceMetricRow("MIT license", "▤", 1) { openBrowser("https://github.com/bren-wp/SYSTIVRA/blob/main/LICENSE") } }
         item { ReferenceMetricRow("Device support", "◉", 2) { open("device-and-android") } }

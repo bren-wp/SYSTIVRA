@@ -48,7 +48,7 @@ data class CpuBenchResult(
  * No persistent background execution. Cancels with composition scope.
  */
 class BenchmarkController(context: Context) {
-    private val power = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+    private val power = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
     var running by mutableStateOf(false)
         private set
     var result by mutableStateOf<CpuBenchResult?>(null)
@@ -83,7 +83,9 @@ class BenchmarkController(context: Context) {
     }
 
     private fun thermalStatus(): Int? =
-        if (Build.VERSION.SDK_INT >= 29) power.currentThermalStatus else null
+        if (Build.VERSION.SDK_INT >= 29) {
+            runCatching { power?.currentThermalStatus }.getOrNull()
+        } else null
 
     private fun thermallyUnsafe() =
         thermalStatus()?.let { it >= PowerManager.THERMAL_STATUS_SEVERE } ?: false

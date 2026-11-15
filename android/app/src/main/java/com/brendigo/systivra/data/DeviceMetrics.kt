@@ -41,17 +41,21 @@ data class DeviceSnapshot(
 }
 class DeviceMetrics(context: Context) {
     private val app = context.applicationContext
-    private val activityManager = app.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-    private val batteryManager = app.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-    private val sensorManager = app.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val powerManager = app.getSystemService(Context.POWER_SERVICE) as PowerManager
+    private val activityManager = app.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+    private val batteryManager = app.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+    private val sensorManager = app.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+    private val powerManager = app.getSystemService(Context.POWER_SERVICE) as? PowerManager
     private val cpuSampler = CpuSampler()
     private val detectedGpu by lazy { GpuProbe.read() }
 
     fun capture(): DeviceSnapshot {
-        val memory = ActivityManager.MemoryInfo().also(activityManager::getMemoryInfo)
+        val memory = runCatching {
+            ActivityManager.MemoryInfo().also { info -> activityManager?.getMemoryInfo(info) }
+        }.getOrNull()
         val storage = runCatching { StatFs(Environment.getDataDirectory().absolutePath) }.getOrNull()
-        val intent = app.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val intent = runCatching {
+            app.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        }.getOrNull()
         val charge = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
         val level = if (charge >= 0 && scale > 0) decimal(charge * 100.0 / scale) + "%" else null
@@ -65,10 +69,10 @@ class DeviceMetrics(context: Context) {
             else -> null
         }
         val microAmps = runCatching {
-            batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+            batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
         }.getOrNull()?.takeUnless { it == Int.MIN_VALUE }
         val thermalState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            when (powerManager.currentThermalStatus) {
+            when (runCatching { powerManager?.currentThermalStatus }.getOrNull()) {
                 PowerManager.THERMAL_STATUS_NONE -> "None"
                 PowerManager.THERMAL_STATUS_LIGHT -> "Light"
                 PowerManager.THERMAL_STATUS_MODERATE -> "Moderate"
@@ -80,8 +84,10 @@ class DeviceMetrics(context: Context) {
             }
         } else null
         val dm = app.resources.displayMetrics
-        val reportedHz = (app.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
-            .getDisplay(Display.DEFAULT_DISPLAY)?.refreshRate
+        val reportedHz = runCatching {
+            (app.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager)
+                ?.getDisplay(Display.DEFAULT_DISPLAY)?.refreshRate
+        }.getOrNull()
         val health = when (intent?.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)) {
             BatteryManager.BATTERY_HEALTH_GOOD -> "Good (Android reported)"
             BatteryManager.BATTERY_HEALTH_OVERHEAT -> "Overheat"
@@ -94,7 +100,9 @@ class DeviceMetrics(context: Context) {
         val millivolts = intent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
             ?.takeIf { it > 0 }
         val cpuLoad = cpuSampler.samplePercent()
-        val detectedSensors = sensorManager.getSensorList(Sensor.TYPE_ALL)
+        val detectedSensors = runCatching {
+            sensorManager?.getSensorList(Sensor.TYPE_ALL).orEmpty()
+        }.getOrDefault(emptyList())
         val name = listOf(Build.MANUFACTURER, Build.MODEL).filter { !it.isNullOrBlank() }.joinToString(" ")
         return DeviceSnapshot(
             time = System.currentTimeMillis(),
@@ -108,10 +116,10 @@ class DeviceMetrics(context: Context) {
             ),
             gpu = detectedGpu,
             ram = listOf(
-                Reading("Total RAM", bytes(memory.totalMem), "ActivityManager.MemoryInfo"),
-                Reading("Available RAM", bytes(memory.availMem), "ActivityManager.MemoryInfo"),
-                Reading("Used RAM", bytes((memory.totalMem - memory.availMem).coerceAtLeast(0L)), "Derived from ActivityManager"),
-                Reading("Low memory", if (memory.lowMemory) "Yes" else "No", "ActivityManager.MemoryInfo")
+                Reading("Total RAM", memory?.totalMem?.takeIf { it > 0L }?.let(::bytes), "ActivityManager.MemoryInfo"),
+                Reading("Available RAM", memory?.takeIf { it.totalMem > 0L && it.availMem >= 0L }?.let { bytes(it.availMem) }, "ActivityManager.MemoryInfo"),
+                Reading("Used RAM", memory?.takeIf { it.totalMem > 0L }?.let { bytes((it.totalMem - it.availMem).coerceAtLeast(0L)) }, "Derived from ActivityManager"),
+                Reading("Low memory", memory?.takeIf { it.totalMem > 0L }?.let { if (it.lowMemory) "Yes" else "No" }, "ActivityManager.MemoryInfo")
             ),
             storage = listOf(
                 Reading("Total internal storage", storage?.totalBytes?.let(::bytes), "StatFs"),

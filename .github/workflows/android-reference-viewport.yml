@@ -4,12 +4,15 @@ name: SYSTIVRA 390x844 reference viewport QA
 on:
   workflow_dispatch:
   push:
-    branches: [feat/systivra-visual-parity-390dp-qa]
+    branches: [feat/systivra-visual-parity-390dp-qa, fix/systivra-qa-stability-20261115]
     paths:
       - ".github/workflows/android-reference-viewport.yml"
       - "android/app/src/main/**"
+      - "android/app/src/androidTest/**"
       - "tools/capture-android-screens.sh"
       - "tools/capture-reference-viewport.sh"
+      - "tools/run-android-instrumentation.sh"
+      - "tools/summarize-android-instrumentation.py"
       - "tools/validate-android-screens.py"
       - "tools/render-reference-viewport.py"
       - "tools/summarize-visual-qa.py"
@@ -83,4 +86,65 @@ jobs:
           name: systivra-390x844-actual-vs-original-svg-diff
           path: |
             qa/reference-viewport/
+          if-no-files-found: warn
+
+  # Tests run on a FRESH emulator. Capturing and force-stopping 38 routes on the
+  # same emulator previously left broken SwiftShader ColorBuffer state; do not
+  # weaken or disable the instrumentation assertions to hide the failure.
+  instrumented-ui-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install Android API 37
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDK_MANAGER"
+          yes | "$SDK_MANAGER" --licenses >/dev/null || true
+          "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.9.1"
+      - name: Compile Android debug and instrumentation packages
+        working-directory: android
+        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --stacktrace
+      - name: Enable hardware acceleration
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm || { echo "::error::KVM is unavailable"; exit 1; }
+          sudo chmod a+rw /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+      - name: Run ALL connected UI and crash smoke tests on clean emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          emulator-boot-timeout: 600
+          disable-animations: true
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
+          script: bash tools/run-android-instrumentation.sh
+      - name: Report exact failing test cases
+        if: always()
+        run: |
+          python3 tools/summarize-android-instrumentation.py \
+            --results android/app/build/outputs/androidTest-results/connected \
+            --summary qa/instrumentation/summary.md
+          cat qa/instrumentation/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve JUnit XML, HTML reports and logcat even on test failure
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: systivra-instrumentation-junit-and-logcat
+          path: |
+            android/app/build/outputs/androidTest-results/connected/
+            android/app/build/reports/androidTests/connected/
+            qa/instrumentation/
           if-no-files-found: warn
