@@ -45,6 +45,28 @@ class NavigationSmokeTest {
         rule.onNodeWithText("Privacy Center").assertExists()
     }
 
+    @Test fun componentTestReferenceActionsOpenWorkingInteractiveControls() {
+        rule.waitForIdle()
+        rule.onNodeWithText("Tests").performClick()
+        rule.onNodeWithText("Display").performClick()
+        rule.onNodeWithText("Interactive testing").assertExists()
+        rule.onNodeWithText("Run test").performClick()
+        rule.onNodeWithText("TAP HERE").performClick()
+        rule.onNodeWithText("Touches registered: 1").assertExists()
+    }
+
+    @Test fun deviceDetectionReferenceActionsOpenRealHardwareReadings() {
+        rule.waitForIdle()
+        rule.onNodeWithText("More").performClick()
+        rule.onNodeWithTag("settings-scroll")
+            .performScrollToNode(hasText("Screen catalog"))
+        rule.onNodeWithText("Screen catalog").performClick()
+        rule.onNodeWithText("Device Detection").performClick()
+        rule.onNodeWithText("Hardware capabilities").assertExists()
+        rule.onNodeWithText("Memory and storage").performClick()
+        rule.onNodeWithText("Device RAM and internal storage").assertExists()
+    }
+
     @Test fun nestedBackStackReturnsToHardwareExplorer() {
         rule.waitForIdle()
         rule.onNodeWithTag("dashboard-scroll")
