@@ -4,6 +4,9 @@ on:
     paths: ["android/**", ".github/workflows/android-ci.yml"]
   pull_request:
     paths: ["android/**", ".github/workflows/android-ci.yml"]
+concurrency:
+  group: systivra-android-build-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   debug-build:
     runs-on: ubuntu-latest
