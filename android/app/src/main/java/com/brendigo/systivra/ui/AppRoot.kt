@@ -1,6 +1,8 @@
 package com.brendigo.systivra.ui
 
 import android.content.Context
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Build
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -55,6 +57,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -605,6 +609,7 @@ private fun Diagnostics(open: (String) -> Unit) {
 @Composable
 private fun ComponentTest() {
     val context = LocalContext.current
+    val soundScope = rememberCoroutineScope()
     val verdictPrefs = remember(context) {
         context.getSharedPreferences("systivra_diagnostics", android.content.Context.MODE_PRIVATE)
     }
@@ -623,6 +628,11 @@ private fun ComponentTest() {
     }
     val hasVibrator = vibrator?.hasVibrator() == true
     var vibrationFeedback by rememberSaveable { mutableStateOf("Not tested") }
+    var speakerFeedback by rememberSaveable { mutableStateOf("Not tested") }
+    var speakerWasPlayed by rememberSaveable { mutableStateOf(false) }
+    var speakerVerdict by rememberSaveable {
+        mutableStateOf(verdictPrefs.getString("speaker", "Not assessed") ?: "Not assessed")
+    }
     var vibrationVerdict by rememberSaveable {
         mutableStateOf(verdictPrefs.getString("vibration", "Not assessed") ?: "Not assessed")
     }
@@ -652,6 +662,46 @@ private fun ComponentTest() {
                     Button(onClick = {
                         verdict = "Fail (user-confirmed)"
                         verdictPrefs.edit().putString("display_touch", verdict).apply()
+                    }) { Text("Fail") }
+                }
+            }
+        }
+        item {
+            PanelCard {
+                Text("Speaker audio test", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("Play a short tone and confirm whether you hear it. No microphone access.", color = Muted, fontSize = 13.sp)
+                Text(speakerFeedback, color = Muted, fontSize = 12.sp)
+                Button(onClick = {
+                    soundScope.launch {
+                        speakerWasPlayed = false
+                        speakerFeedback = "Testing audio output…"
+                        val tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, 45) }.getOrNull()
+                        if (tone == null) {
+                            speakerFeedback = "The device audio output is unavailable"
+                        } else {
+                            try {
+                                val played = runCatching {
+                                    tone.startTone(ToneGenerator.TONE_PROP_BEEP, 350)
+                                }.getOrDefault(false)
+                                speakerWasPlayed = played
+                                speakerFeedback = if (played) "Tone requested. Did you hear it?"
+                                else "The device declined the speaker test"
+                                delay(400)
+                            } finally {
+                                runCatching { tone.release() }
+                            }
+                        }
+                    }
+                }) { Text("Play test tone") }
+                Text("User-confirmed result: " + speakerVerdict, color = Mint)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(enabled = speakerWasPlayed, onClick = {
+                        speakerVerdict = "Pass (user-confirmed)"
+                        verdictPrefs.edit().putString("speaker", speakerVerdict).apply()
+                    }) { Text("Pass") }
+                    Button(enabled = speakerWasPlayed, onClick = {
+                        speakerVerdict = "Fail (user-confirmed)"
+                        verdictPrefs.edit().putString("speaker", speakerVerdict).apply()
                     }) { Text("Fail") }
                 }
             }
