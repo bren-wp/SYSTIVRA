@@ -52,7 +52,8 @@ class NavigationSmokeTest {
         rule.onNodeWithText("Hardware explorer", ignoreCase = true).performClick()
         rule.onNodeWithText("Explore components").assertExists()
         rule.onNodeWithText("CPU and SoC").performClick()
-        rule.onNodeWithText("Platform processor capabilities").assertExists()
+        rule.onNodeWithText("Processor overview").assertExists()
+        rule.onNodeWithText("Architecture").assertExists()
         rule.onNodeWithText("‹").performClick()
         rule.onNodeWithText("Explore components").assertExists()
     }
