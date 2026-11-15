@@ -6,7 +6,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.assertDoesNotExist
 import com.brendigo.systivra.data.Reading
 import com.brendigo.systivra.ui.AppTheme
 import com.brendigo.systivra.ui.ReferenceDetailScreen
