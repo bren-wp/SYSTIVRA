@@ -430,7 +430,7 @@ private fun HardwareExplorer(open: (String) -> Unit) {
     )
     LazyColumn(
         modifier = Modifier.testTag("hardware-explorer-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 27.dp, bottom = 28.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
