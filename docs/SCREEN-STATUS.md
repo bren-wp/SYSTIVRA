@@ -115,7 +115,7 @@ An invalid Android build workflow configuration was identified (artifact-upload 
 - #16 Device & Android: reference heading, functional hero -> System Overview, Manufacturer/Model/Android version/Security patch action rows.
 - #18 Sensor Explorer: reference heading, hero, Accelerometer/Gyroscope/Light sensor/Proximity action rows.
 
-Every row triggers a scroll to authentic Android reading cards and source labels. Unsupported values remain explicitly Unavailable rather than fabricated. The existing recorded-data and navigation features are retained.
+PR #22 improvement: metric rows now open the **specific matching Android measurement** and its true platform source below the reference first viewport; unavailable API readings remain explicitly Unavailable. Offline search and copy are provided in the report section. Memory History navigates to genuine saved sessions, and saved History cards select the actual session ID. The original 37 reference compositions still require independent 1:1 certification. Existing recorded data, navigation, accessibility and privacy protections must be preserved.
 
 The [new 390 × 844 viewport workflow](../.github/workflows/android-reference-viewport.yml) renders the 36 original in-app SVGs directly to source dimensions, captures 38 real app screens at matching dimensions with explicit emulator size/density overrides, validates screenshots, and archives visual diffs. Splash (#01) still needs a separate cold-start capture. The first workflow attempt failed from `/bin/sh` not supporting `pipefail`; the script was moved into a Bash file for the next run.
 
