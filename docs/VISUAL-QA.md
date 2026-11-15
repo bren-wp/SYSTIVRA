@@ -138,3 +138,25 @@ All results are *diagnostic*, not approvals. Physical-device checks, color/font
 rasterization and touch targets, all 37 reference screens (particularly the
 system Splash), multiple OS versions, TalkBack, landscape and insets must be
 reviewed before any 1:1 or release-ready claim.
+
+
+### Optional real-device smoke evidence (not executed in CI)
+
+A separate opt-in script, [manual-physical-device-qa.sh](../tools/manual-physical-device-qa.sh),
+is provided for an operator with an **actual USB-authorized Android device**:
+
+```bash
+bash tools/manual-physical-device-qa.sh <adb-device-serial> android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+The script asks for explicit consent before installing/updating the debug app.
+It captures eight genuine screens at **the device's own size, DPI and font
+scale**, checks foreground focus/process health, and writes screenshots to
+a temporary **local** directory. It never uninstalls the app, resets device
+data, overrides display settings or uploads device output to CI.
+
+**This script has not been run on a real physical device in this iteration.**
+To certify release readiness, human QA must inspect real-device screenshots,
+rotate the device, test text scaling/TalkBack and test controls during actual
+charging, thermal and permission conditions. A green emulator run is not
+physical-device evidence.
