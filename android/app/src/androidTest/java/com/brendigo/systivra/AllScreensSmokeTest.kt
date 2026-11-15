@@ -28,7 +28,8 @@ class AllScreensSmokeTest {
         "benchmark-center", "benchmark-running", "benchmark-results",
         "overlay-configuration", "history", "reports-export",
         "permission-center", "settings", "about", "device-detection",
-        "system-overview", "recording-library", "all-screens"
+        "system-overview", "recording-library", "all-screens",
+        "component-test-interactive", "device-capacity"
     )
 
     @Test
