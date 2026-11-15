@@ -32,6 +32,19 @@ class NavigationSmokeTest {
         rule.onNodeWithText("Privacy Center").assertExists()
     }
 
+    @Test fun aboutReferenceRowsProvideRealNavigation() {
+        rule.waitForIdle()
+        rule.onNodeWithText("More").performClick()
+        rule.onNodeWithTag("settings-scroll")
+            .performScrollToNode(hasText("About SYSTIVRA"))
+        rule.onNodeWithText("About SYSTIVRA").performClick()
+        rule.onNodeWithText("Version and licenses").assertExists()
+        rule.onNodeWithText("Source code").assertExists()
+        rule.onNodeWithText("MIT license").assertExists()
+        rule.onNodeWithText("Privacy").performClick()
+        rule.onNodeWithText("Privacy Center").assertExists()
+    }
+
     @Test fun nestedBackStackReturnsToHardwareExplorer() {
         rule.waitForIdle()
         rule.onNodeWithTag("dashboard-scroll")
