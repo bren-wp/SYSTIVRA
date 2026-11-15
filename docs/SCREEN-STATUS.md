@@ -81,3 +81,12 @@ The first code changes in the `feat/systivra-v100-reference-parity-play-previews
 The original 37 references are preserved under `brending/screens/*.svg` and available as 1080 × 1920 previews (side margins only; no stretching or cropping) in `brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/`. They must not be submitted as real Play screenshots.
 
 An invalid Android build workflow configuration was identified (artifact-upload `with:` attached directly to a `run` step). That syntax has been fixed and CI re-enabled for this branch. Screenshot QA remains a separate acceptance gate.
+
+## v0.10.0-preview.2 safety and navigation iteration
+
+- Recording Session now requests explicit confirmation before deleting all locally saved sessions and samples. Cancellation does not invoke deletion.
+- Leaving the foreground ends active recording; the storage worker closes the database in a cancellation-safe `finally` block.
+- The bottom navigation retains the correct selected root tab while navigating nested screens.
+- Production UI no longer shows the development screen inventory label or incorrectly claims that persistent recording is still planned.
+- Added a Compose instrumentation test for deletion confirmation. Its execution result is tracked by CI; until that CI is green, the behavior is not certified.
+- **Visual validation remains 0/37 verified 1:1**. These changes do not claim pixel-perfect parity, device compatibility, or completion of full functional and security audits.
