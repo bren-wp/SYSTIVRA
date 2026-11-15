@@ -142,7 +142,7 @@ internal fun ReferenceHistory(
             ) {
                 Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(
-                        SimpleDateFormat("dd MMM yyyy · HH:mm", Locale.getDefault())
+                        SimpleDateFormat("dd MMM yyyy · HH:mm", Locale.US)
                             .format(Date(session.startedAt)),
                         fontWeight = FontWeight.Bold, color = Cyan
                     )
@@ -160,7 +160,7 @@ internal fun ReferenceHistory(
                 colors = CardDefaults.cardColors(containerColor = Panel)
             ) {
                 Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(reading.time)), color = Cyan)
+                    Text(SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(reading.time)), color = Cyan)
                     Text("Battery: ${reading.battery.firstOrNull()?.display ?: "Unavailable"}", fontSize = 13.sp)
                 }
             }
