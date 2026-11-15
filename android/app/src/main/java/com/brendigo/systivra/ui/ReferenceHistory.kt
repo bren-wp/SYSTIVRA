@@ -74,6 +74,7 @@ internal fun visibleSavedSessions(
 internal fun ReferenceHistory(
     samples: List<DeviceSnapshot>,
     savedSessions: List<RecordedSession>,
+    onSelectSession: (Long?) -> Unit,
     open: (String) -> Unit
 ) {
     var windowName by rememberSaveable { mutableStateOf(HistoryWindow.ALL.name) }
@@ -135,7 +136,10 @@ internal fun ReferenceHistory(
         }
         items(filtered, key = { "saved-${it.id}" }) { session ->
             Card(
-                onClick = { open("recording-library") },
+                onClick = {
+                    onSelectSession(session.id)
+                    open("recording-library")
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Panel),
                 border = BorderStroke(1.dp, Color(0xFF233857))
