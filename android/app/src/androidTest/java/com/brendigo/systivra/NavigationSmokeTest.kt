@@ -21,6 +21,17 @@ class NavigationSmokeTest {
         rule.onNodeWithTag("dashboard-scroll").assertExists()
     }
 
+    @Test fun settingsReferenceRowsOpenRealControls() {
+        rule.waitForIdle()
+        rule.onNodeWithText("More").performClick()
+        rule.onNodeWithText("Preferences").assertExists()
+        rule.onNodeWithText("Update interval").performClick()
+        rule.onNodeWithText("Close").assertExists()
+        rule.onNodeWithText("Close").performClick()
+        rule.onNodeWithText("Privacy").performClick()
+        rule.onNodeWithText("Privacy Center").assertExists()
+    }
+
     @Test fun nestedBackStackReturnsToHardwareExplorer() {
         rule.waitForIdle()
         rule.onNodeWithTag("dashboard-scroll")
