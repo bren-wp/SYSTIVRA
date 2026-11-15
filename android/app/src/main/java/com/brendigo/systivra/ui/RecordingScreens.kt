@@ -103,12 +103,14 @@ fun DiagnosticResultsScreen() {
     val prefs = context.getSharedPreferences("systivra_diagnostics", Context.MODE_PRIVATE)
     val result = prefs.getString("display_touch", "Not assessed") ?: "Not assessed"
     val vibration = prefs.getString("vibration", "Not assessed") ?: "Not assessed"
+    val speaker = prefs.getString("speaker", "Not assessed") ?: "Not assessed"
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("Diagnostic Results", fontSize = 23.sp, fontWeight = FontWeight.Bold) }
         item { Text("Only user-confirmed test results appear. No fabricated health scores.", color = Muted) }
         item { SummaryCard("Display & touch test", result) }
         item { SummaryCard("Vibration (user-confirmed)", vibration) }
-        item { SummaryCard("Speaker / microphone / camera", "Not implemented — no result") }
+        item { SummaryCard("Speaker test (user-confirmed)", speaker) }
+        item { SummaryCard("Microphone / camera", "Not implemented — no result") }
         item { SummaryCard("Sensor inventory", "Available in the Hardware Explorer; not an automatic pass/fail test") }
     }
 }

@@ -53,6 +53,17 @@ Many Android monitoring apps display device numbers without explaining their ori
 
 The eight promotional visuals under `brending/google-play/concepts-NOT-FOR-PLAY/` are **marketing concepts, not screenshots**. Earlier Android emulator captures contained System UI/Quickstep ANRs and are not acceptable Play screenshots. The new capture process refuses to count screenshots when SYSTIVRA is not the focused app.
 
+
+### All 37 original Play-sized design references (NOT screenshots)
+
+- [**Download all 37 reference PNGs — 1080 × 1920 ZIP**](brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/SYSTIVRA-37-REFERENCE-PREVIEWS-1080x1920.zip)
+- [**See the contact sheet of all 37 screens**](brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/ALL-37-REFERENCES-contact-sheet.png)
+- [**Source references in SVG**](brending/screens/index.html)
+
+Each PNG preserves its original 390 × 844 SVG content without stretching, with dark side letterboxing to fit 9:16. The source images were reconstructed from earlier design materials and are **not actual Android screenshots**. Google Play screenshots require verified captures of the running `com.brendigo.systivra` app; never upload these design previews as real screens.
+
+The current Android redesign aligns the Dashboard, Hardware Explorer, metric cards and text-only bottom navigation more closely with the SVG reference. **All 37 visual parity gates remain open** until real emulator screenshots, diffs and manual QA are complete.
+
 ## 📱 App gallery
 
 <div align="center">

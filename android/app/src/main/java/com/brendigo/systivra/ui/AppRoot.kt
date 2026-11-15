@@ -1,6 +1,8 @@
 package com.brendigo.systivra.ui
 
 import android.content.Context
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Build
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -55,6 +57,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +71,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -184,37 +189,38 @@ fun AppRoot(
         }
         BackHandler(enabled = navigationStack.size > 1) { goBack() }
         Scaffold(
-            containerColor = Background,
+            modifier = Modifier.background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF0D1F3F), Color(0xFF08111D))
+                )
+            ),
+            containerColor = Color.Transparent,
             bottomBar = {
-                NavigationBar(containerColor = Color(0xFF101B2D)) {
-                    tabs.forEach { (id, label, symbol) ->
-                        NavigationBarItem(
-                            selected = route == id,
-                            onClick = { open(id) },
-                            icon = {
-                                Icon(imageVector = when (id) {
-                                    "dashboard" -> Icons.Rounded.Dashboard
-                                    "live-monitor" -> Icons.Rounded.ShowChart
-                                    "diagnostics-center" -> Icons.Rounded.FactCheck
-                                    else -> Icons.Rounded.Tune
-                                }, contentDescription = label, modifier = Modifier.size(24.dp))
-                            },
-                            label = { Text(label, fontSize = 10.sp) },
-                            alwaysShowLabel = true,
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Purple,
-                                selectedTextColor = Purple,
-                                indicatorColor = Color(0xFF27224B),
-                                unselectedIconColor = Muted,
-                                unselectedTextColor = Muted
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(62.dp)
+                        .background(Color(0xFF0D192B)),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    tabs.forEach { (id, label, _) ->
+                        Box(
+                            modifier = Modifier.weight(1f).fillMaxSize()
+                                .clickable { open(id) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                label,
+                                fontSize = 12.sp,
+                                color = if (route == id || (route !in tabs.map { it.first } && id == "dashboard"))
+                                    Cyan else Muted,
+                                maxLines = 1
                             )
-                        )
+                        }
                     }
                 }
             }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
-                if (route != "dashboard") {
+                if (route != "dashboard" && route !in setOf("hardware-explorer", "live-monitor", "diagnostics-center")) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -283,107 +289,173 @@ fun AppRoot(
 }
 
 @Composable
-private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, open: (String) -> Unit) {
-    val cards = listOf(
-        Triple("CPU", snapshot.cpu.firstOrNull { it.name == "System-wide CPU load" }?.display ?: "Unavailable", "cpu-details"),
-        Triple("RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable", "memory-details"),
-        Triple("Storage", snapshot.storage.getOrNull(1)?.display ?: "Unavailable", "storage-details"),
-        Triple("Battery", snapshot.battery.firstOrNull()?.display ?: "Unavailable", "battery-details")
+private fun Dashboard(
+    snapshot: DeviceSnapshot,
+    samples: List<DeviceSnapshot>,
+    open: (String) -> Unit
+) {
+    val primary = listOf(
+        Triple("Memory", "◇", "memory-details"),
+        Triple("Storage", "▤", "storage-details"),
+        Triple("Battery", "◉", "battery-details"),
+        Triple("Thermal status", "⌁", "thermal-details")
     )
     LazyColumn(
         modifier = Modifier.testTag("dashboard-scroll"),
-        contentPadding = PaddingValues(18.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("SYSTIVRA", fontWeight = FontWeight.ExtraBold, fontSize = 28.sp)
-                Spacer(Modifier.weight(1f))
-                Text("● LIVE", fontSize = 12.sp, color = Mint, fontWeight = FontWeight.Bold)
+            Column {
+                Text("Dashboard", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Your device at a glance", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Live information", fontSize = 13.sp, color = Muted)
+                Spacer(Modifier.height(18.dp))
             }
-            Text(snapshot.name, color = Muted, fontSize = 14.sp)
         }
+        item { ReferenceHeroCard { open("device-and-android") } }
+        item { Spacer(Modifier.height(7.dp)) }
+        items(primary) { (label, symbol, path) ->
+            ReferenceMetricRow(label, symbol, primary.indexOfFirst { it.first == label }) {
+                open(path)
+            }
+        }
+        item { Spacer(Modifier.height(116.dp)) }
         item {
-            PanelCard(onClick = { open("device-and-android") }) {
-                Row(horizontalArrangement = Arrangement.spacedBy(13.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier.size(58.dp)
-                            .background(
-                                Brush.linearGradient(listOf(Color(0xFF128FED), Purple, Color(0xFF172E65))),
-                                RoundedCornerShape(14.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("S", color = Color.White, fontWeight = FontWeight.Black, fontSize = 32.sp)
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text(snapshot.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Text("Android " + (snapshot.system.firstOrNull { it.name == "Android" }?.display ?: "Unavailable"),
-                            fontSize = 12.sp, color = Muted)
-                        Text(if (snapshot.time > 0) "● MONITORING ACTIVE" else "Detecting device…",
-                            fontSize = 11.sp, color = Mint)
-                    }
-                }
-                Text("View system information ›", color = Cyan, fontSize = 12.sp)
-            }
+            Text(
+                "More tools", fontSize = 18.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
         }
-        items(cards.chunked(2)) { pair ->
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                pair.forEach { (label, value, path) ->
-                    Box(Modifier.weight(1f)) {
-                        PanelCard(onClick = { open(path) }) {
-                            Text(label, color = Muted, fontSize = 13.sp)
-                            Text(value, color = Cyan, fontWeight = FontWeight.Bold,
-                                fontSize = 19.sp, maxLines = 2)
-                            Text("View details ›", color = Muted, fontSize = 11.sp)
-                        }
-                    }
-                }
-            }
-        }
-        item {
-            val percentage = samples.mapNotNull {
-                it.battery.firstOrNull()?.value?.removeSuffix("%")?.toFloatOrNull()
-            }
-            PanelCard(onClick = { open("metric-fullscreen") }) {
-                Text("Battery activity", fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Text("Real-time session · last " + percentage.size + " battery readings", color = Muted, fontSize = 12.sp)
-                if (percentage.size > 1) {
-                    Canvas(Modifier.fillMaxWidth().height(96.dp)) {
-                        val step = size.width / (percentage.size - 1)
-                        percentage.zipWithNext().forEachIndexed { index, pair ->
-                            drawLine(Mint, Offset(step * index, size.height * (1 - pair.first / 100f)),
-                                Offset(step * (index + 1), size.height * (1 - pair.second / 100f)),
-                                strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-                        }
-                    }
-                } else {
-                    Text("Collecting live readings…", color = Muted, fontSize = 12.sp)
-                }
-                Text("View full chart ›", color = Cyan, fontSize = 12.sp)
-            }
-        }
-        item { LinkCard("Thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
         item { LinkCard("Hardware explorer", "CPU, GPU, sensors and device properties") { open("hardware-explorer") } }
-        item { LinkCard("Monitoring", "Live battery, RAM and thermal readings") { open("live-monitor") } }
-        item { LinkCard("Charging analysis", "Compare measured battery readings") { open("charging-analysis") } }
+        item { LinkCard("Monitoring", "Real device readings from Android") { open("live-monitor") } }
+        item { LinkCard("Charging analysis", "Recorded battery data") { open("charging-analysis") } }
         item { LinkCard("CPU core inspector", "Supported cores and available metrics") { open("cpu-cores") } }
-        item { LinkCard("Diagnostics", "Interactive tests, no fake health scores") { open("diagnostics-center") } }
+        item { LinkCard("Diagnostics", "User-confirmed, on-device checks") { open("diagnostics-center") } }
+        item { LinkCard("Session insights", "Analyze your saved readings") { open("session-insights") } }
+        item { LinkCard("Storage and memory", "Details of actual device capacity") { open("storage-details") } }
+        item {
+            Text(
+                "Real measurements are displayed on detail screens only when Android reports them.",
+                color = Muted, fontSize = 12.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReferenceHeroCard(open: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().height(128.dp).clickable { open() },
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
+        border = BorderStroke(1.dp, Color(0xFF233857))
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(28.dp)
+        ) {
+            Canvas(Modifier.size(76.dp)) {
+                val ringWidth = 11.dp.toPx()
+                drawCircle(
+                    color = Color(0xFF223E60),
+                    radius = size.minDimension / 2 - ringWidth / 2,
+                    style = Stroke(width = ringWidth)
+                )
+                drawArc(
+                    brush = Brush.sweepGradient(listOf(Cyan, Color(0xFF5975F5), Purple, Cyan)),
+                    startAngle = -90f,
+                    sweepAngle = 113f,
+                    useCenter = false,
+                    style = Stroke(width = ringWidth, cap = StrokeCap.Round)
+                )
+            }
+            Column {
+                Text("SYSTIVRA", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(5.dp))
+                Text("System intelligence", fontSize = 13.sp, color = Muted)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReferenceMetricRow(
+    label: String,
+    glyph: String,
+    index: Int,
+    onClick: () -> Unit
+) {
+    val tone = if (index % 2 == 0) Color(0xFF153B68) else Color(0xFF34245B)
+    val glyphColor = if (index % 2 == 0) Cyan else Color(0xFFC39BFF)
+    Card(
+        modifier = Modifier.fillMaxWidth().height(69.dp).clickable { onClick() },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
+        border = BorderStroke(1.dp, Color(0xFF223654))
+    ) {
+        Row(
+            Modifier.fillMaxSize().padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier.size(34.dp).background(tone, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(glyph, color = glyphColor, fontSize = 18.sp)
+            }
+            Column(
+                Modifier.weight(1f).padding(start = 13.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(label, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("Details / availability", fontSize = 12.sp, color = Muted)
+            }
+            Text("›", color = Muted, fontSize = 22.sp)
+        }
     }
 }
 
 @Composable
 private fun HardwareExplorer(open: (String) -> Unit) {
-    val paths = listOf(
-        "cpu-details" to "CPU", "gpu-details" to "GPU",
-        "memory-details" to "Memory", "storage-details" to "Storage",
-        "battery-details" to "Battery", "thermal-details" to "Thermal",
-        "display-details" to "Display", "device-and-android" to "Device & Android",
-        "sensor-explorer" to "Sensors"
+    val primary = listOf(
+        Triple("CPU and SoC", "◇", "cpu-details"),
+        Triple("GPU", "▤", "gpu-details"),
+        Triple("Memory", "◉", "memory-details"),
+        Triple("Sensors", "⌁", "sensor-explorer")
     )
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Text("Inspect components and their real data sources", color = Muted) }
-        items(paths) { (path, title) -> LinkCard(title, "Inspect properties and availability") { open(path) } }
+    LazyColumn(
+        modifier = Modifier.testTag("hardware-explorer-scroll"),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 27.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Column {
+                Text("Hardware Explorer", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Explore components", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Hardware information", fontSize = 13.sp, color = Muted)
+                Spacer(Modifier.height(18.dp))
+            }
+        }
+        item { ReferenceHeroCard { open("device-and-android") } }
+        item { Spacer(Modifier.height(7.dp)) }
+        items(primary) { (name, symbol, path) ->
+            ReferenceMetricRow(name, symbol, primary.indexOfFirst { it.first == name }) {
+                open(path)
+            }
+        }
+        item { Spacer(Modifier.height(88.dp)) }
+        item { Text("Additional hardware", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+        item { LinkCard("Storage", "Read available and total storage") { open("storage-details") } }
+        item { LinkCard("Battery", "Charge and temperature values") { open("battery-details") } }
+        item { LinkCard("Thermal", "Android-reported thermal status") { open("thermal-details") } }
+        item { LinkCard("Display", "Resolution, refresh rate and density") { open("display-details") } }
+        item { LinkCard("Device & Android", "Read platform identifiers and OS version") { open("device-and-android") } }
     }
 }
 
@@ -407,66 +479,137 @@ private fun MetricScreen(readings: List<Reading>, subtitle: String) {
 }
 
 @Composable
-private fun LiveMonitor(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, recorded: List<DeviceSnapshot>, savedSessions: List<RecordedSession>, open: (String) -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
-        item { Text("Foreground live monitoring · no fabricated metrics", color = Muted, fontSize = 13.sp) }
+private fun LiveMonitor(
+    snapshot: DeviceSnapshot,
+    samples: List<DeviceSnapshot>,
+    recorded: List<DeviceSnapshot>,
+    savedSessions: List<RecordedSession>,
+    open: (String) -> Unit
+) {
+    val history = samples.mapNotNull {
+        it.battery.firstOrNull()?.value?.removeSuffix("%")?.toFloatOrNull()
+            ?.takeIf { value -> value in 0f..100f }
+    }
+    val rows = listOf(
+        Triple("Battery", "◇", "battery-details"),
+        Triple("Memory", "▤", "memory-details"),
+        Triple("Thermal status", "◉", "thermal-details"),
+        Triple("Storage", "⌁", "storage-details")
+    )
+    LazyColumn(
+        modifier = Modifier.testTag("live-monitor-scroll"),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         item {
-            PanelCard {
-                Text("Battery level", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text(snapshot.battery.firstOrNull()?.display ?: "Unavailable",
-                    color = Mint, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                val values = samples.mapNotNull {
-                    it.battery.firstOrNull()?.value?.removeSuffix("%")?.toFloatOrNull()
-                }
-                if (values.size > 1) {
-                    Canvas(Modifier.fillMaxWidth().height(112.dp)) {
-                        val dx = size.width / (values.size - 1)
-                        values.zipWithNext().forEachIndexed { index, pair ->
-                            drawLine(Mint,
-                                Offset(index * dx, size.height * (1f - pair.first / 100f)),
-                                Offset((index + 1) * dx, size.height * (1f - pair.second / 100f)),
-                                strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-                        }
-                    }
-                }
-                Text("Battery broadcast · " + values.size + " actual samples",
-                    color = Muted, fontSize = 11.sp)
+            Column {
+                Text("Live Monitor", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("System readings", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Real-time activity", fontSize = 13.sp, color = Muted)
+                Spacer(Modifier.height(18.dp))
             }
         }
-        item { LinkCard("Available RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable") { open("memory-details") } }
-        item { LinkCard("Android thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
-        item { LinkCard("Live history", "Last " + samples.size + " readings · temporary") { open("history") } }
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth().height(172.dp).clickable { open("metric-fullscreen") },
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
+                border = BorderStroke(1.dp, Color(0xFF233857))
+            ) {
+                Column(Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 14.dp)) {
+                    Text("Live data chart", color = Muted, fontSize = 13.sp)
+                    Spacer(Modifier.height(12.dp))
+                    Canvas(Modifier.fillMaxWidth().height(84.dp)) {
+                        if (history.size >= 2) {
+                            val w = size.width / (history.size - 1)
+                            history.zipWithNext().forEachIndexed { index, pair ->
+                                drawLine(
+                                    Mint,
+                                    Offset(w * index, size.height * (1f - pair.first / 100f)),
+                                    Offset(w * (index + 1), size.height * (1f - pair.second / 100f)),
+                                    strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(7.dp))
+                    Text(
+                        if (history.size >= 2) "Actual battery readings · " + history.size + " samples"
+                        else "Waiting for real device readings",
+                        color = Muted, fontSize = 11.sp
+                    )
+                }
+            }
+        }
+        item { Spacer(Modifier.height(7.dp)) }
+        items(rows) { (label, symbol, path) ->
+            ReferenceMetricRow(label, symbol, rows.indexOfFirst { it.first == label }) { open(path) }
+        }
+        item { Spacer(Modifier.height(90.dp)) }
+        item { Text("Monitor tools", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+        item { LinkCard("History", "Last " + samples.size + " foreground readings") { open("history") } }
         item { LinkCard("Recording Library", savedSessions.size.toString() + " saved sessions") { open("recording-library") } }
-        item { LinkCard("Session Insights", "Review battery trends from saved samples") { open("session-insights") } }
-        item { LinkCard("Session Recorder", "Explicit, foreground-only recording") { open("recording-session") } }
-        item { LinkCard("Full-screen chart", "Battery history in focus") { open("metric-fullscreen") } }
-        item { LinkCard("Performance HUD", "Customize the in-app overlay preview") { open("overlay-configuration") } }
+        item { LinkCard("Session Insights", "Real historical trends") { open("session-insights") } }
+        item { LinkCard("Session Recorder", "Explicit user-controlled recording") { open("recording-session") } }
+        item { LinkCard("Performance HUD", "In-app overlay settings") { open("overlay-configuration") } }
+        item {
+            Text(
+                "Only actual readings reported by Android are shown. No synthetic sensor graph values.",
+                color = Muted, fontSize = 12.sp
+            )
+        }
     }
 }
 
 @Composable
 private fun Diagnostics(open: (String) -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val rows = listOf(
+        Triple("Display", "◇", "component-test"),
+        Triple("Touch", "▤", "component-test"),
+        Triple("Speakers", "◉", "component-test"),
+        Triple("Sensors", "⌁", "sensor-explorer")
+    )
+    LazyColumn(
+        modifier = Modifier.testTag("diagnostics-center-scroll"),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         item {
-            PanelCard {
-                Text("Hardware Diagnostics", fontSize = 21.sp, fontWeight = FontWeight.Bold)
-                Text("No automatic healthy verdict. Results are confirmed by the user.",
-                    color = Muted, fontSize = 12.sp)
+            Column {
+                Text("Diagnostics Center", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Hardware checks", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Opt-in device testing", color = Muted, fontSize = 13.sp)
+                Spacer(Modifier.height(18.dp))
             }
         }
-        item { LinkCard("Display & touch test", "Interactive color and touch panel") { open("component-test") } }
-        item { LinkCard("Sensors", "Inventory of detected sensor devices") { open("sensor-explorer") } }
-        item { LinkCard("Live sensor readings", "Read sensor axes and metadata") { open("sensor-live") } }
-        item { LinkCard("CPU benchmark", "Bounded workload with thermal cutoff") { open("benchmark-center") } }
-        item { LinkCard("Diagnostic results", "Locally confirmed display/touch test") { open("diagnostic-results") } }
-        item { LinkCard("Thermal status", "Android platform status, where supported") { open("thermal-details") } }
-        item { LinkCard("Other planned tests", "Full development inventory and status") { open("all-screens") } }
+        item { ReferenceHeroCard { open("diagnostic-results") } }
+        item { Spacer(Modifier.height(7.dp)) }
+        items(rows) { (label, icon, path) ->
+            ReferenceMetricRow(label, icon, rows.indexOfFirst { it.first == label }) { open(path) }
+        }
+        item { Spacer(Modifier.height(90.dp)) }
+        item { Text("Additional tests", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+        item { LinkCard("Live sensors", "Read values from Android sensors") { open("sensor-live") } }
+        item { LinkCard("CPU benchmark", "Bounded user-started workload") { open("benchmark-center") } }
+        item { LinkCard("Diagnostic results", "User-confirmed results only") { open("diagnostic-results") } }
+        item { LinkCard("Thermal status", "Android platform thermal status") { open("thermal-details") } }
+        item {
+            Text(
+                "Tests do not automatically prove device health; results depend on user confirmation.",
+                color = Muted, fontSize = 12.sp
+            )
+        }
     }
 }
 
 @Composable
 private fun ComponentTest() {
     val context = LocalContext.current
+    val soundScope = rememberCoroutineScope()
     val verdictPrefs = remember(context) {
         context.getSharedPreferences("systivra_diagnostics", android.content.Context.MODE_PRIVATE)
     }
@@ -485,6 +628,11 @@ private fun ComponentTest() {
     }
     val hasVibrator = vibrator?.hasVibrator() == true
     var vibrationFeedback by rememberSaveable { mutableStateOf("Not tested") }
+    var speakerFeedback by rememberSaveable { mutableStateOf("Not tested") }
+    var speakerWasPlayed by rememberSaveable { mutableStateOf(false) }
+    var speakerVerdict by rememberSaveable {
+        mutableStateOf(verdictPrefs.getString("speaker", "Not assessed") ?: "Not assessed")
+    }
     var vibrationVerdict by rememberSaveable {
         mutableStateOf(verdictPrefs.getString("vibration", "Not assessed") ?: "Not assessed")
     }
@@ -514,6 +662,46 @@ private fun ComponentTest() {
                     Button(onClick = {
                         verdict = "Fail (user-confirmed)"
                         verdictPrefs.edit().putString("display_touch", verdict).apply()
+                    }) { Text("Fail") }
+                }
+            }
+        }
+        item {
+            PanelCard {
+                Text("Speaker audio test", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("Play a short tone and confirm whether you hear it. No microphone access.", color = Muted, fontSize = 13.sp)
+                Text(speakerFeedback, color = Muted, fontSize = 12.sp)
+                Button(onClick = {
+                    soundScope.launch {
+                        speakerWasPlayed = false
+                        speakerFeedback = "Testing audio output…"
+                        val tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, 45) }.getOrNull()
+                        if (tone == null) {
+                            speakerFeedback = "The device audio output is unavailable"
+                        } else {
+                            try {
+                                val played = runCatching {
+                                    tone.startTone(ToneGenerator.TONE_PROP_BEEP, 350)
+                                }.getOrDefault(false)
+                                speakerWasPlayed = played
+                                speakerFeedback = if (played) "Tone requested. Did you hear it?"
+                                else "The device declined the speaker test"
+                                delay(400)
+                            } finally {
+                                runCatching { tone.release() }
+                            }
+                        }
+                    }
+                }) { Text("Play test tone") }
+                Text("User-confirmed result: " + speakerVerdict, color = Mint)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(enabled = speakerWasPlayed, onClick = {
+                        speakerVerdict = "Pass (user-confirmed)"
+                        verdictPrefs.edit().putString("speaker", speakerVerdict).apply()
+                    }) { Text("Pass") }
+                    Button(enabled = speakerWasPlayed, onClick = {
+                        speakerVerdict = "Fail (user-confirmed)"
+                        verdictPrefs.edit().putString("speaker", speakerVerdict).apply()
                     }) { Text("Fail") }
                 }
             }
@@ -654,7 +842,7 @@ private fun About(open: (String) -> Unit) {
             PanelCard {
                 Text("SYSTIVRA", color = Cyan, fontWeight = FontWeight.Black, fontSize = 28.sp)
                 Text("Advanced Device Monitor & Diagnostics", color = Muted)
-                Text("Version 0.8.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Version 0.10.0-preview.1 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
             }
         }
         item {

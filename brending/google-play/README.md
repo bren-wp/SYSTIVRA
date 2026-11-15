@@ -18,3 +18,11 @@ Before publishing, capture at least 2 actual phone screenshots (4 at 1080 × 192
 ## Real screenshots upload gate
 
 The [Android screen QA workflow](../../.github/workflows/android-screenshots.yml) checks that SYSTIVRA owns the focused window and prevents the earlier Quickstep/System UI ANR screenshots from being mistaken for app shots. The [Play promotion script](../../tools/promote-real-play-screenshots.py) accepts only eight unmodified 1080×1920 captures, and refuses to fabricate/upscale. Its outputs, when validation succeeds, are placed in `real-screenshots/` pending final manual review. Until those exist, **do not upload the concept images to Google Play**.
+
+## Original 37 SYSTIVRA design screens at 1080 × 1920
+
+- [All references as ZIP](reference-previews-NOT-PLAY-SCREENSHOTS/SYSTIVRA-37-REFERENCE-PREVIEWS-1080x1920.zip)
+- [One image containing all 37 references](reference-previews-NOT-PLAY-SCREENSHOTS/ALL-37-REFERENCES-contact-sheet.png)
+- [Manifest with source hashes](reference-previews-NOT-PLAY-SCREENSHOTS/manifest.json)
+
+These are pixel-preserved **concept references**, resized by an automated non-cropping letterbox process; they are not screenshots of the running Android app and must not be used as official Play phone screenshots. For actual Play screenshots use approved `real-screenshots/` captured and reviewed on devices.

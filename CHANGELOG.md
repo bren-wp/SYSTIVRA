@@ -1,5 +1,14 @@
 # Changelog
 
+## [Reference parity work in progress] — 2026-11-15
+
+- Exported all original **37 design screens** into unmodified-layout 1080 × 1920 reference previews, contact sheet and downloadable ZIP on GitHub.
+- Original 390 × 844 screen composition is preserved exactly in each preview; only the dark side margins are added to fit the 9:16 format.
+- First layout matching pass for Android Dashboard, Hardware Explorer, 128dp SYSTIVRA ring card, 69dp list rows, cyan-purple accents and 62dp bottom navigation.
+- Kept all features reachable through additional scrolling; no fabricated hardware readings added.
+- Repaired malformed Android GitHub Actions upload step and restored CI execution; navigation smoke assertions follow updated layout.
+- **Visual parity remains unverified**: these are reference concepts and not Google Play screenshots.
+
 ## [0.9.0-preview.1] — 2026-11-15
 
 - Migrated **all** 24 Kotlin source and test files from the previous namespace into `com.brendigo.systivra`, including directory paths.
