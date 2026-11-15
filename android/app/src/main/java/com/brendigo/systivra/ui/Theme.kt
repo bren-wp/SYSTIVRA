@@ -1,8 +1,10 @@
 package com.brendigo.systivra.ui
 
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 
 val Background = Color(0xFF0B121E)
@@ -23,5 +25,11 @@ private val palette = darkColorScheme(
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = palette, content = content)
+    MaterialTheme(colorScheme = palette) {
+        // Transparent Scaffold/Canvas containers inherit LocalContentColor.
+        // Without an explicit dark foreground, default Text can render black.
+        CompositionLocalProvider(LocalContentColor provides palette.onBackground) {
+            content()
+        }
+    }
 }
