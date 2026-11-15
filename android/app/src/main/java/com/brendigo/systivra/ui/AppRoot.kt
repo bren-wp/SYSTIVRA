@@ -28,7 +28,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
 import kotlin.math.roundToInt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Dashboard
@@ -221,7 +223,7 @@ fun AppRoot(
             }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
-                if (route != "dashboard" && route !in setOf("hardware-explorer", "live-monitor", "diagnostics-center")) {
+                if (route !in setOf("dashboard", "hardware-explorer", "live-monitor", "diagnostics-center", "settings")) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -749,34 +751,68 @@ private fun ComponentTest() {
 private fun Settings(open: (String) -> Unit) {
     val context = LocalContext.current
     val preferences = remember(context) {
-        context.getSharedPreferences("systivra_settings", android.content.Context.MODE_PRIVATE)
+        context.getSharedPreferences("systivra_settings", Context.MODE_PRIVATE)
     }
     var samplingSeconds by rememberSaveable {
         mutableIntStateOf(preferences.getInt("sampling_seconds", 2).coerceIn(1, 10))
     }
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
-        item {
-            PanelCard {
-                Text("Appearance", fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                Text("Dark theme · English", color = Muted)
-                Text("Splash → Dashboard · no sign-in or onboarding", color = Muted, fontSize = 12.sp)
-            }
-        }
-        item {
-            PanelCard {
-                Text("Monitoring", fontWeight = FontWeight.Bold)
-                Text("Refresh interval: " + samplingSeconds + " seconds · foreground only", color = Muted)
-                Slider(
-                    value = samplingSeconds.toFloat(),
-                    valueRange = 1f..10f,
-                    steps = 8,
-                    onValueChange = {
-                        samplingSeconds = it.roundToInt().coerceIn(1, 10)
-                        preferences.edit().putInt("sampling_seconds", samplingSeconds).apply()
+    var activeDialog by rememberSaveable { mutableStateOf<String?>(null) }
+
+    if (activeDialog != null) {
+        AlertDialog(
+            onDismissRequest = { activeDialog = null },
+            title = { Text(activeDialog.orEmpty()) },
+            text = {
+                when (activeDialog) {
+                    "Appearance" -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("SYSTIVRA uses its midnight dark theme and English interface.")
+                        Text("No account, onboarding or unsupported theme toggle is required.", color = Muted)
                     }
-                )
+                    "Update interval" -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("Refresh interval: ${samplingSeconds} seconds (foreground only)")
+                        Slider(
+                            value = samplingSeconds.toFloat(),
+                            valueRange = 1f..10f,
+                            steps = 8,
+                            onValueChange = { value ->
+                                samplingSeconds = value.roundToInt().coerceIn(1, 10)
+                                preferences.edit().putInt("sampling_seconds", samplingSeconds).apply()
+                            }
+                        )
+                        Text("Applied to live device sampling and saved for future launches.", color = Muted)
+                    }
+                    "Units" -> Text("Measurements use the units supplied by Android. Unit conversion is not currently supported, so no nonfunctional selector is shown.")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { activeDialog = null }) { Text("Close") }
+            }
+        )
+    }
+
+    LazyColumn(
+        modifier = Modifier.testTag("settings-scroll"),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Column {
+                Text("Settings", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Preferences", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Customize your experience", fontSize = 13.sp, color = Muted)
+                Spacer(Modifier.height(18.dp))
             }
         }
+        item { ReferenceHeroCard { open("device-and-android") } }
+        item { Spacer(Modifier.height(7.dp)) }
+        item { ReferenceMetricRow("Appearance", "◇", 0) { activeDialog = "Appearance" } }
+        item { ReferenceMetricRow("Update interval", "▤", 1) { activeDialog = "Update interval" } }
+        item { ReferenceMetricRow("Units", "◉", 2) { activeDialog = "Units" } }
+        item { ReferenceMetricRow("Privacy", "⌁", 3) { open("privacy-center") } }
+        item { Spacer(Modifier.height(116.dp)) }
+        item { Text("More tools", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
         item { LinkCard("Reports · CSV & JSON", "Export locally recorded readings") { open("reports-export") } }
         item { LinkCard("Session Insights", "Battery trends and measured thermal statistics") { open("session-insights") } }
         item { LinkCard("Recording Library", "View, export or delete selected recordings") { open("recording-library") } }
