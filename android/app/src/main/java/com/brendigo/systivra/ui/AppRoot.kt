@@ -285,7 +285,7 @@ fun AppRoot(
                         ), open = ::open
                     )
                     "component-test-interactive" -> ComponentTest()
-                    "history" -> ReferenceHistory(samples, savedSessions, ::open)
+                    "history" -> ReferenceHistory(samples, savedSessions, onSelectSession, ::open)
                     "settings" -> Settings(::open)
                     "about" -> About(::open)
                     "all-screens" -> ScreenCatalog(::open)
