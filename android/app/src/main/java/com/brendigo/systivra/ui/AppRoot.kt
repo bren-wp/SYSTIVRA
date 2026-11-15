@@ -136,7 +136,12 @@ private val sections = listOf(
     "recording-library" to "Recording Library",
     "all-screens" to "Screen Catalog",
     "component-test-interactive" to "Component Test Controls",
-    "device-capacity" to "Memory & Storage"
+    "device-capacity" to "Memory & Storage",
+    "cpu-cores-data" to "Processor Information",
+    "app-usage-controls" to "Usage Controls",
+    "session-analysis-data" to "Session Measurements",
+    "benchmark-running-controls" to "CPU Test Controls",
+    "benchmark-results-data" to "Benchmark Measurements"
 )
 
 private val enabledRoutes = setOf(
@@ -149,7 +154,9 @@ private val enabledRoutes = setOf(
     "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
     "recording-session", "session-analysis", "session-insights", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
     "overlay-configuration", "recording-library", "all-screens",
-    "component-test-interactive", "device-capacity"
+    "component-test-interactive", "device-capacity",
+    "cpu-cores-data", "app-usage-controls", "session-analysis-data",
+    "benchmark-running-controls", "benchmark-results-data"
 )
 
 @Composable
@@ -228,7 +235,7 @@ fun AppRoot(
             }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
-                if (route !in setOf("dashboard", "hardware-explorer", "live-monitor", "diagnostics-center", "settings", "about") && route !in detailReferences.keys) {
+                if (route !in setOf("dashboard", "hardware-explorer", "live-monitor", "diagnostics-center", "settings", "about") && route !in detailReferences.keys && route !in priorityReferenceSpecs.keys) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -248,27 +255,42 @@ fun AppRoot(
                     "dashboard" -> Dashboard(snapshot, samples, ::open)
                     "system-health" -> SystemHealth(snapshot, ::open)
                     "privacy-center" -> PrivacyCenter()
-                    "cpu-cores" -> CpuCoreInspector(snapshot)
+                    "cpu-cores" -> PriorityReferenceScreen("cpu-cores", snapshot, recorded, benchmark, ::open)
+                    "cpu-cores-data" -> CpuCoreInspector(snapshot)
                     "charging-analysis" -> ChargingAnalysis(snapshot, samples)
                     "metric-fullscreen" -> FullscreenMetric(samples)
                     "reports-export" -> ReportExportScreen(if (selectedSessionId == null) recorded else selectedSessionSamples)
                     "sensor-live" -> SensorLiveScreen()
                     "network-details" -> NetworkDetailsScreen()
-                    "app-usage" -> AppUsageScreen()
+                    "app-usage" -> PriorityReferenceScreen("app-usage", snapshot, recorded, benchmark, ::open)
+                    "app-usage-controls" -> AppUsageScreen()
                     "alerts" -> AlertsScreen(snapshot)
                     "permission-center" -> PermissionCenterScreen()
                     "recording-session" -> RecordingSessionScreen(recorded, isRecording, historyReady, historyStorageError, onToggleRecording, onClearRecording, ::open)
                     "recording-library" -> RecordingLibraryScreen(
                         savedSessions, isRecording, selectedSessionId, onSelectSession, onDeleteSession, ::open
                     )
-                    "session-analysis" -> SessionAnalysisScreen(if (selectedSessionId == null) recorded else selectedSessionSamples, ::open)
+                    "session-analysis" -> PriorityReferenceScreen(
+                        "session-analysis", snapshot,
+                        if (selectedSessionId == null) recorded else selectedSessionSamples,
+                        benchmark, ::open
+                    )
+                    "session-analysis-data" -> SessionAnalysisScreen(
+                        if (selectedSessionId == null) recorded else selectedSessionSamples, ::open
+                    )
                     "session-insights" -> SessionInsightsScreen(if (selectedSessionId == null) recorded else selectedSessionSamples, ::open)
                     "benchmark-center" -> BenchmarkCenterScreen(benchmark, onStart = {
                         benchmark.start(benchmarkScope)
                         open("benchmark-running")
                     })
-                    "benchmark-running" -> BenchmarkRunningScreen(benchmark, ::open)
-                    "benchmark-results" -> BenchmarkResultsScreen(benchmark)
+                    "benchmark-running" -> PriorityReferenceScreen(
+                        "benchmark-running", snapshot, recorded, benchmark, ::open
+                    )
+                    "benchmark-results" -> PriorityReferenceScreen(
+                        "benchmark-results", snapshot, recorded, benchmark, ::open
+                    )
+                    "benchmark-running-controls" -> BenchmarkRunningScreen(benchmark, ::open)
+                    "benchmark-results-data" -> BenchmarkResultsScreen(benchmark)
                     "diagnostic-results" -> DiagnosticResultsScreen()
                     "overlay-configuration" -> OverlayPreviewScreen(snapshot)
                     "hardware-explorer" -> HardwareExplorer(::open)
