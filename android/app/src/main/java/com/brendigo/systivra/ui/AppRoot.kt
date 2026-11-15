@@ -225,7 +225,7 @@ fun AppRoot(
             }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
-                if (route !in setOf("dashboard", "hardware-explorer", "live-monitor", "diagnostics-center", "settings", "about")) {
+                if (route !in setOf("dashboard", "hardware-explorer", "live-monitor", "diagnostics-center", "settings", "about") && route !in detailReferences.keys) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -276,16 +276,25 @@ fun AppRoot(
                     "settings" -> Settings(::open)
                     "about" -> About(::open)
                     "all-screens" -> ScreenCatalog(::open)
-                    "cpu-details" -> MetricScreen(snapshot.cpu, "Platform processor capabilities")
-                    "gpu-details" -> MetricScreen(snapshot.gpu, "GPU readings are restricted on many devices")
-                    "memory-details" -> MetricScreen(snapshot.ram, "Physical RAM reported by Android")
-                    "storage-details" -> MetricScreen(snapshot.storage, "Internal data volume")
-                    "battery-details" -> MetricScreen(snapshot.battery, "Battery state and charging")
-                    "thermal-details" -> MetricScreen(snapshot.thermal, "Thermal state is not CPU temperature")
-                    "display-details" -> MetricScreen(snapshot.display, "Current display metrics")
-                    "device-and-android", "device-detection", "system-overview" ->
+
+                    "cpu-details" -> ReferenceDetailScreen("cpu-details", snapshot.cpu, samples, ::open)
+
+                    "gpu-details" -> ReferenceDetailScreen("gpu-details", snapshot.gpu, samples, ::open)
+
+                    "memory-details" -> ReferenceDetailScreen("memory-details", snapshot.ram, samples, ::open)
+
+                    "storage-details" -> ReferenceDetailScreen("storage-details", snapshot.storage, samples, ::open)
+
+                    "battery-details" -> ReferenceDetailScreen("battery-details", snapshot.battery, samples, ::open)
+
+                    "thermal-details" -> ReferenceDetailScreen("thermal-details", snapshot.thermal, samples, ::open)
+
+                    "display-details" -> ReferenceDetailScreen("display-details", snapshot.display, samples, ::open)
+                    "device-and-android" -> ReferenceDetailScreen("device-and-android", snapshot.system, samples, ::open)
+                    "device-detection", "system-overview" ->
                         MetricScreen(snapshot.system, "Device identifiers and Android version")
-                    "sensor-explorer" -> MetricScreen(snapshot.sensors, "Sensors exposed by SensorManager")
+
+                    "sensor-explorer" -> ReferenceDetailScreen("sensor-explorer", snapshot.sensors, samples, ::open)
                     else -> Planned(sections.firstOrNull { it.first == route }?.second ?: "Feature")
                 }
             }
@@ -351,7 +360,7 @@ private fun Dashboard(
 }
 
 @Composable
-private fun ReferenceHeroCard(open: () -> Unit) {
+internal fun ReferenceHeroCard(open: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().height(128.dp).clickable { open() },
         shape = RoundedCornerShape(18.dp),
@@ -388,7 +397,7 @@ private fun ReferenceHeroCard(open: () -> Unit) {
 }
 
 @Composable
-private fun ReferenceMetricRow(
+internal fun ReferenceMetricRow(
     label: String,
     glyph: String,
     index: Int,
