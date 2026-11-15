@@ -1,0 +1,199 @@
+{
+  "type": "REFERENCE_CONCEPT_NOT_REAL_APP_SCREENSHOT",
+  "applicationId": "com.brendigo.systivra",
+  "target": [
+    1080,
+    1920
+  ],
+  "original": [
+    390,
+    844
+  ],
+  "screens": [
+    {
+      "reference": "01-splash.svg",
+      "preview": "01-splash-REFERENCE.png",
+      "sha256": "01bc8cb44d443ba0831e61546f2eaf958a1612b8514c0657c771caea0ce1001e"
+    },
+    {
+      "reference": "02-system-health.svg",
+      "preview": "02-system-health-REFERENCE.png",
+      "sha256": "7b46bee30dbd15b05d5e6ed369a30d4448db6b8781cf5f3ef0cad01310ea9f9b"
+    },
+    {
+      "reference": "03-device-detection.svg",
+      "preview": "03-device-detection-REFERENCE.png",
+      "sha256": "e1cb1dc1394d4b6dbcaecebcef231c28b56ddde3558476bd6ec3cea9015fb1ce"
+    },
+    {
+      "reference": "04-privacy-center.svg",
+      "preview": "04-privacy-center-REFERENCE.png",
+      "sha256": "6f583fbe93dfb63f635342b99c9dac328dc6ee095049a7f9d35502f6d894fa73"
+    },
+    {
+      "reference": "05-dashboard.svg",
+      "preview": "05-dashboard-REFERENCE.png",
+      "sha256": "4c31168c0eab89e9a43ec3da7b2687310c07c3d14af63a9108a100da6416e022"
+    },
+    {
+      "reference": "06-hardware-explorer.svg",
+      "preview": "06-hardware-explorer-REFERENCE.png",
+      "sha256": "af7d62e5efe091b1a5a565a84730ff1c2f56bae6a2eac29d038c84d515a09387"
+    },
+    {
+      "reference": "07-cpu-details.svg",
+      "preview": "07-cpu-details-REFERENCE.png",
+      "sha256": "62689a4f72c03351a46b2b9f9d7973553a57af3a8ed304168941a1aa58bda5c0"
+    },
+    {
+      "reference": "08-cpu-cores.svg",
+      "preview": "08-cpu-cores-REFERENCE.png",
+      "sha256": "5fa6f50c9eb2912d467ba58e8a286e2ee9f00b23214169f44e731d3a45a91d0f"
+    },
+    {
+      "reference": "09-gpu-details.svg",
+      "preview": "09-gpu-details-REFERENCE.png",
+      "sha256": "2ec52a664a7da9cfb38be0f309c9be5650191bca3a153dd929220b904166cd1b"
+    },
+    {
+      "reference": "10-memory-details.svg",
+      "preview": "10-memory-details-REFERENCE.png",
+      "sha256": "4bfe97862e6041a11efeb48332f43de2f4369d1cc37448fb5d54bc94a58aae6b"
+    },
+    {
+      "reference": "11-storage-details.svg",
+      "preview": "11-storage-details-REFERENCE.png",
+      "sha256": "2cd6a9b2e1fc26ce5e8211be647db3c6051da3d66112c4cbc10e02e47f59f714"
+    },
+    {
+      "reference": "12-battery-details.svg",
+      "preview": "12-battery-details-REFERENCE.png",
+      "sha256": "ba68e52109eca692ea51dc1f4e6722fd9701f50aaca108bf4050aa8e55b3c57f"
+    },
+    {
+      "reference": "13-charging-analysis.svg",
+      "preview": "13-charging-analysis-REFERENCE.png",
+      "sha256": "55362794db8de1cfdfcee42247a8777a4ab4859d2779251fd3541003c579ea4a"
+    },
+    {
+      "reference": "14-thermal-details.svg",
+      "preview": "14-thermal-details-REFERENCE.png",
+      "sha256": "37db588bfc32b2a50d0ebb51d966c8664189207b1c228a7f79b504910d1901fa"
+    },
+    {
+      "reference": "15-display-details.svg",
+      "preview": "15-display-details-REFERENCE.png",
+      "sha256": "ae96717f1ede7dcb9c872f5a829e2edfa679ec057458360afa8974acfc93df3a"
+    },
+    {
+      "reference": "16-device-and-android.svg",
+      "preview": "16-device-and-android-REFERENCE.png",
+      "sha256": "009babfbc1dde5cf8d65cc64e08ffa90824e92e7d6283f20772a27352d3af798"
+    },
+    {
+      "reference": "17-network-details.svg",
+      "preview": "17-network-details-REFERENCE.png",
+      "sha256": "84d54adc778d873ec63bcc1aec05d0908a45ff439b5ca87e0962798f3bb39c57"
+    },
+    {
+      "reference": "18-sensor-explorer.svg",
+      "preview": "18-sensor-explorer-REFERENCE.png",
+      "sha256": "db0048af16a72231f94b3b1452c72c9e82541fcd28fceb13be5d546a4d8a5d9c"
+    },
+    {
+      "reference": "19-sensor-live.svg",
+      "preview": "19-sensor-live-REFERENCE.png",
+      "sha256": "c8c9302d2237edd064344f6996dbfd3c3301bd627b421bc621ed53248450ac2c"
+    },
+    {
+      "reference": "20-app-usage.svg",
+      "preview": "20-app-usage-REFERENCE.png",
+      "sha256": "7dcec31bcdd4ac5f9d6e68e81b1825a078480440c67f36762a1f8b2c1099cc8a"
+    },
+    {
+      "reference": "21-live-monitor.svg",
+      "preview": "21-live-monitor-REFERENCE.png",
+      "sha256": "46f634920725aabfa1cb0966407925fb4c4d48a841046afeecba5b2b3cfe58b7"
+    },
+    {
+      "reference": "22-metric-fullscreen.svg",
+      "preview": "22-metric-fullscreen-REFERENCE.png",
+      "sha256": "a9f6ee321aaaa9148deeced006fe8c29d6ab307908949edbec078b59994e648c"
+    },
+    {
+      "reference": "23-recording-session.svg",
+      "preview": "23-recording-session-REFERENCE.png",
+      "sha256": "a0f1038fce8c6b404bdcf7528dc653eaccc6fc4cb37ed69d216599d2c7b329da"
+    },
+    {
+      "reference": "24-session-analysis.svg",
+      "preview": "24-session-analysis-REFERENCE.png",
+      "sha256": "e705505d7d192dde412a105d53cce94864a8bcfdaf144d63e91fa68d9cc4159b"
+    },
+    {
+      "reference": "25-alerts.svg",
+      "preview": "25-alerts-REFERENCE.png",
+      "sha256": "f60b72d6cb14749c657e3bb9f13a582bacc35f363747eac58cd552b3ad4e96ce"
+    },
+    {
+      "reference": "26-diagnostics-center.svg",
+      "preview": "26-diagnostics-center-REFERENCE.png",
+      "sha256": "93fb6d36f363a4672825a9977be31a6f070e589b79b229fe3893646b2e8fd7ae"
+    },
+    {
+      "reference": "27-component-test.svg",
+      "preview": "27-component-test-REFERENCE.png",
+      "sha256": "1ba0eed1e55648048f4dd60fdbe4dfa63a4180fc31776267dc7f3019e7f2219d"
+    },
+    {
+      "reference": "28-diagnostic-results.svg",
+      "preview": "28-diagnostic-results-REFERENCE.png",
+      "sha256": "0cd7fe3866a480658f090c0a2a5c9087231ceb3d8087043865571e7838e1d9da"
+    },
+    {
+      "reference": "29-benchmark-center.svg",
+      "preview": "29-benchmark-center-REFERENCE.png",
+      "sha256": "78c433e1e1dfd332c1c75d40ddd21d4b597f65ad274421cdf1f8086fe2133bca"
+    },
+    {
+      "reference": "30-benchmark-running.svg",
+      "preview": "30-benchmark-running-REFERENCE.png",
+      "sha256": "534d4de094ce93949e99b7a3d2ec7595b247041657eed56569d4ccda6113f85c"
+    },
+    {
+      "reference": "31-benchmark-results.svg",
+      "preview": "31-benchmark-results-REFERENCE.png",
+      "sha256": "e60596158e4d0171d1d7ea71ca1085b25c4b1e4ac47c9ceae249e38d468f034b"
+    },
+    {
+      "reference": "32-overlay-configuration.svg",
+      "preview": "32-overlay-configuration-REFERENCE.png",
+      "sha256": "9fe8f1ba361cdf80f9759b30e0c442a53b83cb7ccf1224913a5edfe761ed1289"
+    },
+    {
+      "reference": "33-history.svg",
+      "preview": "33-history-REFERENCE.png",
+      "sha256": "44e8b8c1a1566b26daac7d902d7975effe6a9e62c762a9a019cf97958c834f6c"
+    },
+    {
+      "reference": "34-reports-export.svg",
+      "preview": "34-reports-export-REFERENCE.png",
+      "sha256": "064a3a708bd08c239fd0003708824688ef259ddc946ea27594bf8bcfc7766088"
+    },
+    {
+      "reference": "35-permission-center.svg",
+      "preview": "35-permission-center-REFERENCE.png",
+      "sha256": "3c341357fe08490e1342ac40aa470c67651890554552dd205e42a85583850483"
+    },
+    {
+      "reference": "36-settings.svg",
+      "preview": "36-settings-REFERENCE.png",
+      "sha256": "4766aa099e032c39f166e8b1c4becd4b43ee405b63370d1fa2790dc83fdffcdd"
+    },
+    {
+      "reference": "37-about.svg",
+      "preview": "37-about-REFERENCE.png",
+      "sha256": "27ea11ecd68f608ac537ff9c4f1a32386690a331fb2c97c777cd9af26fa93bee"
+    }
+  ]
+}

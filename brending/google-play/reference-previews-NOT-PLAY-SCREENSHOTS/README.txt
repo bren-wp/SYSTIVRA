@@ -1,0 +1,1 @@
+SYSTIVRA 37 ORIGINAL REFERENCES. 1080x1920 PNGs preserve original 390x844 composition without cropping, only side letterboxing. THESE ARE DESIGN CONCEPTS, NOT REAL ANDROID SCREENSHOTS. DO NOT SUBMIT TO GOOGLE PLAY AS SCREEN CAPTURES. Real app screenshots must be taken from running com.brendigo.systivra and manually approved.
