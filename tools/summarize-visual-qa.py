@@ -30,8 +30,25 @@ def load_report(path: Path):
     return results
 
 
-def summarize(results):
+def summarize(results, geometry="letterboxed"):
     by_changed = sorted(results, key=lambda row: row[2], reverse=True)
+    if geometry == "native":
+        caveat = (
+            "These raw 390×844 pixel differences compare original source SVGs "
+            "rasterized at their native 390×844 viewport to genuine Android "
+            "screenshots captured at 390×844 with a verified 160 dpi override. "
+            "No letterboxed image stretching occurs. Android status/navigation "
+            "bars, font rasterization, actual device data, renderers and system "
+            "insets still differ. Pixel-diff results are diagnostics, not proof of "
+            "1:1 reference parity or feature completeness."
+        )
+    else:
+        caveat = (
+            "These raw differences compare letterboxed 1080×1920 concept "
+            "previews of 390×844 SVGs with 1080×1920 emulator screenshots. "
+            "Insets, density, font rasterization and device data differ. "
+            "The source viewport is NOT geometrically equivalent to that capture."
+        )
     lines = [
         "# SYSTIVRA Android visual QA — actual screenshot comparisons",
         "",
@@ -43,12 +60,9 @@ def summarize(results):
         f"- Mean absolute RGB error: **{mean(row[1] for row in results):.3f}%**",
         f"- Average changed-pixel percentage: **{mean(row[2] for row in results):.3f}%**",
         "",
-        "These are raw image differences, not a visual similarity score. "
-        "The reference boards use a 390×844 layout inside a 1080×1920 letterboxed PNG, "
-        "while the emulator renders the actual responsive app at 1080×1920. "
-        "Insets, density, font rasterization and dynamic hardware data differ. "
-        "Do not mark a screen VERIFIED 1:1 until a same-viewport approved baseline "
-        "and interactive/manual QA have passed.",
+        caveat,
+        "Do not certify a screen 1:1 without approved same-viewport "
+        "references and independent interactive/manual QA.",
         "",
         "## Largest differences",
         "",
@@ -74,9 +88,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--geometry", choices=["native", "letterboxed"], default="letterboxed")
     args = parser.parse_args()
     try:
-        report = summarize(load_report(args.report))
+        report = summarize(load_report(args.report), geometry=args.geometry)
     except (OSError, ValueError, KeyError) as exc:
         parser.exit(1, f"FAIL: cannot validate visual QA evidence: {exc}\n")
     args.output.parent.mkdir(parents=True, exist_ok=True)

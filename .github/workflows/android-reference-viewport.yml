@@ -4,11 +4,12 @@ name: SYSTIVRA 390x844 reference viewport QA
 on:
   workflow_dispatch:
   push:
-    branches: [feat/systivra-visual-parity-390dp-qa, fix/systivra-qa-stability-20261115]
+    branches: [feat/systivra-visual-parity-390dp-qa, fix/systivra-qa-stability-20261115, feat/systivra-reference-actions-metrics-20261115]
     paths:
       - ".github/workflows/android-reference-viewport.yml"
       - "android/app/src/main/**"
       - "android/app/src/androidTest/**"
+      - "android/app/src/test/**"
       - "tools/capture-android-screens.sh"
       - "tools/capture-reference-viewport.sh"
       - "tools/run-android-instrumentation.sh"
@@ -77,7 +78,8 @@ jobs:
             --max-mae-percent 100 --max-changed-percent 100
           python3 tools/summarize-visual-qa.py \
             --report qa/reference-viewport/diff/report.csv \
-            --output qa/reference-viewport/diff/summary.md
+            --output qa/reference-viewport/diff/summary.md \
+            --geometry native
           cat qa/reference-viewport/diff/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload actual 390x844 captures and reproducible reference evidence
         if: always()
