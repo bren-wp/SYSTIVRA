@@ -12,7 +12,11 @@ import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument("folder", type=Path)
+parser.add_argument("--width", type=int, help="Require exact screenshot width when matching SVG viewport")
+parser.add_argument("--height", type=int, help="Require exact screenshot height when matching SVG viewport")
 args = parser.parse_args()
+if (args.width is None) != (args.height is None):
+    parser.error("--width and --height must be passed together")
 images = sorted(args.folder.glob("*.png"))
 if len(images) < 36:
     raise SystemExit(f"FAIL: expected at least 36 different routed app screenshots, found {len(images)}")
@@ -22,6 +26,9 @@ for path in images:
     with Image.open(path) as im:
         if im.width < 320 or im.height < 320:
             raise SystemExit(f"FAIL: invalid screen geometry: {path.name} = {im.size}")
+        if args.width is not None and im.size != (args.width, args.height):
+            raise SystemExit(f"FAIL: expected exact {args.width}x{args.height} real capture, "
+                             f"got {path.name} = {im.size}")
         rgb = im.convert("RGB")
         small = rgb.resize((32, 64))
         digest = hashlib.sha256(small.tobytes()).hexdigest()

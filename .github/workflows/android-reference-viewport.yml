@@ -1,0 +1,86 @@
+name: SYSTIVRA 390x844 reference viewport QA
+# Independent evidence workflow: it must not change Google Play screenshots
+# or certify 1:1 without same-viewport measurements and manual review.
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/systivra-visual-parity-390dp-qa]
+    paths:
+      - ".github/workflows/android-reference-viewport.yml"
+      - "android/app/src/main/**"
+      - "tools/capture-android-screens.sh"
+      - "tools/capture-reference-viewport.sh"
+      - "tools/validate-android-screens.py"
+      - "tools/render-reference-viewport.py"
+      - "tools/summarize-visual-qa.py"
+      - "tools/visual-diff.py"
+      - "brending/screens/**"
+permissions:
+  contents: read
+concurrency:
+  group: systivra-390-viewport-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  reference-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install Android API 37
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDK_MANAGER"
+          yes | "$SDK_MANAGER" --licenses >/dev/null || true
+          "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.9.1"
+      - name: Compile actual debug APK
+        working-directory: android
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Render 36 original non-Splash SVG references at their native viewport
+        run: |
+          python3 -m pip install --quiet Pillow CairoSVG
+          python3 tools/render-reference-viewport.py
+      - name: Enable KVM before launching Android emulator
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm || { echo "::error::KVM is unavailable"; exit 1; }
+          sudo chmod a+rw /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+      - name: Capture 38 genuine application routes at exactly 390 by 844 pixels
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          emulator-boot-timeout: 600
+          disable-animations: true
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
+          script: bash tools/capture-reference-viewport.sh
+      - name: Compare matching viewport pixels (diagnostic, not an acceptance claim)
+        run: |
+          python3 tools/visual-diff.py \
+            --reference qa/reference-viewport/references \
+            --actual qa/reference-viewport/screenshots \
+            --output qa/reference-viewport/diff \
+            --max-mae-percent 100 --max-changed-percent 100
+          python3 tools/summarize-visual-qa.py \
+            --report qa/reference-viewport/diff/report.csv \
+            --output qa/reference-viewport/diff/summary.md
+          cat qa/reference-viewport/diff/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload actual 390x844 captures and reproducible reference evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: systivra-390x844-actual-vs-original-svg-diff
+          path: |
+            qa/reference-viewport/
+          if-no-files-found: warn
