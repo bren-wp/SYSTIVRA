@@ -100,3 +100,23 @@ An invalid Android build workflow configuration was identified (artifact-upload 
 - Screen-scoped regression tests cover Settings and About navigation and dark foreground inheritance.
 - Automatic Google Play screenshot commits are disabled pending manual approval. Screenshots remain downloadable as CI evidence.
 - **Verified 1:1 count remains 0/37** until new screenshots after these changes have undergone correct same-viewport diff, dynamic content review, and accessibility checks.
+
+## PR #20 continuation after PR #19 was merged (2026-11-15)
+
+**Scope:** native-reference geometry (390 × 844), original detail-screen structure, and functional regressions. These are development changes, not approved 1:1 screenshots.
+
+- Original reference #07 CPU Details: reference heading, measured chart shell, Architecture/Core count/CPU load/Data availability action rows.
+- #09 GPU Details: reference heading, hero, Renderer/Graphics API/GPU load/Availability action rows.
+- #10 Memory Details: reference heading, non-fabricated chart shell, Total RAM/Available RAM/Memory pressure/History action rows.
+- #11 Storage Details: reference heading, hero, Total storage/Available space/Used space/Volume details action rows.
+- #12 Battery Details: reference heading, chart from real collected charge history if available, Charge level/Charging state/Battery temperature/Current action rows.
+- #14 Thermal Details: reference heading, empty-measurement chart unless actual data is available, Thermal status/Headroom if available/Battery temperature/Safety guidance action rows.
+- #15 Display Details: reference heading, hero, Resolution/Pixel density/Refresh rate/Color modes action rows.
+- #16 Device & Android: reference heading, functional hero -> System Overview, Manufacturer/Model/Android version/Security patch action rows.
+- #18 Sensor Explorer: reference heading, hero, Accelerometer/Gyroscope/Light sensor/Proximity action rows.
+
+Every row triggers a scroll to authentic Android reading cards and source labels. Unsupported values remain explicitly Unavailable rather than fabricated. The existing recorded-data and navigation features are retained.
+
+The [new 390 × 844 viewport workflow](../.github/workflows/android-reference-viewport.yml) renders the 36 original in-app SVGs directly to source dimensions, captures 38 real app screens at matching dimensions with explicit emulator size/density overrides, validates screenshots, and archives visual diffs. Splash (#01) still needs a separate cold-start capture. The first workflow attempt failed from `/bin/sh` not supporting `pipefail`; the script was moved into a Bash file for the next run.
+
+**Pixel-perfect certified: still 0 of 37** until source-geometry screenshot evidence, per-screen differences, interactive functionality and physical-device review meet the acceptance criteria.
