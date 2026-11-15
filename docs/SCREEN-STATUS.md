@@ -73,3 +73,11 @@ The Recording Library is an additional real in-app screen beyond the original 37
 ## v0.6 analytics and visual scope
 
 **Session Insights** is an additional screen beyond the 37 reference concepts. The recording library and Session Insights have no approved pixel-perfect baseline and must not be called 1:1. Automated emulator capture now targets 38 app screens (36 original in-app references plus these two extra screens). The Android system Splash must be captured and reviewed independently. Actual image diffs, touch interactions, font scaling and multiple device densities remain mandatory acceptance gates.
+
+## Reference alignment — initial Android implementation pass
+
+The first code changes in the `feat/systivra-v100-reference-parity-play-previews` development branch match the **reference layout structure** for Dashboard and Hardware Explorer: headings, SYSTIVRA ring card, four primary metric cards, palette, border radius and text-only navigation bar. Additional functionality remains available below the fold. This is a first implementation pass, **not an achieved pixel-perfect certification**; exact font metrics, inset alignment and all other routes still require automated screenshot comparisons and device testing.
+
+The original 37 references are preserved under `brending/screens/*.svg` and available as 1080 × 1920 previews (side margins only; no stretching or cropping) in `brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/`. They must not be submitted as real Play screenshots.
+
+An invalid Android build workflow configuration was identified (artifact-upload `with:` attached directly to a `run` step). That syntax has been fixed and CI re-enabled for this branch. Screenshot QA remains a separate acceptance gate.
