@@ -134,7 +134,9 @@ private val sections = listOf(
     "device-detection" to "Device Detection",
     "system-overview" to "System Overview",
     "recording-library" to "Recording Library",
-    "all-screens" to "Screen Catalog"
+    "all-screens" to "Screen Catalog",
+    "component-test-interactive" to "Component Test Controls",
+    "device-capacity" to "Memory & Storage"
 )
 
 private val enabledRoutes = setOf(
@@ -146,7 +148,8 @@ private val enabledRoutes = setOf(
     "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
     "sensor-live", "network-details", "app-usage", "alerts", "permission-center",
     "recording-session", "session-analysis", "session-insights", "benchmark-center", "benchmark-running", "benchmark-results", "diagnostic-results",
-    "overlay-configuration", "recording-library", "all-screens"
+    "overlay-configuration", "recording-library", "all-screens",
+    "component-test-interactive", "device-capacity"
 )
 
 @Composable
@@ -271,7 +274,17 @@ fun AppRoot(
                     "hardware-explorer" -> HardwareExplorer(::open)
                     "live-monitor" -> LiveMonitor(snapshot, samples, recorded, savedSessions, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
-                    "component-test" -> ComponentTest()
+                    "component-test" -> ReferenceLanding(
+                        route = "component-test", title = "Component Test",
+                        subtitle = "Interactive testing", caption = "Explicit user confirmation",
+                        actions = listOf(
+                            ReferenceAction("Run test", "component-test-interactive"),
+                            ReferenceAction("Check result", "diagnostic-results"),
+                            ReferenceAction("Skip test", "diagnostics-center"),
+                            ReferenceAction("Permission state", "permission-center")
+                        ), open = ::open
+                    )
+                    "component-test-interactive" -> ComponentTest()
                     "history" -> History(samples, ::open)
                     "settings" -> Settings(::open)
                     "about" -> About(::open)
@@ -291,8 +304,17 @@ fun AppRoot(
 
                     "display-details" -> ReferenceDetailScreen("display-details", snapshot.display, samples, ::open)
                     "device-and-android" -> ReferenceDetailScreen("device-and-android", snapshot.system, samples, ::open)
-                    "device-detection", "system-overview" ->
-                        MetricScreen(snapshot.system, "Device identifiers and Android version")
+                    "device-detection" -> ReferenceLanding(
+                        route = "device-detection", title = "Device Detection",
+                        subtitle = "Hardware capabilities", caption = "Supported Android APIs",
+                        actions = listOf(
+                            ReferenceAction("Device model", "device-and-android"),
+                            ReferenceAction("Memory and storage", "device-capacity"),
+                            ReferenceAction("Available sensors", "sensor-explorer")
+                        ), open = ::open
+                    )
+                    "device-capacity" -> MetricScreen(snapshot.ram + snapshot.storage, "Device RAM and internal storage")
+                    "system-overview" -> MetricScreen(snapshot.system, "Device identifiers and Android version")
 
                     "sensor-explorer" -> ReferenceDetailScreen("sensor-explorer", snapshot.sensors, samples, ::open)
                     else -> Planned(sections.firstOrNull { it.first == route }?.second ?: "Feature")
