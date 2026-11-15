@@ -67,6 +67,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -184,31 +185,32 @@ fun AppRoot(
         }
         BackHandler(enabled = navigationStack.size > 1) { goBack() }
         Scaffold(
-            containerColor = Background,
+            modifier = Modifier.background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF0D1F3F), Color(0xFF08111D))
+                )
+            ),
+            containerColor = Color.Transparent,
             bottomBar = {
-                NavigationBar(containerColor = Color(0xFF101B2D)) {
-                    tabs.forEach { (id, label, symbol) ->
-                        NavigationBarItem(
-                            selected = route == id,
-                            onClick = { open(id) },
-                            icon = {
-                                Icon(imageVector = when (id) {
-                                    "dashboard" -> Icons.Rounded.Dashboard
-                                    "live-monitor" -> Icons.Rounded.ShowChart
-                                    "diagnostics-center" -> Icons.Rounded.FactCheck
-                                    else -> Icons.Rounded.Tune
-                                }, contentDescription = label, modifier = Modifier.size(24.dp))
-                            },
-                            label = { Text(label, fontSize = 10.sp) },
-                            alwaysShowLabel = true,
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Purple,
-                                selectedTextColor = Purple,
-                                indicatorColor = Color(0xFF27224B),
-                                unselectedIconColor = Muted,
-                                unselectedTextColor = Muted
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(62.dp)
+                        .background(Color(0xFF0D192B)),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    tabs.forEach { (id, label, _) ->
+                        Box(
+                            modifier = Modifier.weight(1f).fillMaxSize()
+                                .clickable { open(id) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                label,
+                                fontSize = 12.sp,
+                                color = if (route == id || (route !in tabs.map { it.first } && id == "dashboard"))
+                                    Cyan else Muted,
+                                maxLines = 1
                             )
-                        )
+                        }
                     }
                 }
             }
@@ -283,107 +285,173 @@ fun AppRoot(
 }
 
 @Composable
-private fun Dashboard(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>, open: (String) -> Unit) {
-    val cards = listOf(
-        Triple("CPU", snapshot.cpu.firstOrNull { it.name == "System-wide CPU load" }?.display ?: "Unavailable", "cpu-details"),
-        Triple("RAM", snapshot.ram.getOrNull(1)?.display ?: "Unavailable", "memory-details"),
-        Triple("Storage", snapshot.storage.getOrNull(1)?.display ?: "Unavailable", "storage-details"),
-        Triple("Battery", snapshot.battery.firstOrNull()?.display ?: "Unavailable", "battery-details")
+private fun Dashboard(
+    snapshot: DeviceSnapshot,
+    samples: List<DeviceSnapshot>,
+    open: (String) -> Unit
+) {
+    val primary = listOf(
+        Triple("Memory", "◇", "memory-details"),
+        Triple("Storage", "▤", "storage-details"),
+        Triple("Battery", "◉", "battery-details"),
+        Triple("Thermal status", "⌁", "thermal-details")
     )
     LazyColumn(
         modifier = Modifier.testTag("dashboard-scroll"),
-        contentPadding = PaddingValues(18.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("SYSTIVRA", fontWeight = FontWeight.ExtraBold, fontSize = 28.sp)
-                Spacer(Modifier.weight(1f))
-                Text("● LIVE", fontSize = 12.sp, color = Mint, fontWeight = FontWeight.Bold)
+            Column {
+                Text("Dashboard", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Your device at a glance", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Live information", fontSize = 13.sp, color = Muted)
+                Spacer(Modifier.height(18.dp))
             }
-            Text(snapshot.name, color = Muted, fontSize = 14.sp)
         }
+        item { ReferenceHeroCard { open("device-and-android") } }
+        item { Spacer(Modifier.height(7.dp)) }
+        items(primary) { (label, symbol, path) ->
+            ReferenceMetricRow(label, symbol, primary.indexOfFirst { it.first == label }) {
+                open(path)
+            }
+        }
+        item { Spacer(Modifier.height(116.dp)) }
         item {
-            PanelCard(onClick = { open("device-and-android") }) {
-                Row(horizontalArrangement = Arrangement.spacedBy(13.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier.size(58.dp)
-                            .background(
-                                Brush.linearGradient(listOf(Color(0xFF128FED), Purple, Color(0xFF172E65))),
-                                RoundedCornerShape(14.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("S", color = Color.White, fontWeight = FontWeight.Black, fontSize = 32.sp)
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text(snapshot.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Text("Android " + (snapshot.system.firstOrNull { it.name == "Android" }?.display ?: "Unavailable"),
-                            fontSize = 12.sp, color = Muted)
-                        Text(if (snapshot.time > 0) "● MONITORING ACTIVE" else "Detecting device…",
-                            fontSize = 11.sp, color = Mint)
-                    }
-                }
-                Text("View system information ›", color = Cyan, fontSize = 12.sp)
-            }
+            Text(
+                "More tools", fontSize = 18.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
         }
-        items(cards.chunked(2)) { pair ->
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                pair.forEach { (label, value, path) ->
-                    Box(Modifier.weight(1f)) {
-                        PanelCard(onClick = { open(path) }) {
-                            Text(label, color = Muted, fontSize = 13.sp)
-                            Text(value, color = Cyan, fontWeight = FontWeight.Bold,
-                                fontSize = 19.sp, maxLines = 2)
-                            Text("View details ›", color = Muted, fontSize = 11.sp)
-                        }
-                    }
-                }
-            }
-        }
-        item {
-            val percentage = samples.mapNotNull {
-                it.battery.firstOrNull()?.value?.removeSuffix("%")?.toFloatOrNull()
-            }
-            PanelCard(onClick = { open("metric-fullscreen") }) {
-                Text("Battery activity", fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Text("Real-time session · last " + percentage.size + " battery readings", color = Muted, fontSize = 12.sp)
-                if (percentage.size > 1) {
-                    Canvas(Modifier.fillMaxWidth().height(96.dp)) {
-                        val step = size.width / (percentage.size - 1)
-                        percentage.zipWithNext().forEachIndexed { index, pair ->
-                            drawLine(Mint, Offset(step * index, size.height * (1 - pair.first / 100f)),
-                                Offset(step * (index + 1), size.height * (1 - pair.second / 100f)),
-                                strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-                        }
-                    }
-                } else {
-                    Text("Collecting live readings…", color = Muted, fontSize = 12.sp)
-                }
-                Text("View full chart ›", color = Cyan, fontSize = 12.sp)
-            }
-        }
-        item { LinkCard("Thermal status", snapshot.thermal.firstOrNull()?.display ?: "Unavailable") { open("thermal-details") } }
         item { LinkCard("Hardware explorer", "CPU, GPU, sensors and device properties") { open("hardware-explorer") } }
-        item { LinkCard("Monitoring", "Live battery, RAM and thermal readings") { open("live-monitor") } }
-        item { LinkCard("Charging analysis", "Compare measured battery readings") { open("charging-analysis") } }
+        item { LinkCard("Monitoring", "Real device readings from Android") { open("live-monitor") } }
+        item { LinkCard("Charging analysis", "Recorded battery data") { open("charging-analysis") } }
         item { LinkCard("CPU core inspector", "Supported cores and available metrics") { open("cpu-cores") } }
-        item { LinkCard("Diagnostics", "Interactive tests, no fake health scores") { open("diagnostics-center") } }
+        item { LinkCard("Diagnostics", "User-confirmed, on-device checks") { open("diagnostics-center") } }
+        item { LinkCard("Session insights", "Analyze your saved readings") { open("session-insights") } }
+        item { LinkCard("Storage and memory", "Details of actual device capacity") { open("storage-details") } }
+        item {
+            Text(
+                "Real measurements are displayed on detail screens only when Android reports them.",
+                color = Muted, fontSize = 12.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReferenceHeroCard(open: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().height(128.dp).clickable { open() },
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
+        border = BorderStroke(1.dp, Color(0xFF233857))
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(28.dp)
+        ) {
+            Canvas(Modifier.size(76.dp)) {
+                val ringWidth = 11.dp.toPx()
+                drawCircle(
+                    color = Color(0xFF223E60),
+                    radius = size.minDimension / 2 - ringWidth / 2,
+                    style = Stroke(width = ringWidth)
+                )
+                drawArc(
+                    brush = Brush.sweepGradient(listOf(Cyan, Color(0xFF5975F5), Purple, Cyan)),
+                    startAngle = -90f,
+                    sweepAngle = 113f,
+                    useCenter = false,
+                    style = Stroke(width = ringWidth, cap = StrokeCap.Round)
+                )
+            }
+            Column {
+                Text("SYSTIVRA", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(5.dp))
+                Text("System intelligence", fontSize = 13.sp, color = Muted)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReferenceMetricRow(
+    label: String,
+    glyph: String,
+    index: Int,
+    onClick: () -> Unit
+) {
+    val tone = if (index % 2 == 0) Color(0xFF153B68) else Color(0xFF34245B)
+    val glyphColor = if (index % 2 == 0) Cyan else Color(0xFFC39BFF)
+    Card(
+        modifier = Modifier.fillMaxWidth().height(69.dp).clickable { onClick() },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
+        border = BorderStroke(1.dp, Color(0xFF223654))
+    ) {
+        Row(
+            Modifier.fillMaxSize().padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier.size(34.dp).background(tone, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(glyph, color = glyphColor, fontSize = 18.sp)
+            }
+            Column(
+                Modifier.weight(1f).padding(start = 13.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(label, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("Details / availability", fontSize = 12.sp, color = Muted)
+            }
+            Text("›", color = Muted, fontSize = 22.sp)
+        }
     }
 }
 
 @Composable
 private fun HardwareExplorer(open: (String) -> Unit) {
-    val paths = listOf(
-        "cpu-details" to "CPU", "gpu-details" to "GPU",
-        "memory-details" to "Memory", "storage-details" to "Storage",
-        "battery-details" to "Battery", "thermal-details" to "Thermal",
-        "display-details" to "Display", "device-and-android" to "Device & Android",
-        "sensor-explorer" to "Sensors"
+    val primary = listOf(
+        Triple("CPU and SoC", "◇", "cpu-details"),
+        Triple("GPU", "▤", "gpu-details"),
+        Triple("Memory", "◉", "memory-details"),
+        Triple("Sensors", "⌁", "sensor-explorer")
     )
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Text("Inspect components and their real data sources", color = Muted) }
-        items(paths) { (path, title) -> LinkCard(title, "Inspect properties and availability") { open(path) } }
+    LazyColumn(
+        modifier = Modifier.testTag("hardware-explorer-scroll"),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 27.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Column {
+                Text("Hardware Explorer", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Explore components", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Hardware information", fontSize = 13.sp, color = Muted)
+                Spacer(Modifier.height(18.dp))
+            }
+        }
+        item { ReferenceHeroCard { open("device-and-android") } }
+        item { Spacer(Modifier.height(7.dp)) }
+        items(primary) { (name, symbol, path) ->
+            ReferenceMetricRow(name, symbol, primary.indexOfFirst { it.first == name }) {
+                open(path)
+            }
+        }
+        item { Spacer(Modifier.height(88.dp)) }
+        item { Text("Additional hardware", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+        item { LinkCard("Storage", "Read available and total storage") { open("storage-details") } }
+        item { LinkCard("Battery", "Charge and temperature values") { open("battery-details") } }
+        item { LinkCard("Thermal", "Android-reported thermal status") { open("thermal-details") } }
+        item { LinkCard("Display", "Resolution, refresh rate and density") { open("display-details") } }
+        item { LinkCard("Device & Android", "Read platform identifiers and OS version") { open("device-and-android") } }
     }
 }
 
