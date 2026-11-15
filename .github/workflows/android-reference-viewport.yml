@@ -4,10 +4,11 @@ name: SYSTIVRA 390x844 reference viewport QA
 on:
   workflow_dispatch:
   push:
-    branches: [feat/systivra-visual-parity-390dp-qa]
+    branches: [feat/systivra-visual-parity-390dp-qa, fix/systivra-qa-stability-20261115]
     paths:
       - ".github/workflows/android-reference-viewport.yml"
       - "android/app/src/main/**"
+      - "android/app/src/androidTest/**"
       - "tools/capture-android-screens.sh"
       - "tools/capture-reference-viewport.sh"
       - "tools/validate-android-screens.py"
@@ -64,7 +65,9 @@ jobs:
           emulator-boot-timeout: 600
           disable-animations: true
           emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
-          script: bash tools/capture-reference-viewport.sh
+          script: |
+            bash tools/capture-reference-viewport.sh
+            gradle -p android :app:connectedDebugAndroidTest --no-daemon --stacktrace
       - name: Compare matching viewport pixels (diagnostic, not an acceptance claim)
         run: |
           python3 tools/visual-diff.py \
