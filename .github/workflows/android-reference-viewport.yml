@@ -12,6 +12,7 @@ on:
       - "tools/capture-android-screens.sh"
       - "tools/capture-reference-viewport.sh"
       - "tools/run-android-instrumentation.sh"
+      - "tools/summarize-android-instrumentation.py"
       - "tools/validate-android-screens.py"
       - "tools/render-reference-viewport.py"
       - "tools/summarize-visual-qa.py"
