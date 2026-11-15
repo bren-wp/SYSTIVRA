@@ -109,18 +109,9 @@ internal fun ReferenceHistory(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column {
-                Text("History", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(8.dp))
-                Text("Recent sessions", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("Local device records", fontSize = 13.sp, color = Muted)
-                Spacer(Modifier.height(18.dp))
-            }
-        }
+        item { ReferenceHeading("History", "Recent sessions", "Local device records") }
         item { ReferenceHeroCard { open("recording-library") } }
-        item { Spacer(Modifier.height(7.dp)) }
+        item { Spacer(Modifier.height(0.dp)) }
         item { ReferenceMetricRow("Today", "◇", 0) { windowName = HistoryWindow.TODAY.name } }
         item { ReferenceMetricRow("This week", "▤", 1) { windowName = HistoryWindow.WEEK.name } }
         item { ReferenceMetricRow("All sessions", "◉", 2) { windowName = HistoryWindow.ALL.name } }
