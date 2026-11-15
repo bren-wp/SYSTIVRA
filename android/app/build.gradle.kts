@@ -9,8 +9,8 @@ android {
         applicationId = "com.brendigo.systivra"
         minSdk = 24
         targetSdk = 36
-        versionCode = 11
-        versionName = "0.10.0-preview.1"
+        versionCode = 12
+        versionName = "0.10.0-preview.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true }
