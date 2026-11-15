@@ -1,0 +1,44 @@
+name: Render SYSTIVRA 37 Play-sized design references
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/systivra-v100-reference-parity-play-previews]
+    paths:
+      - 'tools/render-play-references.mjs'
+      - 'brending/screens/*.svg'
+      - '.github/workflows/reference-previews.yml'
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install renderer
+        run: npm install --no-save sharp@0.34.4
+      - name: Render original 37 SVGs preserving geometry
+        run: node tools/render-play-references.mjs
+      - name: Package 37 original concepts at 1080x1920
+        run: |
+          cd brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS
+          zip -q -9 SYSTIVRA-37-REFERENCE-PREVIEWS-1080x1920.zip *.png README.txt manifest.json
+          test "$(find . -maxdepth 1 -name '*-REFERENCE.png' | wc -l)" -eq 37
+      - name: Commit reference PNGs and ZIP to GitHub
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets(reference): 37 1080x1920 concepts [skip ci]'
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+      - name: Upload complete reference pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: systivra-37-original-references-NOT-real-screenshots
+          path: brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/SYSTIVRA-37-REFERENCE-PREVIEWS-1080x1920.zip
+          if-no-files-found: error
