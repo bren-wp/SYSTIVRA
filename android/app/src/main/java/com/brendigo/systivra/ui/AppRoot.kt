@@ -141,7 +141,9 @@ private val sections = listOf(
     "app-usage-controls" to "Usage Controls",
     "session-analysis-data" to "Session Measurements",
     "benchmark-running-controls" to "CPU Test Controls",
-    "benchmark-results-data" to "Benchmark Measurements"
+    "benchmark-results-data" to "Benchmark Measurements",
+    "recording-session-controls" to "Recording Controls",
+    "permission-center-controls" to "Permission Controls"
 )
 
 private val enabledRoutes = setOf(
@@ -156,7 +158,8 @@ private val enabledRoutes = setOf(
     "overlay-configuration", "recording-library", "all-screens",
     "component-test-interactive", "device-capacity",
     "cpu-cores-data", "app-usage-controls", "session-analysis-data",
-    "benchmark-running-controls", "benchmark-results-data"
+    "benchmark-running-controls", "benchmark-results-data",
+    "recording-session-controls", "permission-center-controls"
 )
 
 @Composable
@@ -235,7 +238,11 @@ fun AppRoot(
             }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
-                if (route !in setOf("dashboard", "hardware-explorer", "live-monitor", "diagnostics-center", "settings", "about") && route !in detailReferences.keys && route !in priorityReferenceSpecs.keys) {
+                if (route !in setOf(
+                    "dashboard", "hardware-explorer", "live-monitor", "diagnostics-center",
+                    "settings", "about", "device-detection", "component-test",
+                    "history", "recording-session", "permission-center"
+                ) && route !in detailReferences.keys && route !in priorityReferenceSpecs.keys) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -265,8 +272,16 @@ fun AppRoot(
                     "app-usage" -> PriorityReferenceScreen("app-usage", snapshot, recorded, benchmark, ::open)
                     "app-usage-controls" -> AppUsageScreen()
                     "alerts" -> AlertsScreen(snapshot)
-                    "permission-center" -> PermissionCenterScreen()
-                    "recording-session" -> RecordingSessionScreen(recorded, isRecording, historyReady, historyStorageError, onToggleRecording, onClearRecording, ::open)
+                    "permission-center" -> PermissionReferenceScreen(::open)
+                    "permission-center-controls" -> PermissionCenterScreen()
+                    "recording-session" -> RecordingReferenceScreen(
+                        recorded, savedSessions, isRecording, historyReady, historyStorageError,
+                        onToggleRecording, ::open
+                    )
+                    "recording-session-controls" -> RecordingSessionScreen(
+                        recorded, isRecording, historyReady, historyStorageError,
+                        onToggleRecording, onClearRecording, ::open
+                    )
                     "recording-library" -> RecordingLibraryScreen(
                         savedSessions, isRecording, selectedSessionId, onSelectSession, onDeleteSession, ::open
                     )
