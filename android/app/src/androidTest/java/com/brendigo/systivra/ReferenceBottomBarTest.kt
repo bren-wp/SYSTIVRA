@@ -55,4 +55,36 @@ class ReferenceBottomBarTest {
         rule.onNodeWithTag("reference-bottom-tab-live-monitor").performClick()
         rule.onNodeWithTag("live-monitor-scroll").assertExists()
     }
+    @Test fun labelCentersFollow390DpSvgNavigationAnchors() {
+        rule.setContent {
+            Box(Modifier.width(390.dp).height(720.dp)) {
+                AppRoot(
+                    snapshot = DeviceSnapshot.empty(),
+                    samples = emptyList(),
+                    recorded = emptyList(),
+                    isRecording = false,
+                    onToggleRecording = {},
+                    onClearRecording = {}
+                )
+            }
+        }
+
+        // SVG x=45/149/246/326 are the glyph starts at the original viewport.
+        // Text boxes are centered at these optical anchors, not translated
+        // over a neighbouring hit target using Modifier.offset.
+        val anchors = listOf(
+            "dashboard" to 75f,
+            "live-monitor" to 170f,
+            "diagnostics-center" to 260f,
+            "settings" to 341f
+        )
+        anchors.forEach { (id, centerX) ->
+            val label = rule.onNodeWithTag(
+                "reference-bottom-label-$id", useUnmergedTree = true
+            ).getUnclippedBoundsInRoot()
+            assertEquals("$id SVG center anchor", centerX,
+                (label.left.value + label.right.value) / 2f, 1f)
+        }
+    }
+
 }
