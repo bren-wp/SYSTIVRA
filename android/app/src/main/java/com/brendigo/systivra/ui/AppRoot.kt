@@ -467,7 +467,7 @@ internal fun ReferenceHeroCard(open: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(21.dp)
         ) {
-            Canvas(Modifier.size(88.dp)) {
+            Canvas(Modifier.size(88.dp).testTag("reference-hero-ring")) {
                 val ringWidth = 11.dp.toPx()
                 drawCircle(
                     color = Color(0xFF223E60),
