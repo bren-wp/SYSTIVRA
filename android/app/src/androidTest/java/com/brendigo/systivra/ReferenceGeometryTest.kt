@@ -26,8 +26,8 @@ class ReferenceGeometryTest {
         }
         val heading = rule.onNodeWithTag("reference-heading-title").getUnclippedBoundsInRoot()
         val hero = rule.onNodeWithTag("reference-hero").getUnclippedBoundsInRoot()
-        val ring = rule.onNodeWithTag("reference-hero-ring").getUnclippedBoundsInRoot()
-        val heroTitle = rule.onNodeWithTag("reference-hero-title").getUnclippedBoundsInRoot()
+        val ring = rule.onNodeWithTag("reference-hero-ring", useUnmergedTree = true).getUnclippedBoundsInRoot()
+        val heroTitle = rule.onNodeWithTag("reference-hero-title", useUnmergedTree = true).getUnclippedBoundsInRoot()
         val memory = rule.onNodeWithTag("reference-row-memory").getUnclippedBoundsInRoot()
         val storage = rule.onNodeWithTag("reference-row-storage").getUnclippedBoundsInRoot()
         val battery = rule.onNodeWithTag("reference-row-battery").getUnclippedBoundsInRoot()
