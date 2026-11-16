@@ -232,7 +232,12 @@ fun AppRoot(
                 ) {
                     tabs.forEach { (id, label, _) ->
                         Box(
-                            modifier = Modifier.weight(1f).fillMaxSize()
+                            modifier = Modifier.weight(when (id) {
+                                "dashboard" -> 125f
+                                "live-monitor" -> 90f
+                                "diagnostics-center" -> 88f
+                                else -> 87f
+                            }).fillMaxSize()
                                 .clickable(role = Role.Tab) { open(id) }
                                 .semantics { stateDescription = if (selectedTab == id) "Selected" else "Not selected" },
                             contentAlignment = Alignment.Center
@@ -240,9 +245,9 @@ fun AppRoot(
                             Text(
                                 label,
                                 modifier = Modifier.offset(x = when (id) {
-                                    "dashboard" -> 29.dp
-                                    "live-monitor" -> 26.dp
-                                    "diagnostics-center" -> 16.dp
+                                    "dashboard" -> 15.dp
+                                    "live-monitor" -> 0.dp
+                                    "diagnostics-center" -> 0.dp
                                     else -> (-5).dp
                                 }),
                                 fontSize = 12.sp,
