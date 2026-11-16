@@ -224,41 +224,7 @@ fun AppRoot(
                 )
             ),
             containerColor = Color.Transparent,
-            bottomBar = {
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(62.dp)
-                        .background(Color(0xFF0D192B)),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    tabs.forEach { (id, label, _) ->
-                        Box(
-                            modifier = Modifier.weight(when (id) {
-                                "dashboard" -> 125f
-                                "live-monitor" -> 90f
-                                "diagnostics-center" -> 88f
-                                else -> 87f
-                            }).fillMaxSize()
-                                .clickable(role = Role.Tab) { open(id) }
-                                .semantics { stateDescription = if (selectedTab == id) "Selected" else "Not selected" },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                label,
-                                modifier = Modifier.offset(x = when (id) {
-                                    "dashboard" -> 15.dp
-                                    "live-monitor" -> 0.dp
-                                    "diagnostics-center" -> 0.dp
-                                    else -> (-5).dp
-                                }),
-                                fontSize = 12.sp,
-                                color = if (selectedTab == id)
-                                    Cyan else Muted,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                }
-            }
+            bottomBar = { ReferenceBottomBar(tabs, selectedTab, ::open) }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
                 if (route !in setOf(
