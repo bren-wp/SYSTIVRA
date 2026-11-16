@@ -88,12 +88,17 @@ jobs:
           GH_REPO: bren-wp/SYSTIVRA
         run: |
           set -euo pipefail
+          # Ensure the three QA workflows tested the most recent actual app-code
+          # commit rather than accepting stale green results from this branch.
+          CODE_SHA="$(git log -1 --format=%H -- android/app/src/main android/app/build.gradle.kts)"
+          test -n "$CODE_SHA"
+          echo "Requiring matching code commit $CODE_SHA"
           for workflow in android-reference-viewport.yml android-responsive-qa.yml android-splash-cold-start.yml; do
-            echo "Checking $workflow on $GITHUB_REF_NAME"
-            completed="$(gh api "repos/$GH_REPO/actions/workflows/$workflow/runs?branch=$GITHUB_REF_NAME&per_page=20" \
-              --jq '[.workflow_runs[] | select(.conclusion == "success")] | length')"
+            echo "Checking $workflow on $GITHUB_REF_NAME at $CODE_SHA"
+            completed="$(gh api "repos/$GH_REPO/actions/workflows/$workflow/runs?branch=$GITHUB_REF_NAME&per_page=30" \
+              --jq "[.workflow_runs[] | select(.conclusion == \"success\" and .head_sha == \"$CODE_SHA\")] | length")"
             if ! [[ "$completed" =~ ^[1-9][0-9]*$ ]]; then
-              echo "::error::No successful independent QA run found for $workflow"
+              echo "::error::No successful independent QA run found for $workflow at $CODE_SHA"
               exit 1
             fi
           done
