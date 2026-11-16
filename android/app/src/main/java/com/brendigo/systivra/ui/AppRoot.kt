@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -218,7 +219,7 @@ fun AppRoot(
         BackHandler(enabled = navigationStack.size > 1) { goBack() }
         Scaffold(
             modifier = Modifier.background(
-                Brush.verticalGradient(
+                Brush.linearGradient(
                     listOf(Color(0xFF0D1F3F), Color(0xFF08111D))
                 )
             ),
@@ -238,6 +239,12 @@ fun AppRoot(
                         ) {
                             Text(
                                 label,
+                                modifier = Modifier.offset(x = when (id) {
+                                    "dashboard" -> 29.dp
+                                    "live-monitor" -> 26.dp
+                                    "diagnostics-center" -> 16.dp
+                                    else -> (-5).dp
+                                }),
                                 fontSize = 12.sp,
                                 color = if (selectedTab == id)
                                     Cyan else Muted,
@@ -449,7 +456,8 @@ private fun Dashboard(
 @Composable
 internal fun ReferenceHeroCard(open: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().height(128.dp).clickable { open() },
+        modifier = Modifier.fillMaxWidth().height(128.dp)
+            .testTag("reference-hero").clickable { open() },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
         border = BorderStroke(1.dp, Color(0xFF233857))
@@ -457,9 +465,9 @@ internal fun ReferenceHeroCard(open: () -> Unit) {
         Row(
             modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(28.dp)
+            horizontalArrangement = Arrangement.spacedBy(21.dp)
         ) {
-            Canvas(Modifier.size(76.dp)) {
+            Canvas(Modifier.size(88.dp)) {
                 val ringWidth = 11.dp.toPx()
                 drawCircle(
                     color = Color(0xFF223E60),
@@ -467,7 +475,11 @@ internal fun ReferenceHeroCard(open: () -> Unit) {
                     style = Stroke(width = ringWidth)
                 )
                 drawArc(
-                    brush = Brush.sweepGradient(listOf(Cyan, Color(0xFF5975F5), Purple, Cyan)),
+                    brush = Brush.linearGradient(
+                        colors = listOf(Cyan, Color(0xFF5975F5), Color(0xFFB052EC)),
+                        start = Offset.Zero,
+                        end = Offset(size.width, size.height)
+                    ),
                     startAngle = -90f,
                     sweepAngle = 113f,
                     useCenter = false,
@@ -494,13 +506,14 @@ internal fun ReferenceMetricRow(
     val glyphColor = if (index % 2 == 0) Cyan else Color(0xFFC39BFF)
     Card(
         modifier = Modifier.fillMaxWidth().height(69.dp)
+            .testTag("reference-row-" + label.lowercase().replace(" ", "-"))
             .clickable(role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
         border = BorderStroke(1.dp, Color(0xFF223654))
     ) {
         Row(
-            Modifier.fillMaxSize().padding(horizontal = 14.dp),
+            Modifier.fillMaxSize().padding(start = 14.dp, end = 21.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
