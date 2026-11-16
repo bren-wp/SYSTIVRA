@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.0-preview.2 — measured pixel-grid refinements, 2026-11-16
+
+- Corrected diagonal SVG gradient mapping across all app screens; aligned visible Android status/navigation bar colors with the dark source palette without masking native system UI.
+- Matched shared hero's 88dp ring and source position, linear cyan-to-purple accent, and x=143 text anchor in the 390dp reference viewport.
+- Aligned source action rows to 82dp pitch with 69dp hitboxes; adjusted row chevron and shared navigation-label offsets without removing 48dp-accessible touch surfaces.
+- Added a real Android Compose geometry test for x/y positions, dimensions, 88dp ring, and exact 82dp row intervals.
+- Bumped versionCode **14**, versionName **0.11.0-preview.2**. Requires real GitHub preview APK, unsigned AAB, full source and SHA256 checksums. **0/37 SVGs certified true pixel-perfect**; system UI and actual data differ.
+
 
 ## v0.11.0-preview.1 — five reference routes and accessibility, 2026-11-16
 
