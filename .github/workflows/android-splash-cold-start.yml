@@ -2,7 +2,7 @@ name: SYSTIVRA genuine cold-start Splash QA
 on:
   workflow_dispatch:
   push:
-    branches: [feat/priority-five-screen-parity-and-splash-qa, feat/systivra-v011-five-screen-preview]
+    branches: [feat/priority-five-screen-parity-and-splash-qa, feat/systivra-v011-five-screen-preview, feat/systivra-v0112-pixel-parity]
     paths:
       - ".github/workflows/android-splash-cold-start.yml"
       - "tools/capture-splash-cold-start.sh"
