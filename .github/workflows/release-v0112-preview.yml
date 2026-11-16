@@ -32,7 +32,7 @@ jobs:
           set -euo pipefail
           grep -F 'applicationId = "com.brendigo.systivra"' android/app/build.gradle.kts
           grep -F 'versionCode = 14' android/app/build.gradle.kts
-          grep -F 'versionName = "0.11.0-preview.1"' android/app/build.gradle.kts
+          grep -F 'versionName = "0.11.0-preview.2"' android/app/build.gradle.kts
           test -s docs/releases/v0.11.0-preview.2.md
           if gh release view v0.11.0-preview.2 >/dev/null 2>&1; then
             echo "::error::This immutable GitHub release exists; refusing overwrite"
@@ -111,7 +111,7 @@ jobs:
           echo "$identity"
           echo "$identity" | grep -F "name='com.brendigo.systivra'"
           echo "$identity" | grep -F "versionCode='14'"
-          echo "$identity" | grep -F "versionName='0.11.0-preview.1'"
+          echo "$identity" | grep -F "versionName='0.11.0-preview.2'"
           unzip -t "$APK" >/dev/null
           unzip -t "$BUNDLE" >/dev/null
       - name: Package genuine APK, AAB, exact source, artwork and checksums
