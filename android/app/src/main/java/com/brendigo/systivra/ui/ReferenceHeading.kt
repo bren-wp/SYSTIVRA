@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 internal fun ReferenceHeading(title: String, subtitle: String, caption: String) {
     Column(Modifier.padding(start = 4.dp, top = 14.dp)) {
         Text(
-            title, modifier = Modifier.semantics { heading() },
+            title, modifier = Modifier.testTag("reference-heading-title").semantics { heading() },
             fontSize = 30.sp, fontWeight = FontWeight.ExtraBold,
             maxLines = 2, overflow = TextOverflow.Ellipsis
         )
