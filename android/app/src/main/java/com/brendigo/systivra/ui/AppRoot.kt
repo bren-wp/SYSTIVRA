@@ -507,6 +507,9 @@ internal fun ReferenceMetricRow(
     val glyphColor = if (index % 2 == 0) Cyan else Color(0xFFC39BFF)
     Card(
         modifier = Modifier.fillMaxWidth().height(69.dp)
+            // SVG action rows start 82px apart; LazyColumn uses a 12px gap.
+            // Add one physical dp per subsequent row without changing 69px hit boxes.
+            .offset(y = index.dp)
             .testTag("reference-row-" + label.lowercase().replace(" ", "-"))
             .clickable(role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(14.dp),
