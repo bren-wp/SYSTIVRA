@@ -2,7 +2,7 @@ name: SYSTIVRA responsive viewport capture
 on:
   workflow_dispatch:
   push:
-    branches: [feat/priority-five-screen-parity-and-splash-qa]
+    branches: [feat/priority-five-screen-parity-and-splash-qa, feat/systivra-v011-five-screen-preview]
     paths:
       - ".github/workflows/android-responsive-qa.yml"
       - "tools/capture-responsive-priority.sh"

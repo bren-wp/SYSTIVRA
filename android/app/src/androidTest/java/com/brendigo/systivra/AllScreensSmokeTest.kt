@@ -32,7 +32,9 @@ class AllScreensSmokeTest {
         "component-test-interactive", "device-capacity",
         "cpu-cores-data", "app-usage-controls", "session-analysis-data",
         "benchmark-running-controls", "benchmark-results-data",
-        "recording-session-controls", "permission-center-controls"
+        "recording-session-controls", "permission-center-controls",
+        "system-health-data", "privacy-center-data", "sensor-live-controls",
+        "metric-fullscreen-data", "benchmark-center-controls"
     )
 
     @Test

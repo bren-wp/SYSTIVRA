@@ -14,6 +14,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -143,7 +146,12 @@ private val sections = listOf(
     "benchmark-running-controls" to "CPU Test Controls",
     "benchmark-results-data" to "Benchmark Measurements",
     "recording-session-controls" to "Recording Controls",
-    "permission-center-controls" to "Permission Controls"
+    "permission-center-controls" to "Permission Controls",
+    "system-health-data" to "Health Readings",
+    "privacy-center-data" to "Privacy Details",
+    "sensor-live-controls" to "Live Sensor Controls",
+    "metric-fullscreen-data" to "Detailed Battery Timeline",
+    "benchmark-center-controls" to "Performance Lab Controls"
 )
 
 private val enabledRoutes = setOf(
@@ -159,7 +167,9 @@ private val enabledRoutes = setOf(
     "component-test-interactive", "device-capacity",
     "cpu-cores-data", "app-usage-controls", "session-analysis-data",
     "benchmark-running-controls", "benchmark-results-data",
-    "recording-session-controls", "permission-center-controls"
+    "recording-session-controls", "permission-center-controls",
+    "system-health-data", "privacy-center-data", "sensor-live-controls",
+    "metric-fullscreen-data", "benchmark-center-controls"
 )
 
 @Composable
@@ -222,7 +232,8 @@ fun AppRoot(
                     tabs.forEach { (id, label, _) ->
                         Box(
                             modifier = Modifier.weight(1f).fillMaxSize()
-                                .clickable { open(id) },
+                                .clickable(role = Role.Tab) { open(id) }
+                                .semantics { stateDescription = if (selectedTab == id) "Selected" else "Not selected" },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -242,7 +253,7 @@ fun AppRoot(
                     "dashboard", "hardware-explorer", "live-monitor", "diagnostics-center",
                     "settings", "about", "device-detection", "component-test",
                     "history", "recording-session", "permission-center"
-                ) && route !in detailReferences.keys && route !in priorityReferenceSpecs.keys) {
+                ) && route !in detailReferences.keys && route !in priorityReferenceSpecs.keys && route !in nextPriorityReferences.keys) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -260,14 +271,30 @@ fun AppRoot(
                 }
                 when (route) {
                     "dashboard" -> Dashboard(snapshot, samples, ::open)
-                    "system-health" -> SystemHealth(snapshot, ::open)
-                    "privacy-center" -> PrivacyCenter()
+                    "system-health" -> NextPriorityReferenceScreen(
+                        "system-health", snapshot, samples, benchmark,
+                        onStartBenchmark = {}, open = ::open
+                    )
+                    "system-health-data" -> SystemHealth(snapshot, ::open)
+                    "privacy-center" -> NextPriorityReferenceScreen(
+                        "privacy-center", snapshot, samples, benchmark,
+                        onStartBenchmark = {}, open = ::open
+                    )
+                    "privacy-center-data" -> PrivacyCenter()
                     "cpu-cores" -> PriorityReferenceScreen("cpu-cores", snapshot, recorded, benchmark, ::open)
                     "cpu-cores-data" -> CpuCoreInspector(snapshot)
                     "charging-analysis" -> ChargingAnalysis(snapshot, samples)
-                    "metric-fullscreen" -> FullscreenMetric(samples)
+                    "metric-fullscreen" -> NextPriorityReferenceScreen(
+                        "metric-fullscreen", snapshot, samples, benchmark,
+                        onStartBenchmark = {}, open = ::open
+                    )
+                    "metric-fullscreen-data" -> FullscreenMetric(samples)
                     "reports-export" -> ReportExportScreen(if (selectedSessionId == null) recorded else selectedSessionSamples)
-                    "sensor-live" -> SensorLiveScreen()
+                    "sensor-live" -> NextPriorityReferenceScreen(
+                        "sensor-live", snapshot, samples, benchmark,
+                        onStartBenchmark = {}, open = ::open
+                    )
+                    "sensor-live-controls" -> SensorLiveScreen()
                     "network-details" -> NetworkDetailsScreen()
                     "app-usage" -> PriorityReferenceScreen("app-usage", snapshot, recorded, benchmark, ::open)
                     "app-usage-controls" -> AppUsageScreen()
@@ -294,10 +321,20 @@ fun AppRoot(
                         if (selectedSessionId == null) recorded else selectedSessionSamples, ::open
                     )
                     "session-insights" -> SessionInsightsScreen(if (selectedSessionId == null) recorded else selectedSessionSamples, ::open)
-                    "benchmark-center" -> BenchmarkCenterScreen(benchmark, onStart = {
-                        benchmark.start(benchmarkScope)
-                        open("benchmark-running")
-                    })
+                    "benchmark-center" -> NextPriorityReferenceScreen(
+                        "benchmark-center", snapshot, samples, benchmark,
+                        onStartBenchmark = {
+                            benchmark.start(benchmarkScope)
+                            open("benchmark-running")
+                        },
+                        open = ::open
+                    )
+                    "benchmark-center-controls" -> BenchmarkCenterScreen(
+                        benchmark, onStart = {
+                            benchmark.start(benchmarkScope)
+                            open("benchmark-running")
+                        }
+                    )
                     "benchmark-running" -> PriorityReferenceScreen(
                         "benchmark-running", snapshot, recorded, benchmark, ::open
                     )
@@ -456,7 +493,8 @@ internal fun ReferenceMetricRow(
     val tone = if (index % 2 == 0) Color(0xFF153B68) else Color(0xFF34245B)
     val glyphColor = if (index % 2 == 0) Cyan else Color(0xFFC39BFF)
     Card(
-        modifier = Modifier.fillMaxWidth().height(69.dp).clickable { onClick() },
+        modifier = Modifier.fillMaxWidth().height(69.dp)
+            .clickable(role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
         border = BorderStroke(1.dp, Color(0xFF223654))
@@ -475,7 +513,8 @@ internal fun ReferenceMetricRow(
                 Modifier.weight(1f).padding(start = 13.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(label, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(label, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("Details / availability", fontSize = 12.sp, color = Muted)
             }
             Text("›", color = Muted, fontSize = 22.sp)

@@ -1,5 +1,15 @@
 # Changelog
 
+
+## v0.11.0-preview.1 — five reference routes and accessibility, 2026-11-16
+
+- Rebuilt **Metric Fullscreen**, **Privacy Center**, **System Health**, **Sensor Live View** and **Benchmark Center** with their original reference-first 390×844 headings, cards/charts and original action labels.
+- Preserved all five operational screens in separately navigable detail routes. Real battery statistics, private data statements, Android sensor listeners and bounded CPU testing remain functional; unavailable benchmark values are not fabricated.
+- Improved screen-reader heading identification, navigation-tab and reference-button roles, selected tab announcement, and large-font label overflow behavior.
+- Increased Android versionCode to **13** and versionName to **0.11.0-preview.1**. A new GitHub preview is intended with a genuine developer-debug APK, unsigned release AAB, full source, marketing artwork, source SVG references and SHA-256 checksums.
+- [Real 390×844 visual QA and instrumentation #43776782282](https://github.com/bren-wp/SYSTIVRA/actions/runs/43776782282): **36/36** original in-app image comparisons, **38** actual screen captures, **31/31** passing connected Android UI tests. Raw average changed pixels improved **60.568% → 58.912%**, RGB MAE **4.217%**. This is NOT a percent of subjective image quality and **0/37 original references are independently certified 1:1**.
+- [Four responsive viewport captures #43776788020](https://github.com/bren-wp/SYSTIVRA/actions/runs/43776788020) and [true Splash cold-start #43776793860](https://github.com/bren-wp/SYSTIVRA/actions/runs/43776793860) also succeeded. Physical-device and complete accessibility acceptance remain pending.
+
 ## [Unreleased — PR #23 five high-difference references and device QA]
 
 - Rebuilt **Benchmark Results, App Usage, Session Analysis, Benchmark Running, CPU Core Inspector** reference entry screens with original 390×844 headings, honest charts/hero and four interactive actions.
