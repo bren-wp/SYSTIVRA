@@ -3,10 +3,8 @@ package com.brendigo.systivra
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.unit.dp
 import com.brendigo.systivra.data.DeviceSnapshot
-import com.brendigo.systivra.ui.AppTheme
-import com.brendigo.systivra.ui.Dashboard
+import com.brendigo.systivra.ui.AppRoot
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -20,9 +18,14 @@ class ReferenceGeometryTest {
 
     @Test fun dashboardHeaderHeroAndRowSpacingFollowTheOriginalVectorGrid() {
         rule.setContent {
-            AppTheme {
-                Dashboard(DeviceSnapshot.empty(), emptyList(), open = {})
-            }
+            AppRoot(
+                snapshot = DeviceSnapshot.empty(),
+                samples = emptyList(),
+                recorded = emptyList(),
+                isRecording = false,
+                onToggleRecording = {},
+                onClearRecording = {}
+            )
         }
         val heading = rule.onNodeWithTag("reference-heading-title").getUnclippedBoundsInRoot()
         val hero = rule.onNodeWithTag("reference-hero").getUnclippedBoundsInRoot()
@@ -38,15 +41,15 @@ class ReferenceGeometryTest {
         assertEquals(20f, hero.left.value, 0.7f)
         assertEquals(14f, (ring.left - hero.left).value, 0.7f)
         assertEquals(20f, (ring.top - hero.top).value, 0.7f)
-        assertEquals(88f, ring.width.value, 0.7f)
-        assertEquals(88f, ring.height.value, 0.7f)
+        assertEquals(88f, (ring.right - ring.left).value, 0.7f)
+        assertEquals(88f, (ring.bottom - ring.top).value, 0.7f)
         assertEquals(123f, (heroTitle.left - hero.left).value, 0.7f)
-        assertEquals(128f, hero.height.value, 0.7f)
+        assertEquals(128f, (hero.bottom - hero.top).value, 0.7f)
 
         listOf(memory, storage, battery, thermal).forEach { row ->
             assertEquals(20f, row.left.value, 0.7f)
-            assertEquals(69f, row.height.value, 0.7f)
-            assertEquals(hero.width.value, row.width.value, 0.7f)
+            assertEquals(69f, (row.bottom - row.top).value, 0.7f)
+            assertEquals((hero.right - hero.left).value, (row.right - row.left).value, 0.7f)
         }
         // SVG action rows: 69dp height + 13dp from top-to-top in the gap.
         assertEquals(82f, (storage.top - memory.top).value, 0.7f)
