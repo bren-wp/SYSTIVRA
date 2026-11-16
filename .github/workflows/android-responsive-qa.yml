@@ -41,7 +41,7 @@ jobs:
           done
           test "$installed" -eq 1
           python3 -m pip install --quiet Pillow
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.9.1"
       - name: Build the actual Android application for responsive captures
