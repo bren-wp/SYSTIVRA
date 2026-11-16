@@ -479,8 +479,8 @@ internal fun ReferenceMetricRow(
     Card(
         modifier = Modifier.fillMaxWidth().height(69.dp)
             // SVG action rows start 82px apart; LazyColumn uses a 12px gap.
-            // Add one physical dp per subsequent row without changing 69px hit boxes.
-            .offset(y = index.dp)
+            // Apply a -1dp hero-to-row correction, then +1dp per subsequent row.
+            .offset(y = (index - 1).dp)
             .testTag("reference-row-" + label.lowercase().replace(" ", "-"))
             .clickable(role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(14.dp),
