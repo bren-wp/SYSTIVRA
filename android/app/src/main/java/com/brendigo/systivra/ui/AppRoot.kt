@@ -487,7 +487,8 @@ internal fun ReferenceHeroCard(open: () -> Unit) {
                 )
             }
             Column {
-                Text("SYSTIVRA", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("SYSTIVRA", modifier = Modifier.testTag("reference-hero-title"),
+                    fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(5.dp))
                 Text("System intelligence", fontSize = 13.sp, color = Muted)
             }
