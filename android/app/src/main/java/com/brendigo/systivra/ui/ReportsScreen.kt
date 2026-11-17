@@ -29,6 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.data.buildSessionJson
+import com.brendigo.systivra.data.chargeLevelText
+import com.brendigo.systivra.data.batteryTemperatureText
+import com.brendigo.systivra.data.availableRamText
+import com.brendigo.systivra.data.thermalStatusText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -131,8 +135,7 @@ internal fun buildSessionCsv(samples: List<DeviceSnapshot>): String {
     val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
     format.timeZone = TimeZone.getTimeZone("UTC")
     fun csv(value: String): String {
-        val protected = if (value.startsWith("=") || value.startsWith("+") || value.startsWith("-") ||
-            value.startsWith("@")) "'" + value else value
+        val protected = if (value.trimStart().firstOrNull() in listOf('=', '+', '-', '@', '\t', '\r', '\n')) "'" + value else value
         return "\"" + protected.replace("\"", "\"\"") + "\""
     }
     val header = "timestamp_utc,battery_percent,battery_temp_c,free_ram,thermal_status\n"
@@ -141,10 +144,10 @@ internal fun buildSessionCsv(samples: List<DeviceSnapshot>): String {
         samples.forEach { snap ->
             val fields = listOf(
                 format.format(Date(snap.time)),
-                snap.battery.getOrNull(0)?.value.orEmpty(),
-                snap.battery.getOrNull(2)?.value.orEmpty(),
-                snap.ram.getOrNull(1)?.value.orEmpty(),
-                snap.thermal.getOrNull(0)?.value.orEmpty()
+                snap.chargeLevelText().orEmpty(),
+                snap.batteryTemperatureText().orEmpty(),
+                snap.availableRamText().orEmpty(),
+                snap.thermalStatusText().orEmpty()
             )
             append(fields.joinToString(",") { csv(it) })
             append('\n')
