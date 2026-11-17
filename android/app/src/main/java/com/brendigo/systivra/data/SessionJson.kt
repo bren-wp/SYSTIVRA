@@ -13,16 +13,16 @@ fun buildSessionJson(samples: List<DeviceSnapshot>): String = buildString {
         append("\"timestamp_ms\": ")
         append(sample.time)
         append(", \"battery_percent\": ")
-        append(parseBatteryPercent(sample.battery.getOrNull(0)?.value)?.toString() ?: "null")
+        append(sample.batteryPercentage()?.toString() ?: "null")
         append(", \"battery_temperature_c\": ")
-        append(parseBatteryTemperature(sample.battery.getOrNull(2)?.value)?.toString() ?: "null")
+        append(sample.batteryTemperatureCelsius()?.toString() ?: "null")
         append(", \"free_ram\": ")
-        append(jsonString(sample.ram.getOrNull(1)?.value))
+        append(jsonString(sample.availableRamText()))
         append(", \"thermal_status\": ")
-        append(jsonString(sample.thermal.getOrNull(0)?.value))
+        append(jsonString(sample.thermalStatusText()))
         append(", \"cpu_load_percent\": ")
         append(parseBatteryPercent(
-            sample.cpu.firstOrNull { it.name == "System-wide CPU load" }?.value
+            sample.cpuLoadText()
         )?.toString() ?: "null")
         append('}')
     }
