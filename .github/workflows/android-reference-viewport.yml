@@ -13,6 +13,7 @@ on:
       - "tools/capture-reference-viewport.sh"
       - "tools/visual-diff.py"
       - "tools/report-typography-baselines.py"
+      - "tools/report-screen-regions.py"
       - "brending/screens/**"
   push:
     branches: [feat/systivra-visual-parity-390dp-qa, fix/systivra-qa-stability-20261115, feat/systivra-reference-actions-metrics-20261115, feat/priority-five-screen-parity-and-splash-qa, feat/systivra-v011-five-screen-preview, feat/systivra-v0112-pixel-parity]
@@ -99,6 +100,11 @@ jobs:
             --output qa/reference-viewport/diff/typography-baselines.md \
             --max-drift-px 1
           cat qa/reference-viewport/diff/typography-baselines.md >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/report-screen-regions.py \
+            --reference qa/reference-viewport/references \
+            --actual qa/reference-viewport/screenshots \
+            --output qa/reference-viewport/diff
+          cat qa/reference-viewport/diff/regions.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload actual 390x844 captures and reproducible reference evidence
         if: always()
         uses: actions/upload-artifact@v7
