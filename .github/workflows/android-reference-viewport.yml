@@ -3,6 +3,16 @@ name: SYSTIVRA 390x844 reference viewport QA
 # or certify 1:1 without same-viewport measurements and manual review.
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/android-reference-viewport.yml"
+      - "android/app/src/main/**"
+      - "android/app/src/androidTest/**"
+      - "android/app/src/test/**"
+      - "tools/capture-reference-viewport.sh"
+      - "tools/visual-diff.py"
+      - "brending/screens/**"
   push:
     branches: [feat/systivra-visual-parity-390dp-qa, fix/systivra-qa-stability-20261115, feat/systivra-reference-actions-metrics-20261115, feat/priority-five-screen-parity-and-splash-qa, feat/systivra-v011-five-screen-preview, feat/systivra-v0112-pixel-parity]
     paths:
