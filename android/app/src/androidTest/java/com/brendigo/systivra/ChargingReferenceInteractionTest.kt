@@ -33,7 +33,7 @@ class ChargingReferenceInteractionTest {
         render()
         rule.onNodeWithTag("reference-charging-analysis").assertExists()
         rule.onNodeWithText("Power session").assertExists()
-        val chart = rule.onNodeWithTag("reference-measured-chart")
+        val chart = rule.onNodeWithTag("reference-measured-chart", useUnmergedTree = true)
             .getUnclippedBoundsInRoot()
         val first = rule.onNodeWithTag("reference-row-charge-timeline")
             .getUnclippedBoundsInRoot()
