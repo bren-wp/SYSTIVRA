@@ -126,21 +126,53 @@ fun SessionAnalysisScreen(readings: List<DeviceSnapshot>, open: (String) -> Unit
 
 private fun oneDecimal(value: Double) = String.format(Locale.US, "%.1f", value)
 
+/** Show only actual user-verified outcomes, never simulated diagnostic passes. */
+internal fun filteredDiagnosticResults(
+    results: List<Pair<String, String>>,
+    statusFilter: String?
+): List<Pair<String, String>> {
+    return if (statusFilter == null) results else results.filter { (_, value) ->
+        when (statusFilter) {
+            "Passed" -> value.startsWith("Pass", ignoreCase = true)
+            "Failed" -> value.startsWith("Fail", ignoreCase = true)
+            "Skipped" -> value.startsWith("Skip", ignoreCase = true)
+            "Unavailable" -> value.startsWith("Not assessed", ignoreCase = true) ||
+                value.startsWith("Unavailable", ignoreCase = true) ||
+                value.startsWith("Not implemented", ignoreCase = true)
+            else -> false
+        }
+    }
+}
+
 @Composable
-fun DiagnosticResultsScreen() {
+fun DiagnosticResultsScreen(statusFilter: String? = null) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("systivra_diagnostics", Context.MODE_PRIVATE)
-    val result = prefs.getString("display_touch", "Not assessed") ?: "Not assessed"
-    val vibration = prefs.getString("vibration", "Not assessed") ?: "Not assessed"
-    val speaker = prefs.getString("speaker", "Not assessed") ?: "Not assessed"
+    val results = listOf(
+        "Display & touch test" to (prefs.getString("display_touch", "Not assessed") ?: "Not assessed"),
+        "Vibration (user-confirmed)" to (prefs.getString("vibration", "Not assessed") ?: "Not assessed"),
+        "Speaker test (user-confirmed)" to (prefs.getString("speaker", "Not assessed") ?: "Not assessed"),
+        "Microphone / camera" to "Not implemented — no result"
+    )
+    val visible = filteredDiagnosticResults(results, statusFilter)
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text("Diagnostic Results", fontSize = 23.sp, fontWeight = FontWeight.Bold) }
-        item { Text("Only user-confirmed test results appear. No fabricated health scores.", color = Muted) }
-        item { SummaryCard("Display & touch test", result) }
-        item { SummaryCard("Vibration (user-confirmed)", vibration) }
-        item { SummaryCard("Speaker test (user-confirmed)", speaker) }
-        item { SummaryCard("Microphone / camera", "Not implemented — no result") }
-        item { SummaryCard("Sensor inventory", "Available in the Hardware Explorer; not an automatic pass/fail test") }
+        item {
+            Text("Diagnostic Results" + (statusFilter?.let { " · $it" } ?: ""),
+                fontSize = 23.sp, fontWeight = FontWeight.Bold)
+        }
+        item { Text("Only user-confirmed test results appear. Unassessed hardware is not counted as a pass or failure.", color = Muted) }
+        if (visible.isEmpty()) {
+            item { SummaryCard("No " + (statusFilter?.lowercase(Locale.US) ?: "recorded") + " results",
+                "Run an interactive diagnostic and confirm its outcome. No result has been fabricated.") }
+        } else {
+            items(visible.size) { index ->
+                val (label, value) = visible[index]
+                SummaryCard(label, value)
+            }
+        }
+        if (statusFilter == null) {
+            item { SummaryCard("Sensor inventory", "Available in the Hardware Explorer; not an automatic pass/fail test") }
+        }
     }
 }
 
