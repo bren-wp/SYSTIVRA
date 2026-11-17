@@ -1,6 +1,8 @@
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -43,6 +45,10 @@ class ChargingReferenceInteractionTest {
         assertEquals(24f, (first.top - chart.bottom).value, 1.5f)
         rule.onNodeWithTag("reference-row-current-if-available").assertExists()
         rule.onNodeWithTag("reference-row-temperature").assertExists()
+        // LazyColumn creates only visible rows. Scroll to the final card
+        // before asserting it exists and is genuinely reachable by touch.
+        rule.onNodeWithTag("reference-charging-analysis")
+            .performScrollToNode(hasTestTag("reference-row-session-duration"))
         rule.onNodeWithTag("reference-row-session-duration").assertExists()
     }
 
