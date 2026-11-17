@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.data.analyzeSessionReadings
-import com.brendigo.systivra.data.parseBatteryPercent
+import com.brendigo.systivra.data.batteryPercentage
 import java.util.Locale
 
 /** Statistics based only on readings saved by the user. No health scores. */
@@ -30,7 +30,7 @@ fun SessionInsightsScreen(samples: List<DeviceSnapshot>, open: (String) -> Unit)
     val insights = analyzeSessionReadings(samples)
     val batteryPoints = samples.mapNotNull { reading ->
         if (reading.time <= 0L) null
-        else parseBatteryPercent(reading.battery.getOrNull(0)?.value)
+        else reading.batteryPercentage()
             ?.let { reading.time to it.toFloat() }
     }.sortedBy { it.first }
 

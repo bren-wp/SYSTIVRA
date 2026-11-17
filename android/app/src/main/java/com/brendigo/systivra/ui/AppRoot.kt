@@ -84,6 +84,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.brendigo.systivra.BuildConfig
 import com.brendigo.systivra.data.RecordedSession
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.data.Reading
@@ -152,7 +153,15 @@ private val sections = listOf(
     "privacy-center-data" to "Privacy Details",
     "sensor-live-controls" to "Live Sensor Controls",
     "metric-fullscreen-data" to "Detailed Battery Timeline",
-    "benchmark-center-controls" to "Performance Lab Controls"
+    "benchmark-center-controls" to "Performance Lab Controls",
+    "network-details-data" to "Network Connection Readings",
+    "alerts-controls" to "Live Alerts Controls",
+    "reports-export-controls" to "Report Export Controls",
+    "overlay-configuration-controls" to "HUD Preview Controls",
+    "diagnostic-results-passed" to "Passed Diagnostic Results",
+    "diagnostic-results-failed" to "Failed Diagnostic Results",
+    "diagnostic-results-skipped" to "Skipped Diagnostic Results",
+    "diagnostic-results-unavailable" to "Unavailable Diagnostic Results"
 )
 
 private val enabledRoutes = setOf(
@@ -170,7 +179,11 @@ private val enabledRoutes = setOf(
     "benchmark-running-controls", "benchmark-results-data",
     "recording-session-controls", "permission-center-controls",
     "system-health-data", "privacy-center-data", "sensor-live-controls",
-    "metric-fullscreen-data", "benchmark-center-controls"
+    "metric-fullscreen-data", "benchmark-center-controls",
+    "network-details-data", "alerts-controls", "reports-export-controls",
+    "overlay-configuration-controls", "diagnostic-results-passed",
+    "diagnostic-results-failed", "diagnostic-results-skipped",
+    "diagnostic-results-unavailable"
 )
 
 @Composable
@@ -230,7 +243,9 @@ fun AppRoot(
                 if (route !in setOf(
                     "dashboard", "hardware-explorer", "live-monitor", "diagnostics-center",
                     "settings", "about", "device-detection", "component-test",
-                    "history", "recording-session", "permission-center"
+                    "history", "recording-session", "permission-center",
+                    "network-details", "alerts", "diagnostic-results",
+                    "overlay-configuration", "reports-export"
                 ) && route !in detailReferences.keys && route !in priorityReferenceSpecs.keys && route !in nextPriorityReferences.keys) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
@@ -267,16 +282,48 @@ fun AppRoot(
                         onStartBenchmark = {}, open = ::open
                     )
                     "metric-fullscreen-data" -> FullscreenMetric(samples)
-                    "reports-export" -> ReportExportScreen(if (selectedSessionId == null) recorded else selectedSessionSamples)
+                    "reports-export" -> ReferenceLanding(
+                        route = "reports-export", title = "Reports & Export",
+                        subtitle = "Export your data", caption = "Choose fields and format",
+                        actions = listOf(
+                            ReferenceAction("CSV", "reports-export-controls"),
+                            ReferenceAction("JSON", "reports-export-controls"),
+                            ReferenceAction("PDF", "reports-export-controls"),
+                            ReferenceAction("Android Sharesheet", "reports-export-controls")
+                        ), open = ::open
+                    )
+                    "reports-export-controls" -> ReportExportScreen(
+                        if (selectedSessionId == null) recorded else selectedSessionSamples
+                    )
                     "sensor-live" -> NextPriorityReferenceScreen(
                         "sensor-live", snapshot, samples, benchmark,
                         onStartBenchmark = {}, open = ::open
                     )
                     "sensor-live-controls" -> SensorLiveScreen()
-                    "network-details" -> NetworkDetailsScreen()
+                    "network-details" -> ReferenceLanding(
+                        route = "network-details", title = "Network Details",
+                        subtitle = "Connection overview", caption = "Available interface details",
+                        actions = listOf(
+                            ReferenceAction("Connection type", "network-details-data"),
+                            ReferenceAction("Network state", "network-details-data"),
+                            ReferenceAction("Wi-Fi information", "network-details-data"),
+                            ReferenceAction("Availability", "network-details-data")
+                        ), open = ::open
+                    )
+                    "network-details-data" -> NetworkDetailsScreen()
                     "app-usage" -> PriorityReferenceScreen("app-usage", snapshot, recorded, benchmark, ::open)
                     "app-usage-controls" -> AppUsageScreen()
-                    "alerts" -> AlertsScreen(snapshot)
+                    "alerts" -> ReferenceLanding(
+                        route = "alerts", title = "Alerts",
+                        subtitle = "Device notifications", caption = "Configurable thresholds",
+                        actions = listOf(
+                            ReferenceAction("Battery level", "alerts-controls"),
+                            ReferenceAction("Thermal warnings", "alerts-controls"),
+                            ReferenceAction("Storage capacity", "storage-details"),
+                            ReferenceAction("Notification access", "permission-center")
+                        ), open = ::open
+                    )
+                    "alerts-controls" -> AlertsScreen(snapshot)
                     "permission-center" -> PermissionReferenceScreen(::open)
                     "permission-center-controls" -> PermissionCenterScreen()
                     "recording-session" -> RecordingReferenceScreen(
@@ -321,8 +368,31 @@ fun AppRoot(
                     )
                     "benchmark-running-controls" -> BenchmarkRunningScreen(benchmark, ::open)
                     "benchmark-results-data" -> BenchmarkResultsScreen(benchmark)
-                    "diagnostic-results" -> DiagnosticResultsScreen()
-                    "overlay-configuration" -> OverlayPreviewScreen(snapshot)
+                    "diagnostic-results" -> ReferenceLanding(
+                        route = "diagnostic-results", title = "Diagnostic Results",
+                        subtitle = "Test summary", caption = "Only completed tests count",
+                        actions = listOf(
+                            ReferenceAction("Passed", "diagnostic-results-passed"),
+                            ReferenceAction("Failed", "diagnostic-results-failed"),
+                            ReferenceAction("Skipped", "diagnostic-results-skipped"),
+                            ReferenceAction("Unavailable", "diagnostic-results-unavailable")
+                        ), open = ::open
+                    )
+                    "diagnostic-results-passed" -> DiagnosticResultsScreen(statusFilter = "Passed")
+                    "diagnostic-results-failed" -> DiagnosticResultsScreen(statusFilter = "Failed")
+                    "diagnostic-results-skipped" -> DiagnosticResultsScreen(statusFilter = "Skipped")
+                    "diagnostic-results-unavailable" -> DiagnosticResultsScreen(statusFilter = "Unavailable")
+                    "overlay-configuration" -> ReferenceLanding(
+                        route = "overlay-configuration", title = "Overlay Configuration",
+                        subtitle = "Floating monitor", caption = "Requires Android overlay access",
+                        actions = listOf(
+                            ReferenceAction("Metric selection", "overlay-configuration-controls"),
+                            ReferenceAction("Opacity", "overlay-configuration-controls"),
+                            ReferenceAction("Size", "overlay-configuration-controls"),
+                            ReferenceAction("Position", "overlay-configuration-controls")
+                        ), open = ::open
+                    )
+                    "overlay-configuration-controls" -> OverlayPreviewScreen(snapshot)
                     "hardware-explorer" -> HardwareExplorer(::open)
                     "live-monitor" -> LiveMonitor(snapshot, samples, recorded, savedSessions, ::open)
                     "diagnostics-center" -> Diagnostics(::open)
@@ -932,7 +1002,7 @@ private fun About(open: (String) -> Unit) {
         item {
             PanelCard {
                 Text("SYSTIVRA by BRENDIGO", color = Cyan, fontWeight = FontWeight.Bold)
-                Text("Version 0.10.0-preview.2 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Version ${BuildConfig.VERSION_NAME} · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
                 Text("Privacy-first Android system monitor and diagnostics", color = Muted)
             }
         }

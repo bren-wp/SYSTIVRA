@@ -120,3 +120,57 @@ PR #22 improvement: metric rows now open the **specific matching Android measure
 The [new 390 × 844 viewport workflow](../.github/workflows/android-reference-viewport.yml) renders the 36 original in-app SVGs directly to source dimensions, captures 38 real app screens at matching dimensions with explicit emulator size/density overrides, validates screenshots, and archives visual diffs. Splash (#01) still needs a separate cold-start capture. The first workflow attempt failed from `/bin/sh` not supporting `pipefail`; the script was moved into a Bash file for the next run.
 
 **Pixel-perfect certified: still 0 of 37** until source-geometry screenshot evidence, per-screen differences, interactive functionality and physical-device review meet the acceptance criteria.
+
+
+## PR #29 — authentic README captures, five exact reference entrances and functional regressions (2026-11-17)
+
+**Evidence baseline**: the last independently successful native-viewport workflow was
+[390×844 QA #43782144595](https://github.com/bren-wp/SYSTIVRA/actions/runs/43782144595).
+Its 36 in-app SVG comparisons averaged **51.282% changed pixels and 3.700% raw RGB MAE**.
+This is a *pre-PR baseline*, NOT a new PR #29 result and NOT 1:1 certification.
+
+The prior capture identified these high-deviation routes with nonmatching first
+viewports. PR #29 changes their **first viewport** to use the shared original
+390×844 heading, 128dp hero card, four 69dp metric rows at 82dp pitch and
+native safe-area navigation while preserving real functions behind the rows:
+
+| Original | New first-viewport actions | Real destination | Before: changed pixels |
+|---|---|---|---:|
+| #17 Network Details | Connection type / Network state / Wi-Fi information / Availability | Android network capabilities; no speed-test fabrication | 60.255% |
+| #25 Alerts | Battery level / Thermal warnings / Storage capacity / Notification access | Foreground threshold controls / platform information; no claimed notification service | 60.781% |
+| #28 Diagnostic Results | Passed / Failed / Skipped / Unavailable | Filtered, user-confirmed results; missing tests never marked passed | 58.400% |
+| #32 Overlay Configuration | Metric selection / Opacity / Size / Position | Working **in-app** HUD editor; no cross-app overlay permission/service | 62.787% |
+| #34 Reports & Export | CSV / JSON / PDF / Android Sharesheet | Local file picker and opt-in text sharing | 61.011% |
+
+**The five percentage values above are measured *before* this PR**, not estimated
+improvements. A new full Android emulator capture/diff and manual review is needed
+before reporting post-PR changes. Screen #01 native system Splash requires its
+separate cold-start workflow. No attempt to fake Android status or navigation UI.
+
+### Functional reliability changes
+
+- All 54 existing routes remain mapped; eight additional *actual controls/detail*
+  destinations are explicitly mapped and included in the 62-route Activity smoke test.
+- Battery, thermal, CPU, RAM, SQLite persistence, session statistics, JSON and CSV
+  now look up readings by **source names**, preserving older persisted names.
+  A reshuffle must not substitute a different metric or invent a value.
+- PDF export is user-initiated through Android's Storage Access Framework, with
+  multipage PDF and an instrumentation check; explicit Android Sharesheet text
+  sharing is optional, not automatic.
+- Test-only checks cover shuffled and missing measurements, CSV formula safety,
+  local storage round-trip, UI route clicks, and generated PDF page count.
+- README links to eight genuine prior emulator PNG captures, visibly labeled as
+  not manually approved Play images. SVG concepts remain separate.
+
+### Remaining mandatory gates
+
+- Latest branch Android Lint, JVM and all connected Compose/instrumentation tests
+  must pass, including reference views, 320/360/390/412/600/800 viewports,
+  physical-density differences and increased accessibility font scales.
+- Fresh 390×844 screen-by-screen comparison must establish actual changes.
+  **0/37 independently accepted pixel-perfect** until reviewed and signed off.
+- Native status/navigation bars, TalkBack, interaction touch targets, landscape,
+  varied API/OS versions and a physical device need separate inspection.
+- Cross-application overlay with foreground-service management, camera/mic
+  diagnostics, and physical-device-only API metrics remain **not implemented**.
+  Routes and previews are not substitutes for tested platform functionality.

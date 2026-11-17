@@ -1,9 +1,9 @@
 name: Android build
 on:
   push:
-    paths: ["android/**", ".github/workflows/android-ci.yml"]
+    paths: ["android/**", "README.md", "brending/google-play/real-screenshots/**", "tools/check-readme-captures.py", ".github/workflows/android-ci.yml"]
   pull_request:
-    paths: ["android/**", ".github/workflows/android-ci.yml"]
+    paths: ["android/**", "README.md", "brending/google-play/real-screenshots/**", "tools/check-readme-captures.py", ".github/workflows/android-ci.yml"]
 concurrency:
   group: systivra-android-build-${{ github.ref }}
   cancel-in-progress: true
@@ -13,6 +13,8 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+      - name: Validate genuine PNG gallery links and image dimensions
+        run: python3 tools/check-readme-captures.py
       - uses: actions/setup-java@v5
         with:
           distribution: temurin

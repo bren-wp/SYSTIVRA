@@ -1,12 +1,15 @@
 package com.brendigo.systivra.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Slider
@@ -18,16 +21,22 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.chargeLevelText
+import com.brendigo.systivra.data.availableRamText
+import com.brendigo.systivra.data.thermalStatusText
 
 /**
- * In-app HUD layout editor. Does not claim SYSTEM_ALERT_WINDOW permission, a
- * background service or cross-application overlay behavior.
+ * All four editor actions are functional IN APP: metrics, opacity, size and
+ * position. This is not an Android SYSTEM_ALERT_WINDOW overlay; we do not
+ * request broad draw-over-other-apps access or run a background service.
  */
 @Composable
 fun OverlayPreviewScreen(snapshot: DeviceSnapshot) {
@@ -35,27 +44,49 @@ fun OverlayPreviewScreen(snapshot: DeviceSnapshot) {
     var showMemory by rememberSaveable { mutableStateOf(true) }
     var showThermal by rememberSaveable { mutableStateOf(true) }
     var opacity by rememberSaveable { mutableFloatStateOf(0.9f) }
+    var sizeFraction by rememberSaveable { mutableFloatStateOf(1f) }
+    var position by rememberSaveable { mutableStateOf("Top left") }
+    val alignment = when (position) {
+        "Top right" -> Alignment.TopEnd
+        "Bottom left" -> Alignment.BottomStart
+        "Bottom right" -> Alignment.BottomEnd
+        else -> Alignment.TopStart
+    }
+
     LazyColumn(
+        modifier = Modifier.testTag("hud-preview-controls"),
         contentPadding = PaddingValues(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             Text("Performance HUD", fontWeight = FontWeight.Bold, fontSize = 24.sp)
             Text(
-                "In-app overlay preview and customization. Cross-app floating window is not available in this build.",
+                "Interactive in-app HUD preview. Cross-application floating windows are not available in this build.",
                 color = Muted, fontSize = 13.sp
             )
         }
         item {
-            Card(colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF152235).copy(alpha = opacity)
-            )) {
-                Column(Modifier.fillMaxWidth().padding(19.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("SYSTIVRA · Live Preview", color = Cyan, fontWeight = FontWeight.Bold)
-                    if (showBattery) Text("Battery   " + (snapshot.battery.firstOrNull()?.display ?: "Unavailable"))
-                    if (showMemory) Text("Free RAM   " + (snapshot.ram.getOrNull(1)?.display ?: "Unavailable"))
-                    if (showThermal) Text("Thermal   " + (snapshot.thermal.firstOrNull()?.display ?: "Unavailable"))
-                    if (!showBattery && !showMemory && !showThermal) Text("Choose a metric below.", color = Muted)
+            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+                Box(
+                    Modifier.fillMaxWidth().height(230.dp).padding(12.dp),
+                    contentAlignment = alignment
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(sizeFraction).testTag("hud-preview-card"),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFF152235).copy(alpha = opacity)
+                        )
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("SYSTIVRA · Live Preview", color = Cyan, fontWeight = FontWeight.Bold)
+                            if (showBattery) Text("Battery   " + (snapshot.chargeLevelText() ?: "Unavailable"))
+                            if (showMemory) Text("Free RAM   " + (snapshot.availableRamText() ?: "Unavailable"))
+                            if (showThermal) Text("Thermal   " + (snapshot.thermalStatusText() ?: "Unavailable"))
+                            if (!showBattery && !showMemory && !showThermal) {
+                                Text("Choose a metric below.", color = Muted)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -66,8 +97,35 @@ fun OverlayPreviewScreen(snapshot: DeviceSnapshot) {
             Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
                 Column(Modifier.fillMaxWidth().padding(17.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Preview opacity: " + (opacity * 100).toInt() + "%", fontWeight = FontWeight.Bold)
-                    Slider(value = opacity, onValueChange = { opacity = it }, valueRange = 0.4f..1f)
-                    Text("Only this preview changes. No permission for drawing over other apps is requested.", color = Muted, fontSize = 12.sp)
+                    Slider(
+                        value = opacity, onValueChange = { opacity = it },
+                        valueRange = 0.4f..1f, modifier = Modifier.testTag("hud-opacity-slider")
+                    )
+                    Text("Preview size: " + (sizeFraction * 100).toInt() + "%", fontWeight = FontWeight.Bold)
+                    Slider(
+                        value = sizeFraction, onValueChange = { sizeFraction = it },
+                        valueRange = 0.65f..1f, modifier = Modifier.testTag("hud-size-slider")
+                    )
+                    Text("Preview position: $position", fontWeight = FontWeight.Bold)
+                    listOf(
+                        listOf("Top left", "Top right"),
+                        listOf("Bottom left", "Bottom right")
+                    ).forEach { choices ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            choices.forEach { choice ->
+                                Button(
+                                    modifier = Modifier.weight(1f).testTag("hud-position-" + choice.lowercase().replace(" ", "-")),
+                                    onClick = { position = choice }
+                                ) {
+                                    Text((if (choice == position) "✓ " else "") + choice, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+                    Text(
+                        "Size, position and opacity change only this preview. Android overlay permission is not requested.",
+                        color = Muted, fontSize = 12.sp
+                    )
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.brendigo.systivra.ui
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,6 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.data.buildSessionJson
+import com.brendigo.systivra.data.chargeLevelText
+import com.brendigo.systivra.data.batteryTemperatureText
+import com.brendigo.systivra.data.availableRamText
+import com.brendigo.systivra.data.thermalStatusText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -85,6 +90,30 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
             }
         }
     }
+    val pdfDocument = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri: Uri? ->
+        if (uri == null) {
+            result = "PDF export canceled."
+        } else {
+            result = "Exporting PDF…"
+            scope.launch {
+                result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val document = buildSessionPdf(snapshot)
+                        try {
+                            val output = context.contentResolver.openOutputStream(uri)
+                                ?: error("The selected document cannot be opened.")
+                            output.use { document.writeTo(it) }
+                        } finally {
+                            document.close()
+                        }
+                        "Exported " + snapshot.size + " readings as PDF."
+                    }.getOrElse { "PDF export failed: " + (it.localizedMessage ?: "Unknown error") }
+                }
+            }
+        }
+    }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Text("Session Report", fontWeight = FontWeight.Bold, fontSize = 25.sp)
@@ -117,6 +146,39 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
             }
         }
         item {
+            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("PDF Export", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Cyan)
+                    Text("Generate a multipage PDF from measured UTC timestamps, charge, temperature, RAM and thermal state.", color = Muted, fontSize = 13.sp)
+                    Button(
+                        enabled = snapshot.isNotEmpty(),
+                        onClick = { pdfDocument.launch("SYSTIVRA-session.pdf") }
+                    ) { Text("Create PDF document") }
+                }
+            }
+        }
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Android Sharesheet", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Cyan)
+                    Text("Share the recorded CSV as text only after choosing the receiving app. No background uploads.", color = Muted, fontSize = 13.sp)
+                    Button(enabled = snapshot.isNotEmpty(), onClick = {
+                        result = runCatching {
+                            val share = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_SUBJECT, "SYSTIVRA recording")
+                                putExtra(Intent.EXTRA_TEXT, buildSessionCsv(snapshot))
+                            }
+                            context.startActivity(Intent.createChooser(share, "Share SYSTIVRA readings"))
+                            "Android Sharesheet opened. You control whether any data is sent."
+                        }.getOrElse {
+                            "Could not open Android Sharesheet: " + (it.localizedMessage ?: "Unknown error")
+                        }
+                    }) { Text("Open Android Sharesheet") }
+                }
+            }
+        }
+        item {
             Text(
                 "Saved readings persist privately in SQLite until deleted. Exports are copies written " +
                     "to a location you choose; they may contain sensitive device activity details. " +
@@ -131,8 +193,7 @@ internal fun buildSessionCsv(samples: List<DeviceSnapshot>): String {
     val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
     format.timeZone = TimeZone.getTimeZone("UTC")
     fun csv(value: String): String {
-        val protected = if (value.startsWith("=") || value.startsWith("+") || value.startsWith("-") ||
-            value.startsWith("@")) "'" + value else value
+        val protected = if (value.trimStart().firstOrNull() in listOf('=', '+', '-', '@', '\t', '\r', '\n')) "'" + value else value
         return "\"" + protected.replace("\"", "\"\"") + "\""
     }
     val header = "timestamp_utc,battery_percent,battery_temp_c,free_ram,thermal_status\n"
@@ -141,10 +202,10 @@ internal fun buildSessionCsv(samples: List<DeviceSnapshot>): String {
         samples.forEach { snap ->
             val fields = listOf(
                 format.format(Date(snap.time)),
-                snap.battery.getOrNull(0)?.value.orEmpty(),
-                snap.battery.getOrNull(2)?.value.orEmpty(),
-                snap.ram.getOrNull(1)?.value.orEmpty(),
-                snap.thermal.getOrNull(0)?.value.orEmpty()
+                snap.chargeLevelText().orEmpty(),
+                snap.batteryTemperatureText().orEmpty(),
+                snap.availableRamText().orEmpty(),
+                snap.thermalStatusText().orEmpty()
             )
             append(fields.joinToString(",") { csv(it) })
             append('\n')

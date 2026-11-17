@@ -138,13 +138,11 @@ class RecordingStore(
         val values = ContentValues().apply {
             put("session_id", sessionId)
             put("recorded_at", snapshot.time)
-            put("battery_charge", snapshot.battery.getOrNull(0)?.value)
-            put("battery_temp", snapshot.battery.getOrNull(2)?.value)
-            put("free_ram", snapshot.ram.getOrNull(1)?.value)
-            put("thermal_status", snapshot.thermal.getOrNull(0)?.value)
-            put("cpu_load", snapshot.cpu.firstOrNull {
-                it.name == "System-wide CPU load"
-            }?.value)
+            put("battery_charge", snapshot.chargeLevelText())
+            put("battery_temp", snapshot.batteryTemperatureText())
+            put("free_ram", snapshot.availableRamText())
+            put("thermal_status", snapshot.thermalStatusText())
+            put("cpu_load", snapshot.cpuLoadText())
         }
         val db = writableDatabase
         db.beginTransaction()

@@ -49,14 +49,14 @@ fun analyzeSessionReadings(samples: List<DeviceSnapshot>): SessionInsights {
         .toList()
 
     val battery = ordered.mapNotNull { sample ->
-        parseBatteryPercent(sample.battery.getOrNull(0)?.value)
+        sample.batteryPercentage()
             ?.let { sample.time to it }
     }
     val temperatures = ordered.mapNotNull {
-        parseBatteryTemperature(it.battery.getOrNull(2)?.value)
+        it.batteryTemperatureCelsius()
     }
     val states = ordered.mapNotNull {
-        it.thermal.getOrNull(0)?.value?.trim()?.takeIf(String::isNotEmpty)
+        it.thermalStatusText()?.trim()?.takeIf(String::isNotEmpty)
     }.groupingBy { it }.eachCount().toSortedMap()
 
     val delta = if (battery.size >= 2) battery.last().second - battery.first().second
