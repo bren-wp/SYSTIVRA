@@ -76,6 +76,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -505,21 +506,36 @@ internal fun ReferenceHeroCard(open: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(21.dp)
         ) {
             Canvas(Modifier.size(88.dp).testTag("reference-hero-ring")) {
+                // SVG: circle cx=78 cy=272 r=38 stroke=11; foreground path
+                // starts at 12 o'clock and finishes at roughly +25 degrees.
+                // The previous drawArc used the full 88dp Canvas as its bounds
+                // (r=44), while the background circle was only r~38. This
+                // shifted the cyan arc 6px outwards and broke the 3D ring.
                 val ringWidth = 11.dp.toPx()
+                val center = Offset(size.width / 2f, size.height / 2f)
+                val radius = (size.minDimension - 12.dp.toPx()) / 2f
+                val arcTopLeft = Offset(center.x - radius, center.y - radius)
                 drawCircle(
                     color = Color(0xFF223E60),
-                    radius = size.minDimension / 2 - ringWidth / 2,
+                    radius = radius,
                     style = Stroke(width = ringWidth)
+                )
+                val gradientStart = Offset(center.x, center.y - radius)
+                val gradientExtent = svgDiagonalGradientEnd(
+                    radius, radius * 1.423f
                 )
                 drawArc(
                     brush = Brush.linearGradient(
                         colors = listOf(Cyan, Color(0xFF5975F5), Color(0xFFB052EC)),
-                        start = Offset.Zero,
-                        end = Offset(size.width, size.height)
+                        colorStops = listOf(0f, 0.6f, 1f),
+                        start = gradientStart,
+                        end = gradientStart + gradientExtent
                     ),
                     startAngle = -90f,
-                    sweepAngle = 113f,
+                    sweepAngle = 115f,
                     useCenter = false,
+                    topLeft = arcTopLeft,
+                    size = Size(radius * 2f, radius * 2f),
                     style = Stroke(width = ringWidth, cap = StrokeCap.Round)
                 )
             }
