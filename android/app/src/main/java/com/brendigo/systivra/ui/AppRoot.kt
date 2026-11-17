@@ -526,8 +526,9 @@ internal fun ReferenceHeroCard(open: () -> Unit) {
                 )
                 drawArc(
                     brush = Brush.linearGradient(
-                        colors = listOf(Cyan, Color(0xFF5975F5), Color(0xFFB052EC)),
-                        colorStops = listOf(0f, 0.6f, 1f),
+                        0f to Cyan,
+                        0.6f to Color(0xFF5975F5),
+                        1f to Color(0xFFB052EC),
                         start = gradientStart,
                         end = gradientStart + gradientExtent
                     ),
