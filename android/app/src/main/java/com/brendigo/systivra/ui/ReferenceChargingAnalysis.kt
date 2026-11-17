@@ -16,6 +16,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.data.batteryPercentage
+import com.brendigo.systivra.data.chargeLevelText
 
 /**
  * Original #13 Charging Analysis screen geometry:
@@ -71,7 +72,10 @@ internal fun ReferenceChargingAnalysis(
             )
         }
         item {
-            Text("Current values, temperature and session timing are available in their detailed screens.")
+            Text(
+                "Current Android charge: " + (snapshot.chargeLevelText() ?: "Unavailable") +
+                    ". Current, temperature and session timing are available in their detailed screens."
+            )
         }
     }
 }
