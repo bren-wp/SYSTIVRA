@@ -31,8 +31,11 @@ class ReportPdfInstrumentedTest {
                     thermal = listOf(Reading("Thermal status", "Light", "Android"))
                 )
             }
-            buildSessionPdf(samples).use { document ->
+            val document = buildSessionPdf(samples)
+            try {
                 output.outputStream().use { document.writeTo(it) }
+            } finally {
+                document.close()
             }
             assertTrue(output.length() > 1500)
             val signature = ByteArray(5)
