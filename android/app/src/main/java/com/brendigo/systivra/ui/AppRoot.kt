@@ -544,10 +544,13 @@ internal fun ReferenceHeroCard(open: () -> Unit) {
                 )
             }
             Column {
-                Text("SYSTIVRA", modifier = Modifier.testTag("reference-hero-title"),
+                Text("SYSTIVRA", modifier = Modifier.testTag("reference-hero-title")
+                    .offset(y = (-1).dp),
                     fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(5.dp))
-                Text("System intelligence", fontSize = 13.sp, color = Muted)
+                Text("System intelligence", modifier = Modifier.testTag("reference-hero-subtitle")
+                    .offset(y = (-5).dp),
+                    fontSize = 13.sp, color = Muted)
             }
         }
     }
@@ -587,9 +590,14 @@ internal fun ReferenceMetricRow(
                 Modifier.weight(1f).padding(start = 13.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(label, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                Text(label,
+                    modifier = Modifier.testTag("reference-row-title-" + label.lowercase().replace(" ", "-"))
+                        .offset(y = 4.dp),
+                    fontSize = 16.sp, fontWeight = FontWeight.Bold,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("Details / availability", fontSize = 12.sp, color = Muted)
+                Text("Details / availability",
+                    modifier = Modifier.testTag("reference-row-subtitle-" + label.lowercase().replace(" ", "-")),
+                    fontSize = 12.sp, color = Muted)
             }
             Text("›", color = Muted, fontSize = 22.sp)
         }
