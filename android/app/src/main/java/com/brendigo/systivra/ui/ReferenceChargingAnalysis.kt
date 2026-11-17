@@ -49,7 +49,7 @@ internal fun ReferenceChargingAnalysis(
                 Modifier.fillMaxWidth()
                     .testTag("reference-charging-chart-target")
                     .clickable(role = Role.Button, onClickLabel = "Open measured battery timeline") {
-                        open("metric-fullscreen")
+                        open("metric-fullscreen-data")
                     }
             ) {
                 ReferenceMeasuredChart(chargeSeries)
