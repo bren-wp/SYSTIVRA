@@ -33,7 +33,7 @@ Many Android monitoring apps display device numbers without explaining their ori
 - ⚡ **Live monitoring** — battery, charging, RAM, storage, thermal state, and optional system CPU load.
 - 🧠 **Hardware intelligence** — inspect CPU architecture, OpenGL GPU driver, Android version, display refresh rate and sensors.
 - 🩺 **Honest diagnostics** — interactive display/touch and vibration tests with user-confirmed outcomes.
-- 📊 **Recording Library** — separate sessions, recorded sample analysis, local CSV/JSON export, confirmed per-session and all-recordings deletion.
+- 📊 **Recording Library** — separate sessions, recorded sample analysis, local CSV/JSON/PDF export and explicit Android Sharesheet, confirmed per-session and all-recordings deletion.
 - 📉 **Session Insights** — recorded battery trends and temperature statistics, with unavailable-safe calculations.
 - 🔎 **Transparent measurements** — unavailable CPU/GPU temperatures, external FPS and permissions are never invented.
 - 🧭 **Actionable hardware metrics** — tap a reference card to inspect its exact real Android reading and source; search readings offline and copy measured values on-device.
@@ -102,7 +102,7 @@ These are **actual 1080 × 1920 Android emulator captures** checked into the rep
 | 🧭 Sensors | Inventory and live values from supported sensors | SensorManager |
 | 📈 Monitoring | Adjustable foreground sampling, battery chart, opt-in grouped SQLite recording library (900 samples total), analysis and per-session export | Local persistence; no background service |
 | 🧪 Diagnostics | User-confirmed display color/touch test with saved result | Camera/microphone/speaker tests not implemented |
-| 📄 Reports | CSV and JSON export via Android file picker | Explicit user action; no uploads |
+| 📄 Reports | CSV/JSON/PDF via Android document picker; explicit Android Sharesheet for text-based CSV | Explicit user action; no uploads |
 | 🖥️ GPU / CPU | OpenGL renderer/vendor/version; optional /proc/stat load | Hardware temperature and global GPU load may be unavailable |
 | 🧪 Benchmark | Bounded, cancellable 2-second single-worker CPU test | Not comparable with standardized benchmark suites |
 | 🌐 Network | Network state and platform bandwidth estimate | ACCESS_NETWORK_STATE only; no Internet permission |
