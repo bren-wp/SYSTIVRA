@@ -19,6 +19,8 @@ val Raised = Color(0xFF1A2D47)
 val Cyan = Color(0xFF29C7FC)
 val Purple = Color(0xFF8B5CF6)
 val Mint = Color(0xFF32E5BC)
+/** Original chart strokes in the 390×844 design boards, independent of status mint. */
+val ReferenceChartLine = Color(0xFF2BD9C5)
 val Muted = Color(0xFF9CAFBE)
 
 /**
