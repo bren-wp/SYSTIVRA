@@ -94,4 +94,27 @@ class ReadingLookupTest {
         assertEquals(25.0, reading.batteryTemperatureCelsius()!!, 0.0001)
         assertEquals("None", reading.thermalStatusText())
     }
+    @Test fun batteryTimelineUsesNamedPercentagesAfterReorderingAndMissingFields() {
+        fun point(index: Long, vararg values: Reading) =
+            sample(index, values.toList())
+        val series = listOf(
+            point(1, Reading("Battery temperature", "35.0 °C", "Android"), Reading("Charge level", "82%", "Android")),
+            point(2, Reading("Charge", "81%", "Historic"), Reading("Battery current", "550 mA", "Android")),
+            point(3, Reading("Battery temperature", "36 °C", "Android")),
+            point(4, Reading("Charge level", "unavailable", "Android")),
+            point(5, Reading("Level", "77.5%", "Historic")),
+            point(6, Reading("Charge level", "101%", "Android")),
+            point(7, Reading("Charge level", "-4%", "Android"))
+        ).measuredChargePercentages()
+        assertEquals(listOf(82f, 81f, 77.5f), series)
+    }
+
+    @Test fun unavailableBatteryCannotBeReplacedByTemperatureOrCurrent() {
+        val snap = sample(
+            1L,
+            listOf(Reading("Current", "90 mA", "Android"), Reading("Temperature", "28 °C", "Android"))
+        )
+        assertTrue(listOf(snap).measuredChargePercentages().isEmpty())
+    }
+
 }
