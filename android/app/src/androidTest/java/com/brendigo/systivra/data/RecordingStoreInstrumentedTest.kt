@@ -107,4 +107,34 @@ class RecordingStoreInstrumentedTest {
         }
         context.deleteDatabase(name)
     }
+    @Test fun shuffledReadingOrderIsPersistedByNameRatherThanByIndex() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val name = "systivra-test-shuffled-fields.db"
+        context.deleteDatabase(name)
+        try {
+            RecordingStore(context, name).use { store ->
+                val source = snapshot(1730000010000L)
+                val shuffled = source.copy(
+                    ram = source.ram.reversed(),
+                    battery = source.battery.reversed(),
+                    thermal = listOf(
+                        Reading("Battery temperature", "31.2 °C", "Test"),
+                        Reading("Thermal status", "Light", "Test")
+                    )
+                )
+                val id = store.startSession(shuffled.time)
+                store.insert(id, shuffled)
+                store.stopSession(id)
+                val saved = store.readSession(id).single()
+                assertEquals("51.0%", saved.chargeLevelText())
+                assertEquals("31.2 °C", saved.batteryTemperatureText())
+                assertEquals("2.5 GiB", saved.availableRamText())
+                assertEquals("Light", saved.thermalStatusText())
+                assertEquals("25.0%", saved.cpuLoadText())
+            }
+        } finally {
+            context.deleteDatabase(name)
+        }
+    }
+
 }
