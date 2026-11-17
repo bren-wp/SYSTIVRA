@@ -153,6 +153,9 @@ The debug APK is produced under android/app/build/outputs/apk/debug; the release
 
 ## 📦 Versioned releases
 
+**v0.12.0-preview.1 (versionCode 15)** introduces an SVG-normalized 3D ring/gradient, reference-screen typography corrections (28 checked text baselines), locally generated PDF reports and a corrected battery trend that never substitutes temperature or electrical current for charge. [Read exact release notes](docs/releases/v0.12.0-preview.1.md). The actual Android emulator images in the gallery above remain genuine capture files; they are **not** fresh v0.12 screenshots, nor are they approved Play screenshots. Preview release assets are debug-signed APK and unsigned AAB only; do not use either as a signed Play update.
+
+
 Every milestone is designed to publish:
 - 📱 a clearly labeled debug APK for testing;
 - 📦 an unsigned release AAB for later authorized signing;
