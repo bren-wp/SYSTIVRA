@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.analyzeSessionReadings
 import java.util.Locale
 
 /**
@@ -90,35 +91,38 @@ fun RecordingSessionScreen(
 
 @Composable
 fun SessionAnalysisScreen(readings: List<DeviceSnapshot>, open: (String) -> Unit) {
-    val charge = readings.mapNotNull { it.battery.firstOrNull()?.value?.removeSuffix("%")?.toDoubleOrNull() }
-    val batteryTemp = readings.mapNotNull { it.battery.getOrNull(2)?.value?.removeSuffix(" °C")?.toDoubleOrNull() }
-    val status = readings.mapNotNull { it.thermal.firstOrNull()?.value }.groupingBy { it }.eachCount()
-    val start = readings.firstOrNull()?.time
-    val end = readings.lastOrNull()?.time
+    val insights = analyzeSessionReadings(readings)
+    fun fmt(value: Double?, unit: String): String =
+        value?.let { oneDecimal(it) + unit } ?: "Unavailable"
+    val batteryRange = if (insights.batteryMinPercent != null && insights.batteryMaxPercent != null)
+        fmt(insights.batteryMinPercent, "%") + " – " + fmt(insights.batteryMaxPercent, "%")
+    else "Unavailable"
+    val temperatureRange =
+        if (insights.temperatureMinCelsius != null && insights.temperatureMaxCelsius != null)
+            fmt(insights.temperatureMinCelsius, " °C") + " – " +
+                fmt(insights.temperatureMaxCelsius, " °C")
+        else "Unavailable"
+
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Text("Session Analysis", fontWeight = FontWeight.Bold, fontSize = 23.sp)
             Text("Derived only from samples saved by an explicit foreground recording.", color = Muted)
         }
-        if (readings.isEmpty()) {
+        if (insights.sampleCount == 0) {
             item { SummaryCard("No session", "Start a recording from the Monitor screen to collect readings.") }
         } else {
-            item { SummaryCard("Captured samples", readings.size.toString()) }
-            item { SummaryCard("Duration", ((end!! - start!!).coerceAtLeast(0L) / 1000L).toString() + " s") }
-            item { SummaryCard("Battery range", range(charge, "%")) }
-            item { SummaryCard("Battery temperature range", range(batteryTemp, " °C")) }
-            item { SummaryCard("Average battery charge", if (charge.isNotEmpty()) oneDecimal(charge.average()) + "%" else "Unavailable") }
-            item { SummaryCard("Thermal states", if (status.isEmpty()) "Unavailable" else
-                status.entries.joinToString("\n") { it.key + ": " + it.value.toString() }) }
+            item { SummaryCard("Captured samples", insights.sampleCount.toString()) }
+            item { SummaryCard("Duration", insights.elapsedMillis?.let { (it / 1000L).toString() + " s" } ?: "Unavailable") }
+            item { SummaryCard("Battery range", batteryRange) }
+            item { SummaryCard("Battery temperature range", temperatureRange) }
+            item { SummaryCard("Average battery charge", fmt(insights.batteryMeanPercent, "%")) }
+            item { SummaryCard("Thermal states", if (insights.thermalStates.isEmpty()) "Unavailable" else
+                insights.thermalStates.entries.joinToString("\n") { it.key + ": " + it.value.toString() }) }
             item { Button(onClick = { open("session-insights") }) { Text("Detailed session insights") } }
             item { Button(onClick = { open("reports-export") }) { Text("Export CSV or JSON") } }
         }
     }
 }
-
-private fun range(values: List<Double>, unit: String): String =
-    if (values.isEmpty()) "Unavailable"
-    else oneDecimal(values.minOrNull()!!) + unit + " – " + oneDecimal(values.maxOrNull()!!) + unit
 
 private fun oneDecimal(value: Double) = String.format(Locale.US, "%.1f", value)
 
