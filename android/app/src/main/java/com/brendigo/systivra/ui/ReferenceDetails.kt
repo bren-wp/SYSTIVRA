@@ -213,8 +213,9 @@ internal fun ReferenceDetailScreen(
 /** Never draw a decorative trend that could be mistaken for actual measurements. */
 @Composable
 internal fun ReferenceMeasuredChart(points: List<Float>) {
+    val valid = points.filter { it.isFinite() && it in 0f..100f }
     Card(
-        modifier = Modifier.fillMaxWidth().height(170.dp),
+        modifier = Modifier.fillMaxWidth().height(170.dp).testTag("reference-measured-chart"),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Panel),
         border = BorderStroke(1.dp, Color(0xFF233857))
@@ -224,26 +225,51 @@ internal fun ReferenceMeasuredChart(points: List<Float>) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text("Live data chart", fontSize = 13.sp, color = Muted)
-            if (points.size >= 2) {
-                Canvas(Modifier.fillMaxWidth().height(78.dp)) {
-                    val gap = size.width / (points.size - 1).toFloat()
-                    points.zipWithNext().forEachIndexed { i, pair ->
+            Box(Modifier.fillMaxWidth().height(78.dp)) {
+                Canvas(Modifier.matchParentSize().testTag("reference-chart-plot")) {
+                    // The source SVG has 4/7px dashed guides. They are
+                    // decorative gridlines, NOT invented device samples.
+                    val dash = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+                        floatArrayOf(4.dp.toPx(), 7.dp.toPx()), 0f
+                    )
+                    for (fraction in listOf(0.25f, 0.60f, 0.95f)) {
+                        val y = size.height * fraction
                         drawLine(
-                            color = Mint,
-                            start = Offset(gap * i, size.height * (1f - pair.first / 100f)),
-                            end = Offset(gap * (i + 1), size.height * (1f - pair.second / 100f)),
-                            strokeWidth = 3.dp.toPx(),
-                            cap = StrokeCap.Round
+                            color = Color(0xFF24425C),
+                            start = Offset(0f, y),
+                            end = Offset(size.width, y),
+                            strokeWidth = 1.dp.toPx(),
+                            pathEffect = dash
                         )
                     }
+                    if (valid.size >= 2) {
+                        val dx = size.width / (valid.size - 1).toFloat()
+                        valid.zipWithNext().forEachIndexed { i, pair ->
+                            drawLine(
+                                color = ReferenceChartLine,
+                                start = Offset(dx * i, size.height * (1f - pair.first / 100f)),
+                                end = Offset(dx * (i + 1), size.height * (1f - pair.second / 100f)),
+                                strokeWidth = 3.dp.toPx(),
+                                cap = StrokeCap.Round
+                            )
+                        }
+                    }
                 }
-                Text("Recorded device samples · measured percentages", fontSize = 11.sp, color = Muted)
-            } else {
-                Box(Modifier.fillMaxWidth().height(78.dp), contentAlignment = Alignment.Center) {
-                    Text("Waiting for measured samples", color = Muted, fontSize = 12.sp)
+                if (valid.size < 2) {
+                    Text(
+                        "Waiting for measured samples",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Muted, fontSize = 12.sp
+                    )
                 }
-                Text("No illustrative or fabricated readings", fontSize = 11.sp, color = Muted)
             }
+            Text(
+                if (valid.size >= 2)
+                    "Recorded device samples · measured percentages"
+                else
+                    "No illustrative or fabricated readings",
+                fontSize = 11.sp, color = Muted
+            )
         }
     }
 }
