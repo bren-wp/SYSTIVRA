@@ -48,12 +48,15 @@ def main() -> None:
     p.add_argument("--reference",type=Path,required=True)
     p.add_argument("--actual",type=Path,required=True)
     p.add_argument("--output",type=Path,required=True)
+    p.add_argument("--max-drift-px",type=int,default=None,
+                   help="Fail when any measured app-owned text glyph start differs by more than this many pixels")
     args=p.parse_args()
     lines=["# SYSTIVRA measured text-baseline alignment", "",
         "Compared only text pixels at fixed 390×844 locations; **not 1:1 approval**.",
         "Positive delta = Android glyph appears lower than the source SVG.", "",
         "| Screen | Text region | Reference top y | Android top y | Delta px |",
         "|---|---|---:|---:|---:|"]
+    outliers = []
     for name in SCREENS:
         rp=args.reference/(name+".png")
         ap=args.actual/(name+".png")
@@ -67,10 +70,15 @@ def main() -> None:
                 observed=start_y(actual,area,tone)
                 if expected is None or observed is None:
                     raise SystemExit("Unable to locate "+label+" text pixels in "+name)
-                lines.append(f"| {name} | {label} | {expected} | {observed} | {observed-expected:+d} |")
+                delta = observed - expected
+                lines.append(f"| {name} | {label} | {expected} | {observed} | {delta:+d} |")
+                if args.max_drift_px is not None and abs(delta) > args.max_drift_px:
+                    outliers.append(f"{name}: {label}: {delta:+d}px")
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text("\n".join(lines)+"\n",encoding="utf-8")
     print("\n".join(lines))
+    if outliers:
+        raise SystemExit("Text glyph baseline parity exceeded allowed drift: " + "; ".join(outliers))
 
 if __name__=="__main__":
     main()

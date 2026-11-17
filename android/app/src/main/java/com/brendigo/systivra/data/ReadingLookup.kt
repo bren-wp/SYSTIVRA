@@ -29,3 +29,14 @@ fun DeviceSnapshot.batteryPercentage(): Double? = parseBatteryPercent(chargeLeve
 
 fun DeviceSnapshot.batteryTemperatureCelsius(): Double? =
     parseBatteryTemperature(batteryTemperatureText())
+
+
+/**
+ * Draw only genuine, Android-reported charge samples. The battery list order
+ * varies by API/device and persisted sessions may contain historic field labels.
+ * A temperature or battery-current value must never become chart percentage.
+ */
+fun List<DeviceSnapshot>.measuredChargePercentages(): List<Float> =
+    mapNotNull { it.batteryPercentage()?.takeIf { percent ->
+        percent.isFinite() && percent in 0.0..100.0
+    }?.toFloat() }

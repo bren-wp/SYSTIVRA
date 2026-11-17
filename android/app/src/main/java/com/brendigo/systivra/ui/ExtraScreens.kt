@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.measuredChargePercentages
 
 @Composable
 fun SystemHealth(snapshot: DeviceSnapshot, open: (String) -> Unit) {
@@ -118,9 +119,7 @@ fun ChargingAnalysis(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
 
 @Composable
 fun FullscreenMetric(samples: List<DeviceSnapshot>) {
-    val values = samples.mapNotNull {
-        it.battery.firstOrNull()?.value?.removeSuffix("%")?.toFloatOrNull()
-    }
+    val values = samples.measuredChargePercentages()
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Text("Battery Charge · Live", fontSize = 23.sp, fontWeight = FontWeight.Bold)
@@ -142,8 +141,11 @@ fun FullscreenMetric(samples: List<DeviceSnapshot>) {
                             }
                         }
                     } else Text("More readings are needed to draw a chart.", color = Muted)
-                    Text("Minimum: " + (values.minOrNull()?.toString() ?: "—") +
-                        "% · Maximum: " + (values.maxOrNull()?.toString() ?: "—") + "%", color = Muted)
+                    Text(
+                        "Minimum: " + (values.minOrNull()?.let { "$it%" } ?: "Unavailable") +
+                            " · Maximum: " + (values.maxOrNull()?.let { "$it%" } ?: "Unavailable"),
+                        color = Muted
+                    )
                 }
             }
         }

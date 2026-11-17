@@ -88,6 +88,7 @@ import androidx.compose.ui.unit.sp
 import com.brendigo.systivra.BuildConfig
 import com.brendigo.systivra.data.RecordedSession
 import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.measuredChargePercentages
 import com.brendigo.systivra.data.Reading
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -662,10 +663,7 @@ private fun LiveMonitor(
     savedSessions: List<RecordedSession>,
     open: (String) -> Unit
 ) {
-    val history = samples.mapNotNull {
-        it.battery.firstOrNull()?.value?.removeSuffix("%")?.toFloatOrNull()
-            ?.takeIf { value -> value in 0f..100f }
-    }
+    val history = samples.measuredChargePercentages()
     val rows = listOf(
         Triple("Battery", "◇", "battery-details"),
         Triple("Memory", "▤", "memory-details"),
