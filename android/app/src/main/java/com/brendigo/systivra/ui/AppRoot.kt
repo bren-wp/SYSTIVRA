@@ -231,11 +231,7 @@ fun AppRoot(
         }
         BackHandler(enabled = navigationStack.size > 1) { goBack() }
         Scaffold(
-            modifier = Modifier.background(
-                Brush.linearGradient(
-                    listOf(Color(0xFF0D1F3F), Color(0xFF08111D))
-                )
-            ),
+            modifier = Modifier.background(ReferenceBackgroundBrush),
             containerColor = Color.Transparent,
             bottomBar = { ReferenceBottomBar(tabs, selectedTab, ::open) }
         ) { padding ->
