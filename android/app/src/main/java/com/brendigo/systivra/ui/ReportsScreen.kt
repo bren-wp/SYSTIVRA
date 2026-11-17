@@ -1,5 +1,6 @@
 package com.brendigo.systivra.ui
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -89,6 +90,27 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
             }
         }
     }
+    val pdfDocument = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri: Uri? ->
+        if (uri == null) {
+            result = "PDF export canceled."
+        } else {
+            result = "Exporting PDF…"
+            scope.launch {
+                result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        buildSessionPdf(snapshot).use { document ->
+                            val output = context.contentResolver.openOutputStream(uri)
+                                ?: error("The selected document cannot be opened.")
+                            output.use { document.writeTo(it) }
+                        }
+                        "Exported " + snapshot.size + " readings as PDF."
+                    }.getOrElse { "PDF export failed: " + (it.localizedMessage ?: "Unknown error") }
+                }
+            }
+        }
+    }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Text("Session Report", fontWeight = FontWeight.Bold, fontSize = 25.sp)
@@ -117,6 +139,39 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                         enabled = snapshot.isNotEmpty(),
                         onClick = { jsonDocument.launch("SYSTIVRA-session.json") }
                     ) { Text("Save JSON report") }
+                }
+            }
+        }
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("PDF Export", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Cyan)
+                    Text("Generate a multipage PDF from measured UTC timestamps, charge, temperature, RAM and thermal state.", color = Muted, fontSize = 13.sp)
+                    Button(
+                        enabled = snapshot.isNotEmpty(),
+                        onClick = { pdfDocument.launch("SYSTIVRA-session.pdf") }
+                    ) { Text("Create PDF document") }
+                }
+            }
+        }
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Android Sharesheet", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Cyan)
+                    Text("Share the recorded CSV as text only after choosing the receiving app. No background uploads.", color = Muted, fontSize = 13.sp)
+                    Button(enabled = snapshot.isNotEmpty(), onClick = {
+                        result = runCatching {
+                            val share = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_SUBJECT, "SYSTIVRA recording")
+                                putExtra(Intent.EXTRA_TEXT, buildSessionCsv(snapshot))
+                            }
+                            context.startActivity(Intent.createChooser(share, "Share SYSTIVRA readings"))
+                            "Android Sharesheet opened. You control whether any data is sent."
+                        }.getOrElse {
+                            "Could not open Android Sharesheet: " + (it.localizedMessage ?: "Unknown error")
+                        }
+                    }) { Text("Open Android Sharesheet") }
                 }
             }
         }
