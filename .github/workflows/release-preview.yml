@@ -31,7 +31,7 @@ jobs:
           test -n "$SDK_MANAGER" || { echo "sdkmanager not found"; exit 1; }
           yes | "$SDK_MANAGER" --licenses >/dev/null || true
           "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.9.1"
       - name: Validate BRENDIGO application identity
