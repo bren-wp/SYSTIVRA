@@ -112,6 +112,7 @@ private val sections = listOf(
     "storage-details" to "Storage Details",
     "battery-details" to "Battery Details",
     "charging-analysis" to "Charging Analysis",
+    "charging-analysis-data" to "Charging Readings",
     "thermal-details" to "Thermal Details",
     "display-details" to "Display Details",
     "device-and-android" to "Device & Android",
@@ -177,6 +178,7 @@ private val enabledRoutes = setOf(
     "overlay-configuration", "recording-library", "all-screens",
     "component-test-interactive", "device-capacity",
     "cpu-cores-data", "app-usage-controls", "session-analysis-data",
+    "charging-analysis-data",
     "benchmark-running-controls", "benchmark-results-data",
     "recording-session-controls", "permission-center-controls",
     "system-health-data", "privacy-center-data", "sensor-live-controls",
@@ -242,7 +244,7 @@ fun AppRoot(
                     "settings", "about", "device-detection", "component-test",
                     "history", "recording-session", "permission-center",
                     "network-details", "alerts", "diagnostic-results",
-                    "overlay-configuration", "reports-export"
+                    "overlay-configuration", "reports-export", "charging-analysis"
                 ) && route !in detailReferences.keys && route !in priorityReferenceSpecs.keys && route !in nextPriorityReferences.keys) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
@@ -273,7 +275,8 @@ fun AppRoot(
                     "privacy-center-data" -> PrivacyCenter()
                     "cpu-cores" -> PriorityReferenceScreen("cpu-cores", snapshot, recorded, benchmark, ::open)
                     "cpu-cores-data" -> CpuCoreInspector(snapshot)
-                    "charging-analysis" -> ChargingAnalysis(snapshot, samples)
+                    "charging-analysis" -> ReferenceChargingAnalysis(snapshot, samples, ::open)
+                    "charging-analysis-data" -> ChargingAnalysis(snapshot, samples)
                     "metric-fullscreen" -> NextPriorityReferenceScreen(
                         "metric-fullscreen", snapshot, samples, benchmark,
                         onStartBenchmark = {}, open = ::open
