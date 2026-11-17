@@ -35,9 +35,11 @@ class ReportPdfInstrumentedTest {
                 output.outputStream().use { document.writeTo(it) }
             }
             assertTrue(output.length() > 1500)
-            assertEquals("%PDF-", output.inputStream().use {
-                String(it.readNBytes(5), Charsets.US_ASCII)
-            })
+            val signature = ByteArray(5)
+            output.inputStream().use { stream ->
+                assertEquals(5, stream.read(signature))
+            }
+            assertEquals("%PDF-", String(signature, Charsets.US_ASCII))
             ParcelFileDescriptor.open(output, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
                 PdfRenderer(descriptor).use { renderer ->
                     assertEquals(3, renderer.pageCount) // 34 + 34 + 1
