@@ -34,6 +34,8 @@ class ReferenceEntrancesTest {
         launch("reports-export")
         rule.onNodeWithTag("reference-landing-reports-export").assertExists()
         rule.onNodeWithText("Export your data").assertExists()
+        // No legacy back row above the original SVG heading.
+        rule.onNodeWithText("‹").assertDoesNotExist()
         rule.onNodeWithText("PDF").performClick()
         rule.onNodeWithText("Session Report").assertExists()
         rule.onNodeWithText("CSV Export").assertExists()
