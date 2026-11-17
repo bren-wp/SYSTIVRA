@@ -34,7 +34,11 @@ class AllScreensSmokeTest {
         "benchmark-running-controls", "benchmark-results-data",
         "recording-session-controls", "permission-center-controls",
         "system-health-data", "privacy-center-data", "sensor-live-controls",
-        "metric-fullscreen-data", "benchmark-center-controls"
+        "metric-fullscreen-data", "benchmark-center-controls",
+        "network-details-data", "alerts-controls", "reports-export-controls",
+        "overlay-configuration-controls", "diagnostic-results-passed",
+        "diagnostic-results-failed", "diagnostic-results-skipped",
+        "diagnostic-results-unavailable"
     )
 
     @Test
