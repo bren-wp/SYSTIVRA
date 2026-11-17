@@ -100,10 +100,13 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
             scope.launch {
                 result = withContext(Dispatchers.IO) {
                     runCatching {
-                        buildSessionPdf(snapshot).use { document ->
+                        val document = buildSessionPdf(snapshot)
+                        try {
                             val output = context.contentResolver.openOutputStream(uri)
                                 ?: error("The selected document cannot be opened.")
                             output.use { document.writeTo(it) }
+                        } finally {
+                            document.close()
                         }
                         "Exported " + snapshot.size + " readings as PDF."
                     }.getOrElse { "PDF export failed: " + (it.localizedMessage ?: "Unknown error") }
