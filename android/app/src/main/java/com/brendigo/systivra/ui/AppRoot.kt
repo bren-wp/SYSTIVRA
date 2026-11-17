@@ -243,7 +243,9 @@ fun AppRoot(
                 if (route !in setOf(
                     "dashboard", "hardware-explorer", "live-monitor", "diagnostics-center",
                     "settings", "about", "device-detection", "component-test",
-                    "history", "recording-session", "permission-center"
+                    "history", "recording-session", "permission-center",
+                    "network-details", "alerts", "diagnostic-results",
+                    "overlay-configuration", "reports-export"
                 ) && route !in detailReferences.keys && route !in priorityReferenceSpecs.keys && route !in nextPriorityReferences.keys) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
