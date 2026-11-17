@@ -3,6 +3,7 @@ package com.brendigo.systivra.ui
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,12 +31,16 @@ internal fun ReferenceHeading(title: String, subtitle: String, caption: String) 
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            subtitle, fontSize = 22.sp, fontWeight = FontWeight.Bold,
+            subtitle,
+            modifier = Modifier.offset(y = 3.dp).testTag("reference-heading-subtitle"),
+            fontSize = 22.sp, fontWeight = FontWeight.Bold,
             maxLines = 2, overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            caption, fontSize = 13.sp, color = Muted,
+            caption,
+            modifier = Modifier.offset(y = 2.dp).testTag("reference-heading-caption"),
+            fontSize = 13.sp, color = Muted,
             maxLines = 2, overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(10.dp))
