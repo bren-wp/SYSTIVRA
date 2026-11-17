@@ -96,7 +96,8 @@ jobs:
           python3 tools/report-typography-baselines.py \
             --reference qa/reference-viewport/references \
             --actual qa/reference-viewport/screenshots \
-            --output qa/reference-viewport/diff/typography-baselines.md
+            --output qa/reference-viewport/diff/typography-baselines.md \
+            --max-drift-px 1
           cat qa/reference-viewport/diff/typography-baselines.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload actual 390x844 captures and reproducible reference evidence
         if: always()
