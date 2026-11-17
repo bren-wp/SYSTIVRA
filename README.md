@@ -45,7 +45,7 @@ Many Android monitoring apps display device numbers without explaining their ori
 
 ## 🎨 Google Play branding
 
-**Current Play listing preparation:** static icon and feature artwork are production-sized; the screenshot set is **not yet approved**. Emulator captures showing Android System UI/Quickstep crashes must never be uploaded. [Strict capture workflow](.github/workflows/android-screenshots.yml) only publishes genuine focused-app images when validation succeeds.
+**Current Play listing preparation:** static icon and feature artwork are production-sized; genuine emulator screenshot files exist but the set is **not yet manually approved**. Emulator captures showing Android System UI/Quickstep crashes must never be uploaded. [Strict capture workflow](.github/workflows/android-screenshots.yml) only publishes genuine focused-app images when validation succeeds.
 
 
 - [**Download the store artwork package**](brending/google-play/assets/SYSTIVRA-Play-Graphics.zip)
@@ -54,7 +54,7 @@ Many Android monitoring apps display device numbers without explaining their ori
 - [English Play listing text](brending/google-play/STORE-LISTING-EN.md)
 - [Google Play release readiness checklist](docs/GOOGLE-PLAY-RELEASE-GATE.md)
 
-The eight promotional visuals under `brending/google-play/concepts-NOT-FOR-PLAY/` are **marketing concepts, not screenshots**. Earlier Android emulator captures contained System UI/Quickstep ANRs and are not acceptable Play screenshots. The new capture process refuses to count screenshots when SYSTIVRA is not the focused app.
+The eight promotional visuals under `brending/google-play/concepts-NOT-FOR-PLAY/` are **marketing concepts, not screenshots**. The repository also contains eight actual captured Android screens in `brending/google-play/real-screenshots/`, but **they have not passed final manual design review** and must not be submitted to Play on that basis. Capture QA rejects screenshots when SYSTIVRA is not the focused app.
 
 
 ### All 37 original Play-sized design references (NOT screenshots)
@@ -67,32 +67,28 @@ Each PNG preserves its original 390 × 844 SVG content without stretching, with 
 
 The current Android redesign aligns the Dashboard, Hardware Explorer, metric cards and text-only bottom navigation more closely with the SVG reference. **All 37 visual parity gates remain open** until real emulator screenshots, diffs and manual QA are complete.
 
-## 📱 App gallery
+## 📱 Real Android application screenshots
+
+These are **actual 1080 × 1920 Android emulator captures** checked into the repository by the CI capture pipeline on 15 November 2026 ([provenance commit](https://github.com/bren-wp/SYSTIVRA/commit/2689a7bd495ba4f3fb4d6f3dca68a0cd3605c972)). Unlike the SVG reference gallery below, these PNGs were captured from the running Android application. They document the captured build at that date; **they have not passed final human image review, are not approved Google Play screenshots, and do not certify 1:1 visual parity with the 37 design references**. Dynamic hardware readings may differ by device.
 
 <div align="center">
-
-**SYSTIVRA dashboard and system insights**
-
 <table>
 <tr>
-<td align="center"><img src="brending/rendered/05-dashboard.png" alt="SYSTIVRA Dashboard design reference" width="188"><br><sub>Dashboard</sub></td>
-<td align="center"><img src="brending/rendered/21-live-monitor.png" alt="SYSTIVRA Live Monitor design reference" width="188"><br><sub>Live Monitor</sub></td>
-<td align="center"><img src="brending/rendered/07-cpu-details.png" alt="SYSTIVRA CPU Details design reference" width="188"><br><sub>CPU Details</sub></td>
-<td align="center"><img src="brending/rendered/12-battery-details.png" alt="SYSTIVRA Battery Details design reference" width="188"><br><sub>Battery</sub></td>
+<td align="center"><img src="brending/google-play/real-screenshots/01-dashboard-1080x1920.png" alt="Actual Android emulator capture of SYSTIVRA Dashboard" width="188"><br><sub>Dashboard · real capture</sub></td>
+<td align="center"><img src="brending/google-play/real-screenshots/02-hardware-1080x1920.png" alt="Actual Android emulator capture of Hardware Explorer" width="188"><br><sub>Hardware Explorer · real capture</sub></td>
+<td align="center"><img src="brending/google-play/real-screenshots/03-memory-1080x1920.png" alt="Actual Android emulator capture of Memory Details" width="188"><br><sub>Memory · real capture</sub></td>
+<td align="center"><img src="brending/google-play/real-screenshots/04-battery-1080x1920.png" alt="Actual Android emulator capture of Battery Details" width="188"><br><sub>Battery · real capture</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="brending/rendered/14-thermal-details.png" alt="SYSTIVRA Thermal design reference" width="188"><br><sub>Thermal</sub></td>
-<td align="center"><img src="brending/rendered/18-sensor-explorer.png" alt="SYSTIVRA Sensors design reference" width="188"><br><sub>Sensors</sub></td>
-<td align="center"><img src="brending/rendered/26-diagnostics-center.png" alt="SYSTIVRA Diagnostics design reference" width="188"><br><sub>Diagnostics</sub></td>
-<td align="center"><img src="brending/rendered/36-settings.png" alt="SYSTIVRA Settings design reference" width="188"><br><sub>Settings</sub></td>
+<td align="center"><img src="brending/google-play/real-screenshots/05-monitor-1080x1920.png" alt="Actual Android emulator capture of Live Monitor" width="188"><br><sub>Live Monitor · real capture</sub></td>
+<td align="center"><img src="brending/google-play/real-screenshots/06-diagnostics-1080x1920.png" alt="Actual Android emulator capture of Diagnostics Center" width="188"><br><sub>Diagnostics · real capture</sub></td>
+<td align="center"><img src="brending/google-play/real-screenshots/07-recordings-1080x1920.png" alt="Actual Android emulator capture of Recording Library" width="188"><br><sub>Recordings · real capture</sub></td>
+<td align="center"><img src="brending/google-play/real-screenshots/08-insights-1080x1920.png" alt="Actual Android emulator capture of Session Insights" width="188"><br><sub>Insights · real capture</sub></td>
 </tr>
 </table>
-
-**[Explore the full 37-screen contact sheet](brending/rendered/systivra-37-screen-contact-sheet.png)**
-
-<sub>Visuals above are **design concept exports**, not captured Android emulator screenshots. A pixel-perfect 1:1 match remains a measurable development goal, not a verified claim.</sub>
-
 </div>
+
+**Visual references are separate:** [37 original SVG screens](brending/screens/index.html) · [37 concept render contact sheet](brending/rendered/systivra-37-screen-contact-sheet.png) · [screen-by-screen verification matrix](docs/SCREEN-STATUS.md). The original vector art is **not** an Android screenshot. For a current release, regenerate genuine captures via [Android screenshot QA](.github/workflows/android-screenshots.yml), reject OS dialogs and manually inspect every image before using it in a store listing.
 
 ## 🧩 Supported features and current status
 
