@@ -46,6 +46,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.batteryPercentage
+import com.brendigo.systivra.data.thermalStatusText
 import java.util.Locale
 
 private val instrumentTypes = listOf(
@@ -239,8 +241,8 @@ fun AlertsScreen(snapshot: DeviceSnapshot) {
     }
     var enabled by remember { mutableStateOf(prefs.getBoolean("enabled", true)) }
     var threshold by remember { mutableFloatStateOf(prefs.getFloat("battery", 20f).coerceIn(5f, 40f)) }
-    val charge = snapshot.battery.firstOrNull()?.value?.removeSuffix("%")?.toFloatOrNull()
-    val thermal = snapshot.thermal.firstOrNull()?.value
+    val charge = snapshot.batteryPercentage()?.toFloat()
+    val thermal = snapshot.thermalStatusText()
     val warning = when {
         !enabled -> "On-screen alerts disabled"
         thermal in listOf("Severe", "Critical", "Emergency", "Shutdown") -> "Android thermal warning: " + thermal
