@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.brendigo.systivra.data.DeviceSnapshot
-import com.brendigo.systivra.data.batteryPercentage
+import com.brendigo.systivra.data.measuredChargePercentages
 import com.brendigo.systivra.data.chargeLevelText
 
 /**
@@ -31,7 +31,7 @@ internal fun ReferenceChargingAnalysis(
     samples: List<DeviceSnapshot>,
     open: (String) -> Unit
 ) {
-    val chargeSeries = samples.mapNotNull { it.batteryPercentage()?.toFloat() }
+    val chargeSeries = samples.measuredChargePercentages()
     val actions = listOf(
         "Charge timeline" to "metric-fullscreen",
         "Current if available" to "charging-analysis-data",
