@@ -51,4 +51,23 @@ class ReportCsvTest {
         val csv = buildSessionCsv(listOf(entry("=SUM(1,2)", "35")))
         assertTrue(csv.contains("\"'=SUM(1,2)\""))
     }
+    @Test fun exportReadsNamedFieldsWhenAndroidOrdersThemDifferently() {
+        val original = entry("77.0%", "29.0 °C")
+        val shuffled = original.copy(
+            battery = original.battery.reversed(),
+            ram = original.ram.reversed(),
+            thermal = listOf(
+                Reading("Battery temperature", "29.0 °C", "Android"),
+                Reading("Thermal status", "Light", "Android")
+            )
+        )
+        val csv = buildSessionCsv(listOf(shuffled))
+        assertTrue(csv.contains("\"77.0%\",\"29.0 °C\",\"2 GiB\",\"Light\""))
+    }
+
+    @Test fun formulaWithLeadingWhitespaceIsNotExecutedOnSpreadsheetImport() {
+        val csv = buildSessionCsv(listOf(entry("  =HYPERLINK(1,2)", "30.0 °C")))
+        assertTrue(csv.contains("\"'  =HYPERLINK(1,2)\""))
+    }
+
 }
