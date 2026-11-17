@@ -84,6 +84,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.brendigo.systivra.BuildConfig
 import com.brendigo.systivra.data.RecordedSession
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.data.Reading
@@ -932,7 +933,7 @@ private fun About(open: (String) -> Unit) {
         item {
             PanelCard {
                 Text("SYSTIVRA by BRENDIGO", color = Cyan, fontWeight = FontWeight.Bold)
-                Text("Version 0.10.0-preview.2 · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
+                Text("Version ${BuildConfig.VERSION_NAME} · MIT License · © 2026 BRENDIGO", fontSize = 12.sp, color = Muted)
                 Text("Privacy-first Android system monitor and diagnostics", color = Muted)
             }
         }
