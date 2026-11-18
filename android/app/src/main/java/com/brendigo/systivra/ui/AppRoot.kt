@@ -82,6 +82,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextGeometricTransform
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -548,7 +550,7 @@ internal fun ReferenceHeroCard(open: () -> Unit) {
             Column {
                 Text("SYSTIVRA", modifier = Modifier.testTag("reference-hero-title")
                     .offset(y = (-1).dp),
-                    fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                 Spacer(Modifier.height(5.dp))
                 Text("System intelligence", modifier = Modifier.testTag("reference-hero-subtitle")
                     .offset(y = (-5).dp),
@@ -595,8 +597,11 @@ internal fun ReferenceMetricRow(
             ) {
                 Text(label,
                     modifier = Modifier.testTag("reference-row-title-" + label.lowercase().replace(" ", "-"))
-                        .offset(y = 4.dp),
-                    fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                        .offset(x = 1.dp, y = 4.dp),
+                    // Native Roboto label glyphs render slightly wider than the
+                    // original Arial-based 16sp SVG row titles.
+                    style = TextStyle(textGeometricTransform = TextGeometricTransform(scaleX = 0.98f)),
+                    fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("Details / availability",
                     modifier = Modifier.testTag("reference-row-subtitle-" + label.lowercase().replace(" ", "-")),
