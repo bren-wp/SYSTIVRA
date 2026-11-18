@@ -38,6 +38,7 @@ import androidx.compose.material3.FilterChipDefaults
 import kotlin.math.roundToInt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
@@ -861,11 +862,15 @@ private fun ComponentTest() {
                 }) { Text("Play test tone") }
                 Text("User-confirmed result: " + speakerVerdict, color = Mint)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(enabled = speakerWasPlayed, onClick = {
+                    Button(enabled = speakerWasPlayed, colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = {
                         speakerVerdict = "Pass (user-confirmed)"
                         verdictPrefs.edit().putString("speaker", speakerVerdict).apply()
                     }) { Text("Pass") }
-                    Button(enabled = speakerWasPlayed, onClick = {
+                    Button(enabled = speakerWasPlayed, colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = {
                         speakerVerdict = "Fail (user-confirmed)"
                         verdictPrefs.edit().putString("speaker", speakerVerdict).apply()
                     }) { Text("Fail") }
@@ -881,7 +886,9 @@ private fun ComponentTest() {
                     color = Muted, fontSize = 13.sp
                 )
                 Text(vibrationFeedback, color = Muted, fontSize = 12.sp)
-                Button(enabled = hasVibrator, onClick = {
+                Button(enabled = hasVibrator, colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = {
                     vibrationFeedback = runCatching {
                         if (Build.VERSION.SDK_INT >= 26) {
                             vibrator?.vibrate(
@@ -896,11 +903,15 @@ private fun ComponentTest() {
                 }) { Text("Test vibration") }
                 Text("User-confirmed result: " + vibrationVerdict, color = Mint)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(enabled = hasVibrator, onClick = {
+                    Button(enabled = hasVibrator, colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = {
                         vibrationVerdict = "Pass (user-confirmed)"
                         verdictPrefs.edit().putString("vibration", vibrationVerdict).apply()
                     }) { Text("Pass") }
-                    Button(enabled = hasVibrator, onClick = {
+                    Button(enabled = hasVibrator, colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = {
                         vibrationVerdict = "Fail (user-confirmed)"
                         verdictPrefs.edit().putString("vibration", vibrationVerdict).apply()
                     }) { Text("Fail") }
