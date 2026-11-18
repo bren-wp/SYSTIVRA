@@ -1,4 +1,18 @@
+## Unreleased fixes (v0.12.0-preview.5)
+- Reports SVG actions select and scroll to matching CSV/JSON/PDF/Sharesheet controls; added Compose emulator navigation checks.
+- Split and bound Splash QA dependency installation for clearer failure diagnosis; retained the authentic Splash verification gate.
+
 # Changelog
+
+## v0.12.0-preview.5 — per-format export outcomes and CSV safety (2026-11-18)
+- Fixed bottom navigation too close to Android gesture/three-button bar by reserving `WindowInsets.navigationBars`, adding an 8dp dark separation gutter and contrasting system navigation background, while keeping 62dp tab hit targets; expanded device-inset Compose regression test.
+
+- Each CSV/JSON/PDF/Sharesheet operation now shows its export/cancel/error state in the correct card, not under unrelated CSV.
+- Strengthened CSV spreadsheet-formula safeguards against BOM, invisible Unicode and control-code prefix characters; added JVM regressions for attack strings and normal readings.
+- Fixed API-27-only windowLightNavigationBar in the API-24 base theme using a separate values-v27 override; Lint remains mandatory.
+- Added one narrowly scoped Maven Central JUnit Platform dependency-resolution retry to connected Android test runner, keeping all test assertions and failure gates intact.
+- VersionCode 19; release gated on full exact-SHA Android/emulator/visual/responsive/Splash QA. 1:1 approval and independent security audit remain outstanding.
+
 
 ## v0.11.0-preview.2 — measured pixel-grid refinements, 2026-11-16
 

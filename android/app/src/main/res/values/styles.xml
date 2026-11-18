@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <style name="Theme.Systivra" parent="android:style/Theme.Material.Light.NoActionBar">
+  <!-- Shared API 24+ system colors. Newer API-only flags live in values-v27. -->
+  <style name="Theme.Systivra.Base" parent="android:style/Theme.Material.Light.NoActionBar">
     <item name="android:statusBarColor">#0D1F3F</item>
-    <item name="android:navigationBarColor">#0D192B</item>
+    <item name="android:navigationBarColor">#08111D</item>
     <item name="android:windowLightStatusBar">false</item>
   </style>
+  <style name="Theme.Systivra" parent="Theme.Systivra.Base"/>
   <style name="Theme.Systivra.Starting" parent="Theme.SplashScreen">
     <item name="windowSplashScreenBackground">@color/night</item>
     <item name="windowSplashScreenAnimatedIcon">@drawable/logo_mark</item>

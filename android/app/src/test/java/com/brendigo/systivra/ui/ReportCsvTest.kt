@@ -70,4 +70,21 @@ class ReportCsvTest {
         assertTrue(csv.contains("\"'  =HYPERLINK(1,2)\""))
     }
 
+    @Test fun formulaBehindInvisibleUnicodePrefixIsEscaped() {
+        val csv = buildSessionCsv(listOf(entry("\uFEFF=HYPERLINK(1,2)", "\u200B \t@SUM(1)")))
+        assertTrue(csv.contains("\"'\uFEFF=HYPERLINK(1,2)\""))
+        assertTrue(csv.contains("\"'\u200B \t@SUM(1)\""))
+    }
+
+    @Test fun controlPrefixAndUnicodeWordJoinerCannotHideFormula() {
+        val csv = buildSessionCsv(listOf(entry("\u0000+1+2", "\u2060-4+5")))
+        assertTrue(csv.contains("\"'\u0000+1+2\""))
+        assertTrue(csv.contains("\"'\u2060-4+5\""))
+    }
+
+    @Test fun safeLeadingUnicodeAndQuotedFieldsArePreserved() {
+        val csv = buildSessionCsv(listOf(entry("\u200B35.0%", "35\" Celsius")))
+        assertTrue(csv.contains("\"\u200B35.0%\""))
+        assertTrue(csv.contains("\"35\"\" Celsius\""))
+    }
 }

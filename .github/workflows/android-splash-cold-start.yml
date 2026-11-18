@@ -32,28 +32,45 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - name: Install Android SDK 37 and image validation dependencies
+      - name: Install Android SDK 37 with bounded retries
+        timeout-minutes: 10
         run: |
           set -euo pipefail
           SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
           SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
           test -n "$SDK_MANAGER"
-          yes | "$SDK_MANAGER" --licenses >/dev/null || true
-          installed=0
-          for attempt in 1 2 3; do
-            if "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"; then
-              installed=1
-              break
-            fi
-            echo "::warning::Android SDK package retry $attempt"
-            sleep 12
-          done
-          test "$installed" -eq 1
+          echo "::group::Android license acceptance"
+          timeout -k 5s 60s bash -c 'yes | "$1" --licenses >/dev/null' _ "$SDK_MANAGER" || true
+          echo "::endgroup::"
+          if [[ -f "$SDK_ROOT/platforms/android-37.0/android.jar" && -x "$SDK_ROOT/build-tools/37.0.0/aapt2" ]]; then
+            echo "Required Android API 37 and build-tools already installed"
+          else
+            installed=0
+            for attempt in 1 2 3; do
+              echo "::group::SDK install attempt $attempt"
+              if timeout -k 10s 160s "$SDK_MANAGER" "platforms;android-37.0" "build-tools;37.0.0"; then
+                installed=1
+                echo "::endgroup::"
+                break
+              fi
+              echo "::endgroup::"
+              echo "::warning::SDK install attempt $attempt failed or timed out"
+              sleep 8
+            done
+            test "$installed" -eq 1
+          fi
+      - name: Install screenshot validation tools
+        timeout-minutes: 5
+        run: |
           python3 -m pip install --quiet Pillow CairoSVG
+      - name: Verify FFmpeg for actual Android cold-start recording
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
           if ! command -v ffmpeg >/dev/null 2>&1; then
-            echo "ffmpeg is not preinstalled on this runner; installing system package"
-            sudo apt-get update -qq
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg
+            echo "ffmpeg missing on this runner; installing system package"
+            timeout -k 10s 120s sudo apt-get update -qq
+            timeout -k 10s 120s sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg
           fi
           ffmpeg -hide_banner -version | head -n 1
       - uses: gradle/actions/setup-gradle@v6

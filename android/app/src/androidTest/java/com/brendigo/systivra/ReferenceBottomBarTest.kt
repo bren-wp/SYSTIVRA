@@ -1,9 +1,14 @@
 package com.brendigo.systivra
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -11,6 +16,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.ui.AppRoot
+import com.brendigo.systivra.ui.ReferenceBottomBar
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -86,4 +92,36 @@ class ReferenceBottomBarTest {
         }
     }
 
+    @Test fun navigationTabsReserveTheActualAndroidSystemBottomInset() {
+        var navigationInsetDp = 0f
+        val entries = listOf(
+            Triple("dashboard", "Dashboard", "▣"),
+            Triple("live-monitor", "Monitor", "⌁"),
+            Triple("diagnostics-center", "Tests", "◇"),
+            Triple("settings", "More", "☷")
+        )
+        rule.setContent {
+            val density = LocalDensity.current
+            navigationInsetDp = with(density) {
+                WindowInsets.navigationBars.getBottom(density).toDp().value
+            }
+            Box(Modifier.fillMaxSize()) {
+                ReferenceBottomBar(
+                    entries = entries,
+                    selectedTab = "dashboard",
+                    onNavigate = {}
+                )
+            }
+        }
+        val wholeBar = rule.onNodeWithTag("reference-bottom-safe-area")
+            .getUnclippedBoundsInRoot()
+        val tab = rule.onNodeWithTag("reference-bottom-tab-dashboard")
+            .getUnclippedBoundsInRoot()
+        assertEquals("Reference tap height must not shrink", 62f,
+            (tab.bottom - tab.top).value, 1f)
+        assertTrue("Tab must not extend below its safe-area host",
+            wholeBar.bottom.value >= tab.bottom.value)
+        assertTrue("System navigation and an 8dp visual gutter must be below the tab targets",
+            (wholeBar.bottom - tab.bottom).value >= navigationInsetDp + 8f - 1f)
+    }
 }

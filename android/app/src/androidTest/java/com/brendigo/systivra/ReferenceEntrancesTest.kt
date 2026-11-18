@@ -1,5 +1,6 @@
 package com.brendigo.systivra
 
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -30,15 +31,32 @@ class ReferenceEntrancesTest {
         }
     }
 
-    @Test fun reportSvgActionsOpenRealPdfCsvJsonExportControls() {
+    @Test fun reportSvgPdfActionFocusesItsActualPdfExportControl() {
         launch("reports-export")
         rule.onNodeWithTag("reference-landing-reports-export").assertExists()
         rule.onNodeWithText("Export your data").assertExists()
         // No legacy back row above the original SVG heading.
         rule.onNodeWithText("‹").assertDoesNotExist()
         rule.onNodeWithText("PDF").performClick()
-        rule.onNodeWithText("Session Report").assertExists()
-        rule.onNodeWithText("CSV Export").assertExists()
+        rule.waitForIdle()
+        rule.onNodeWithTag("report-export-format-pdf").assertIsDisplayed()
+        rule.onNodeWithText("Create PDF document").assertIsDisplayed()
+    }
+
+    @Test fun reportSvgJsonActionFocusesItsActualJsonExportControl() {
+        launch("reports-export")
+        rule.onNodeWithText("JSON").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("report-export-format-json").assertIsDisplayed()
+        rule.onNodeWithText("Save JSON report").assertIsDisplayed()
+    }
+
+    @Test fun reportSvgSharesheetActionFocusesSharingControls() {
+        launch("reports-export")
+        rule.onNodeWithText("Android Sharesheet").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("report-export-format-share").assertIsDisplayed()
+        rule.onNodeWithText("Open Android Sharesheet").assertIsDisplayed()
     }
 
     @Test fun networkLandingShowsRealNetworkReadingsOnTap() {

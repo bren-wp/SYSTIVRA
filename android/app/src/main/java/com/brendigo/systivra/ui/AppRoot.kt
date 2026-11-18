@@ -223,12 +223,22 @@ fun AppRoot(
         }
         val route = navigationStack.lastOrNull() ?: "dashboard"
         val selectedTab = navigationStack.firstOrNull()?.takeIf { entry -> tabs.any { it.first == entry } } ?: "dashboard"
+        // Preserve the user's chosen export format through the route transition
+        // without changing the approved Reports & Export reference screen.
+        var reportPreferredFormat by rememberSaveable { mutableStateOf<String?>(null) }
         fun open(id: String) {
-            if (route == id) return
-            navigationStack = if (tabs.any { it.first == id }) {
-                arrayListOf(id)
+            val formatRequest = id.removePrefix("reports-export-controls:")
+                .takeIf { id.startsWith("reports-export-controls:") &&
+                    it in setOf("csv", "json", "pdf", "share") }
+            val destination = if (formatRequest != null) "reports-export-controls" else id
+            if (destination == "reports-export-controls") {
+                reportPreferredFormat = formatRequest
+            }
+            if (route == destination) return
+            navigationStack = if (tabs.any { it.first == destination }) {
+                arrayListOf(destination)
             } else {
-                ArrayList(navigationStack).apply { add(id) }
+                ArrayList(navigationStack).apply { add(destination) }
             }
         }
         fun goBack() {
@@ -292,14 +302,15 @@ fun AppRoot(
                         route = "reports-export", title = "Reports & Export",
                         subtitle = "Export your data", caption = "Choose fields and format",
                         actions = listOf(
-                            ReferenceAction("CSV", "reports-export-controls"),
-                            ReferenceAction("JSON", "reports-export-controls"),
-                            ReferenceAction("PDF", "reports-export-controls"),
-                            ReferenceAction("Android Sharesheet", "reports-export-controls")
+                            ReferenceAction("CSV", "reports-export-controls:csv"),
+                            ReferenceAction("JSON", "reports-export-controls:json"),
+                            ReferenceAction("PDF", "reports-export-controls:pdf"),
+                            ReferenceAction("Android Sharesheet", "reports-export-controls:share")
                         ), open = ::open
                     )
                     "reports-export-controls" -> ReportExportScreen(
-                        if (selectedSessionId == null) recorded else selectedSessionSamples
+                        if (selectedSessionId == null) recorded else selectedSessionSamples,
+                        preferredFormat = reportPreferredFormat
                     )
                     "sensor-live" -> NextPriorityReferenceScreen(
                         "sensor-live", snapshot, samples, benchmark,

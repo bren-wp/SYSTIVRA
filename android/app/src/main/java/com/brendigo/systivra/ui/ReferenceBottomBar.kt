@@ -3,10 +3,13 @@ package com.brendigo.systivra.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +32,10 @@ import androidx.compose.ui.unit.sp
  * Each label is laid out INSIDE its own clickable region, rather than visually
  * translating the text into the next tab's hit target. The regions scale with
  * the available width, while text ellipsizes at high accessibility font scales.
+ *
+ * The 62dp design bar sits ABOVE Android's own gesture/3-button navigation
+ * zone. Android 15+/target 35+ can draw apps edge-to-edge; reserve the system
+ * inset without reducing the bar's 62dp tappable height or forging system UI.
  */
 @Composable
 internal fun ReferenceBottomBar(
@@ -39,40 +46,51 @@ internal fun ReferenceBottomBar(
     // SVG-derived touch-region boundaries at x=0,120,216,300,390.
     // Ratios preserve the visual anchors without absolute-positioned hit targets.
     val widths = listOf(120f, 96f, 84f, 90f)
-    Row(
-        modifier = Modifier.fillMaxWidth().height(62.dp)
-            .background(Color(0xFF0D192B)),
-        verticalAlignment = Alignment.CenterVertically
+    // Separate the application's own four tabs from Android's Back/Home/Recents
+    // or gesture handle. A dark 8dp visual gutter remains on pre-edge-to-edge
+    // devices, while navigationBarsPadding reserves the actual system inset.
+    Column(
+        modifier = Modifier.fillMaxWidth()
+            .testTag("reference-bottom-safe-area")
+            .background(Color(0xFF08111D))
+            .navigationBarsPadding()
     ) {
-        entries.forEachIndexed { index, (id, label, _) ->
-            Box(
-                modifier = Modifier.weight(widths[index]).fillMaxHeight()
-                    .testTag("reference-bottom-tab-$id")
-                    .clickable(role = Role.Tab) { onNavigate(id) }
-                    .semantics {
-                        stateDescription = if (selectedTab == id) "Selected" else "Not selected"
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    label,
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(
-                            start = when (index) {
-                                0 -> 30.dp
-                                1, 2 -> 4.dp
-                                else -> 0.dp
-                            },
-                            end = if (index == 3) 8.dp else 0.dp
-                        )
-                        .testTag("reference-bottom-label-$id"),
-                    fontSize = 12.sp,
-                    color = if (selectedTab == id) Cyan else Muted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center
-                )
+        Row(
+            modifier = Modifier.fillMaxWidth().height(62.dp)
+                .background(Color(0xFF0D192B)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            entries.forEachIndexed { index, (id, label, _) ->
+                Box(
+                    modifier = Modifier.weight(widths[index]).fillMaxHeight()
+                        .testTag("reference-bottom-tab-$id")
+                        .clickable(role = Role.Tab) { onNavigate(id) }
+                        .semantics {
+                            stateDescription = if (selectedTab == id) "Selected" else "Not selected"
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        label,
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(
+                                start = when (index) {
+                                    0 -> 30.dp
+                                    1, 2 -> 4.dp
+                                    else -> 0.dp
+                                },
+                                end = if (index == 3) 8.dp else 0.dp
+                            )
+                            .testTag("reference-bottom-label-$id"),
+                        fontSize = 12.sp,
+                        color = if (selectedTab == id) Cyan else Muted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
+        Spacer(Modifier.fillMaxWidth().height(8.dp))
     }
 }
