@@ -52,20 +52,53 @@ internal val ReferenceBackgroundBrush: Brush = object : ShaderBrush() {
 }
 
 
-private val palette = darkColorScheme(
-    primary = Cyan, onPrimary = Background,
-    secondary = Purple, tertiary = Mint,
-    background = Background, onBackground = Color(0xFFF4F8FC),
-    surface = Panel, onSurface = Color(0xFFF4F8FC),
-    surfaceVariant = Raised
+/** SVG label ink. Explicit role pairing prevents Material 3 defaults from
+ * introducing dark/black foregrounds inside midnight cards and dialogs.
+ * Dark ink is intentionally permitted ONLY on the high-luminance cyan/mint
+ * action fills, where its contrast is greater than light ink.
+ */
+val TextPrimary = Color(0xFFF4F8FC)
+
+internal val SystivraDarkColorScheme = darkColorScheme(
+    primary = Cyan,
+    onPrimary = Background,
+    primaryContainer = Color(0xFF153B68),
+    onPrimaryContainer = TextPrimary,
+    secondary = Purple,
+    onSecondary = TextPrimary,
+    secondaryContainer = Color(0xFF34245B),
+    onSecondaryContainer = TextPrimary,
+    tertiary = Mint,
+    onTertiary = Background,
+    background = Background,
+    onBackground = TextPrimary,
+    surface = Panel,
+    onSurface = TextPrimary,
+    surfaceVariant = Raised,
+    onSurfaceVariant = Muted,
+    surfaceDim = Background,
+    surfaceBright = Raised,
+    surfaceContainerLowest = Background,
+    surfaceContainerLow = Panel,
+    surfaceContainer = Panel,
+    surfaceContainerHigh = Raised,
+    surfaceContainerHighest = Color(0xFF233857),
+    inverseSurface = TextPrimary,
+    inverseOnSurface = Background,
+    outline = Muted,
+    outlineVariant = Color(0xFF36547E),
+    error = Color(0xFFFFB4AB),
+    onError = Background,
+    errorContainer = Color(0xFF5C1E22),
+    onErrorContainer = TextPrimary
 )
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = palette) {
+    MaterialTheme(colorScheme = SystivraDarkColorScheme) {
         // Transparent Scaffold/Canvas containers inherit LocalContentColor.
         // Without an explicit dark foreground, default Text can render black.
-        CompositionLocalProvider(LocalContentColor provides palette.onBackground) {
+        CompositionLocalProvider(LocalContentColor provides SystivraDarkColorScheme.onBackground) {
             content()
         }
     }
