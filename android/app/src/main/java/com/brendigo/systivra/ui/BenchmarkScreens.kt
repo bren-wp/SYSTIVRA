@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -119,7 +120,9 @@ fun BenchmarkCenterScreen(controller: BenchmarkController, onStart: () -> Unit) 
         }
         item { BenchCard("CPU single-worker test", "Deterministic integer workload for approximately 2 seconds.") }
         item { BenchCard("Safety", "Stops on severe Android thermal status and supports immediate cancellation. Avoid running on a hot device.") }
-        item { Button(enabled = !controller.running, onClick = onStart) { Text("Start CPU test") } }
+        item { Button(enabled = !controller.running, colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = onStart) { Text("Start CPU test") } }
         if (controller.result != null) {
             item { BenchCard("Previous result", controller.result!!.iterationsPerSecond.toString() + " iterations/s") }
         }
@@ -136,7 +139,9 @@ fun BenchmarkRunningScreen(controller: BenchmarkController, open: (String) -> Un
         if (controller.running) {
             item { Button(onClick = controller::cancel) { Text("Stop test") } }
         } else {
-            item { Button(enabled = controller.result != null, onClick = { open("benchmark-results") }) { Text("View results") } }
+            item { Button(enabled = controller.result != null, colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = { open("benchmark-results") }) { Text("View results") } }
             item { Button(onClick = { open("benchmark-center") }) { Text("Back to Performance Lab") } }
         }
     }
