@@ -925,6 +925,10 @@ private fun Settings(open: (String) -> Unit) {
 
     if (activeDialog != null) {
         AlertDialog(
+            // Never allow inherited dark text on a midnight dialog surface.
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
             onDismissRequest = { activeDialog = null },
             title = { Text(activeDialog.orEmpty()) },
             text = {
