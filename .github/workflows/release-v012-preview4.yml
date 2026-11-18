@@ -21,7 +21,9 @@ permissions:
   actions: write
 concurrency:
   group: systivra-v012-preview4-release
-  cancel-in-progress: false
+  # Newer source commits invalidate older preview builds. Never publish
+  # the immutable tag from an obsolete HEAD while a new QA revision exists.
+  cancel-in-progress: true
 jobs:
   release:
     runs-on: ubuntu-24.04
