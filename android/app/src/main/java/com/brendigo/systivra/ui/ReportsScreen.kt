@@ -48,17 +48,20 @@ import java.util.TimeZone
 fun ReportExportScreen(samples: List<DeviceSnapshot>) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var result by remember { mutableStateOf("No report exported yet.") }
+    var csvResult by remember { mutableStateOf("No report exported yet.") }
+    var jsonResult by remember { mutableStateOf("") }
+    var pdfResult by remember { mutableStateOf("") }
+    var shareResult by remember { mutableStateOf("") }
     val snapshot = samples.toList()
     val csvDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri: Uri? ->
         if (uri == null) {
-            result = "Export canceled."
+            csvResult = "Export canceled."
         } else {
-            result = "Exporting CSV…"
+            csvResult = "Exporting CSV…"
             scope.launch {
-                result = withContext(Dispatchers.IO) {
+                csvResult = withContext(Dispatchers.IO) {
                     runCatching {
                         val csv = buildSessionCsv(snapshot)
                         val output = context.contentResolver.openOutputStream(uri)
@@ -74,11 +77,11 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
         if (uri == null) {
-            result = "Export canceled."
+            jsonResult = "Export canceled."
         } else {
-            result = "Exporting JSON…"
+            jsonResult = "Exporting JSON…"
             scope.launch {
-                result = withContext(Dispatchers.IO) {
+                jsonResult = withContext(Dispatchers.IO) {
                     runCatching {
                         val output = context.contentResolver.openOutputStream(uri)
                             ?: error("The selected document cannot be opened.")
@@ -95,11 +98,11 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
         contract = ActivityResultContracts.CreateDocument("application/pdf")
     ) { uri: Uri? ->
         if (uri == null) {
-            result = "PDF export canceled."
+            pdfResult = "PDF export canceled."
         } else {
-            result = "Exporting PDF…"
+            pdfResult = "Exporting PDF…"
             scope.launch {
-                result = withContext(Dispatchers.IO) {
+                pdfResult = withContext(Dispatchers.IO) {
                     runCatching {
                         val document = buildSessionPdf(snapshot)
                         try {
@@ -134,7 +137,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                         ),
                         onClick = { csvDocument.launch("SYSTIVRA-session.csv") }
                     ) { Text("Choose export location") }
-                    Text(result, color = Muted, fontSize = 13.sp)
+                    Text(csvResult, color = Muted, fontSize = 13.sp)
                 }
             }
         }
@@ -151,6 +154,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                         ),
                         onClick = { jsonDocument.launch("SYSTIVRA-session.json") }
                     ) { Text("Save JSON report") }
+                    if (jsonResult.isNotEmpty()) Text(jsonResult, color = Muted, fontSize = 13.sp)
                 }
             }
         }
@@ -167,6 +171,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                         ),
                         onClick = { pdfDocument.launch("SYSTIVRA-session.pdf") }
                     ) { Text("Create PDF document") }
+                    if (pdfResult.isNotEmpty()) Text(pdfResult, color = Muted, fontSize = 13.sp)
                 }
             }
         }
@@ -180,7 +185,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                             disabledContainerColor = Raised,
                             disabledContentColor = Muted
                         ), onClick = {
-                        result = runCatching {
+                        shareResult = runCatching {
                             val share = Intent(Intent.ACTION_SEND).apply {
                                 type = "text/plain"
                                 putExtra(Intent.EXTRA_SUBJECT, "SYSTIVRA recording")
@@ -192,6 +197,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                             "Could not open the Android Sharesheet. Try again or use a file export."
                         }
                     }) { Text("Open Android Sharesheet") }
+                    if (shareResult.isNotEmpty()) Text(shareResult, color = Muted, fontSize = 13.sp)
                 }
             }
         }
@@ -210,7 +216,16 @@ internal fun buildSessionCsv(samples: List<DeviceSnapshot>): String {
     val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
     format.timeZone = TimeZone.getTimeZone("UTC")
     fun csv(value: String): String {
-        val protected = if (value.trimStart().firstOrNull() in listOf('=', '+', '-', '@', '\t', '\r', '\n')) "'" + value else value
+        // Some spreadsheet importers ignore BOM, zero-width and control prefixes.
+        // Preserve the source reading, but force dangerous formulas to be plain text.
+        val firstVisible = value.dropWhile { ch ->
+            ch.isWhitespace() || ch.isISOControl() ||
+                ch == '\uFEFF' || ch == '\u200B' || ch == '\u200C' ||
+                ch == '\u200D' || ch == '\u2060'
+        }.firstOrNull()
+        val protected = if (firstVisible == '=' || firstVisible == '+' ||
+            firstVisible == '-' || firstVisible == '@'
+        ) "'$value" else value
         return "\"" + protected.replace("\"", "\"\"") + "\""
     }
     val header = "timestamp_utc,battery_percent,battery_temp_c,free_ram,thermal_status\n"

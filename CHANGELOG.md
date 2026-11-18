@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.12.0-preview.5 — per-format export outcomes and CSV safety (2026-11-18)
+
+- Each CSV/JSON/PDF/Sharesheet operation now shows its export/cancel/error state in the correct card, not under unrelated CSV.
+- Strengthened CSV spreadsheet-formula safeguards against BOM, invisible Unicode and control-code prefix characters; added JVM regressions for attack strings and normal readings.
+- VersionCode 19; release gated on full exact-SHA Android/emulator/visual/responsive/Splash QA. 1:1 approval and independent security audit remain outstanding.
+
+
 ## v0.11.0-preview.2 — measured pixel-grid refinements, 2026-11-16
 
 - Corrected diagonal SVG gradient mapping across all app screens; aligned visible Android status/navigation bar colors with the dark source palette without masking native system UI.
