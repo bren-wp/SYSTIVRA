@@ -12,6 +12,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
@@ -99,6 +101,8 @@ fun CpuCoreInspector(snapshot: DeviceSnapshot) {
 
 @Composable
 fun ChargingAnalysis(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
+    val context = LocalContext.current
+    val fahrenheit = remember(context) { preferredFahrenheit(context) }
     val battery = snapshot.battery
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("Charging Analysis", fontSize = 24.sp, fontWeight = FontWeight.Bold) }
@@ -108,7 +112,7 @@ fun ChargingAnalysis(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
             Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
                 Column(Modifier.fillMaxWidth().padding(17.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(reading.name, color = Muted, fontSize = 13.sp)
-                    Text(reading.display, fontSize = 23.sp, color = Cyan, fontWeight = FontWeight.Bold)
+                    Text(displayReading(reading, fahrenheit), fontSize = 23.sp, color = Cyan, fontWeight = FontWeight.Bold)
                     Text("Source: " + reading.source, color = Muted, fontSize = 11.sp)
                 }
             }
