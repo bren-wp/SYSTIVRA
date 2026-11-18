@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicInteger
+import com.brendigo.systivra.data.RecordingSampleGate
 
 class MainActivity : ComponentActivity() {
     private sealed interface StorageAction {
@@ -38,19 +38,15 @@ class MainActivity : ComponentActivity() {
     // SQLite database cannot exhaust app memory during a prolonged recording.
     // Start/stop/delete actions must never be silently dropped due to backpressure.
     private val actions = Channel<StorageAction>(Channel.UNLIMITED)
-    private val pendingSampleWrites = AtomicInteger(0)
-    private companion object {
-        const val MAX_PENDING_SAMPLE_WRITES = 32
-    }
+    private val pendingSampleWrites = RecordingSampleGate(maxPending = 32)
 
     private fun queueBoundedSample(snapshot: DeviceSnapshot) {
-        if (pendingSampleWrites.incrementAndGet() > MAX_PENDING_SAMPLE_WRITES) {
-            pendingSampleWrites.decrementAndGet()
+        if (!pendingSampleWrites.tryAcquire()) {
             storageError.value = "Recording storage is busy; some samples were skipped."
             return
         }
         if (actions.trySend(StorageAction.Add(snapshot)).isFailure) {
-            pendingSampleWrites.decrementAndGet()
+            pendingSampleWrites.release()
             storageError.value = "Recording storage is unavailable."
         }
     }
@@ -133,7 +129,7 @@ class MainActivity : ComponentActivity() {
                         storageError.value = "Saved history action failed. Please retry."
                     }
                     if (action is StorageAction.Add) {
-                        pendingSampleWrites.decrementAndGet()
+                        pendingSampleWrites.release()
                     }
                 }
             }
