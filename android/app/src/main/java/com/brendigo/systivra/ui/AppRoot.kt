@@ -639,6 +639,8 @@ private fun HardwareExplorer(open: (String) -> Unit) {
 
 @Composable
 private fun MetricScreen(readings: List<Reading>, subtitle: String) {
+    val context = LocalContext.current
+    val fahrenheit = remember(context) { preferredFahrenheit(context) }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item { Text(subtitle, fontSize = 13.sp, color = Muted) }
         if (readings.isEmpty()) item { Text("Waiting for device readings…", color = Muted) }
@@ -647,7 +649,7 @@ private fun MetricScreen(readings: List<Reading>, subtitle: String) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(item.name, fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.weight(1f), fontSize = 14.sp)
-                    Text(item.display, color = if (item.value == null) Muted else Cyan,
+                    Text(displayReading(item, fahrenheit), color = if (item.value == null) Muted else Cyan,
                         fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 2)
                 }
                 Text("Source: " + item.source, fontSize = 11.sp, color = Muted)
