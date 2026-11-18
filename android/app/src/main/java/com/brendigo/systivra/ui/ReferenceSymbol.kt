@@ -35,8 +35,8 @@ internal fun ReferenceSymbol(symbol: String, color: Color, testTag: String) {
     }
     Canvas(
         Modifier.size(18.dp)
-            .testTag(testTag)
             .clearAndSetSemantics { }
+            .testTag(testTag)
     ) {
         val step = size.minDimension / 18f
         fun xy(x: Float, y: Float) = Offset(x * step, y * step)
