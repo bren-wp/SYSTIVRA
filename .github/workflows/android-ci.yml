@@ -1,9 +1,9 @@
 name: Android build
 on:
   push:
-    paths: ["android/**", "README.md", "brending/google-play/real-screenshots/**", "tools/check-readme-captures.py", ".github/workflows/android-ci.yml"]
+    paths: ["android/**", "README.md", "brending/google-play/real-screenshots/**", "tools/check-readme-captures.py", "tools/audit-android-surface.py", ".github/workflows/android-ci.yml"]
   pull_request:
-    paths: ["android/**", "README.md", "brending/google-play/real-screenshots/**", "tools/check-readme-captures.py", ".github/workflows/android-ci.yml"]
+    paths: ["android/**", "README.md", "brending/google-play/real-screenshots/**", "tools/check-readme-captures.py", "tools/audit-android-surface.py", ".github/workflows/android-ci.yml"]
 concurrency:
   group: systivra-android-build-${{ github.ref }}
   cancel-in-progress: true
@@ -31,6 +31,15 @@ jobs:
           gradle-version: "9.9.1"
       - name: Validate BRENDIGO application identity
         run: python3 tools/validate_application_id.py
+      - name: Audit Android permissions, backups, exception sinks, sample backlog, routes and unused private declarations
+        run: python3 tools/audit-android-surface.py --root . --report audit-output/ANDROID-SURFACE-AUDIT.md
+      - name: Preserve automated security and dead-code evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: systivra-static-security-deadcode-audit
+          path: audit-output/ANDROID-SURFACE-AUDIT.md
+          if-no-files-found: warn
       - name: Assemble debug APK
         working-directory: android
         run: gradle :app:lintDebug :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:bundleRelease --stacktrace --no-daemon

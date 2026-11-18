@@ -71,7 +71,7 @@ class BenchmarkController(context: Context) {
             } catch (canceled: CancellationException) {
                 message = "Canceled by user"
             } catch (error: Exception) {
-                message = "Benchmark error: " + (error.localizedMessage ?: "Unknown")
+                message = "The benchmark could not complete. Please retry on a cooler device."
             } finally {
                 running = false
             }

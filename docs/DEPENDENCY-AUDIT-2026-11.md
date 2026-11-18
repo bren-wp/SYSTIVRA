@@ -1,11 +1,11 @@
 # SYSTIVRA — dependency and Google Play compatibility audit
-Date: 2026-11-15
+Originally 2026-11-15; updated 2026-11-18
 
 ## Verified stable dependencies
 
 | Dependency | Selected stable version | Status |
 |---|---|---|
-| Android Gradle Plugin | 9.4.0 | Stable; minimum Gradle 9.6.0, CI runs Gradle 9.9.1 |
+| Android Gradle Plugin | 9.5.1 | Current pinned source version; CI runs Gradle 9.9.1, compatibility verified by build |
 | Gradle | 9.9.1 | Updated for November 2026 critical/high security fixes; CI validation pending |
 | Kotlin / Compose compiler plugin | 2.4.21 | Latest stable as of November 2026 |
 | Android SDK compile | API 37 | Already supported by AGP 9.4 |
@@ -28,7 +28,7 @@ Date: 2026-11-15
 - Review transitive dependencies, SDK permissions and data handling for every update.
 
 References:
-- https://developer.android.com/build/releases/agp-9-4-0-release-notes
+- https://developer.android.com/build/releases/agp-9-5-0-release-notes
 - https://developer.android.com/jetpack/androidx/releases/core
 - https://developer.android.com/jetpack/androidx/releases/lifecycle
 - https://developer.android.com/develop/ui/compose/bom
@@ -41,3 +41,12 @@ References:
 - Stable Compose BOM `2026.09.00`, AndroidX Activity `1.13.0`, Lifecycle `2.11.0`, AndroidX Test `1.7.0` kept stable; newer versions of some libraries are pre-release and intentionally not used.
 - Verify exact application ID by running `python3 tools/validate_application_id.py` before any release.
 - New Android Play app ID: `com.brendigo.systivra`. This is a new Play listing, not an update to a previous ID.
+
+
+## November 18 source-level security check
+
+- Verified `android/build.gradle.kts` pins **AGP 9.5.1** and **Kotlin 2.4.21**; Android CI pins **Gradle 9.9.1**. AGP 9.5.1 is documented on the official AGP 9.5 notes page. Gradle 9.9.1 contains fixes for three published build-system vulnerabilities; do not regress to Gradle 9.9.0. See https://docs.gradle.org/9.9.1/release-notes.html .
+- Verified runtime dependencies are literal, pinned versions or version-catalog-free Compose BOM entries. No dynamic `+`, `SNAPSHOT`, or auto-changing dependency constraints were found in the reviewed Android Gradle file.
+- No INTERNET permission, ads or external analytics SDK appears in the current app manifest and dependency declarations.
+- **Not independently verified**: complete transitive Maven dependency graph, all resolved artifacts against a timestamped vulnerability database, signed dependency supply-chain provenance, and current Play Console policy state. A source/version review cannot establish that no known CVE exists anywhere in the full dependency graph.
+- Dependabot tracks Gradle and GitHub Actions weekly; production release must add a reproducible SBOM, dependency advisory scan and risk triage before claiming a full dependency-security pass.

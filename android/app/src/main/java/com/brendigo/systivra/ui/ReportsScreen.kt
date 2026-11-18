@@ -64,7 +64,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                             ?: error("The selected document cannot be opened.")
                         output.bufferedWriter(Charsets.UTF_8).use { it.write(csv) }
                         "Exported " + snapshot.size + " CSV samples successfully."
-                    }.getOrElse { "Export failed: " + (it.localizedMessage ?: "Unknown error") }
+                    }.getOrElse { "Export failed. Check the selected document location and try again." }
                 }
             }
         }
@@ -85,7 +85,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                             it.write(buildSessionJson(snapshot))
                         }
                         "Exported " + snapshot.size + " JSON samples successfully."
-                    }.getOrElse { "Export failed: " + (it.localizedMessage ?: "Unknown error") }
+                    }.getOrElse { "Export failed. Check the selected document location and try again." }
                 }
             }
         }
@@ -109,7 +109,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                             document.close()
                         }
                         "Exported " + snapshot.size + " readings as PDF."
-                    }.getOrElse { "PDF export failed: " + (it.localizedMessage ?: "Unknown error") }
+                    }.getOrElse { "PDF export failed. Check available storage and try again." }
                 }
             }
         }
@@ -172,7 +172,7 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
                             context.startActivity(Intent.createChooser(share, "Share SYSTIVRA readings"))
                             "Android Sharesheet opened. You control whether any data is sent."
                         }.getOrElse {
-                            "Could not open Android Sharesheet: " + (it.localizedMessage ?: "Unknown error")
+                            "Could not open the Android Sharesheet. Try again or use a file export."
                         }
                     }) { Text("Open Android Sharesheet") }
                 }
