@@ -9,10 +9,8 @@ Run on the source under review, including in CI.
 from __future__ import annotations
 
 import argparse
-from collections import Counter
 from pathlib import Path
 import re
-import sys
 from xml.etree import ElementTree as ET
 
 ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
@@ -202,6 +200,10 @@ def main() -> None:
         "",
         f"Status: **{'FAIL' if problems else 'PASS'}** | "
         f"{len(problems)} blocking findings | {len(warnings)} review candidates.",
+        "",
+        "## Scan coverage", 
+        "",
+        *(f"- {name.replace('_', ' ')}: **{value}**" for name, value in counts.items()),
         "",
         "## Verified controls",
         "",
