@@ -45,6 +45,10 @@ fun RecordingSessionScreen(
     var confirmClear by rememberSaveable { mutableStateOf(false) }
     if (confirmClear) {
         AlertDialog(
+            // Never allow inherited dark text on a midnight dialog surface.
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
             onDismissRequest = { confirmClear = false },
             title = { Text("Delete all recordings?") },
             text = {
