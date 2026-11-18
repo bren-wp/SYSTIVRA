@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +30,10 @@ import androidx.compose.ui.unit.sp
  * Each label is laid out INSIDE its own clickable region, rather than visually
  * translating the text into the next tab's hit target. The regions scale with
  * the available width, while text ellipsizes at high accessibility font scales.
+ *
+ * The 62dp design bar sits ABOVE Android's own gesture/3-button navigation
+ * zone. Android 15+/target 35+ can draw apps edge-to-edge; reserve the system
+ * inset without reducing the bar's 62dp tappable height or forging system UI.
  */
 @Composable
 internal fun ReferenceBottomBar(
@@ -40,8 +45,13 @@ internal fun ReferenceBottomBar(
     // Ratios preserve the visual anchors without absolute-positioned hit targets.
     val widths = listOf(120f, 96f, 84f, 90f)
     Row(
-        modifier = Modifier.fillMaxWidth().height(62.dp)
-            .background(Color(0xFF0D192B)),
+        modifier = Modifier.fillMaxWidth()
+            .testTag("reference-bottom-safe-area")
+            .background(Color(0xFF0D192B))
+            // Paint behind the gesture zone, but keep all 62dp tab hit targets above it.
+            // This automatically becomes a no-op when Android already fits system bars.
+            .navigationBarsPadding()
+            .height(62.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         entries.forEachIndexed { index, (id, label, _) ->

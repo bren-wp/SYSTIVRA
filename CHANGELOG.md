@@ -1,6 +1,7 @@
 # Changelog
 
 ## v0.12.0-preview.5 — per-format export outcomes and CSV safety (2026-11-18)
+- Fixed bottom navigation near/behind Android gesture/three-button bar by reserving `WindowInsets.navigationBars` outside the 62dp navigation hit targets; added device-inset Compose regression test.
 
 - Each CSV/JSON/PDF/Sharesheet operation now shows its export/cancel/error state in the correct card, not under unrelated CSV.
 - Strengthened CSV spreadsheet-formula safeguards against BOM, invisible Unicode and control-code prefix characters; added JVM regressions for attack strings and normal readings.
