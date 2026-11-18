@@ -5,6 +5,8 @@
 
 - Each CSV/JSON/PDF/Sharesheet operation now shows its export/cancel/error state in the correct card, not under unrelated CSV.
 - Strengthened CSV spreadsheet-formula safeguards against BOM, invisible Unicode and control-code prefix characters; added JVM regressions for attack strings and normal readings.
+- Fixed API-27-only windowLightNavigationBar in the API-24 base theme using a separate values-v27 override; Lint remains mandatory.
+- Added one narrowly scoped Maven Central JUnit Platform dependency-resolution retry to connected Android test runner, keeping all test assertions and failure gates intact.
 - VersionCode 19; release gated on full exact-SHA Android/emulator/visual/responsive/Splash QA. 1:1 approval and independent security audit remain outstanding.
 
 
