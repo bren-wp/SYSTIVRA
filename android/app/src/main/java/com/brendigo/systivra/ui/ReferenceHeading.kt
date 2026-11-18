@@ -28,7 +28,7 @@ internal fun ReferenceHeading(title: String, subtitle: String, caption: String) 
     Column(Modifier.padding(start = 4.dp, top = 14.dp)) {
         Text(
             title, modifier = Modifier.testTag("reference-heading-title").semantics { heading() },
-            fontSize = 30.sp, fontWeight = FontWeight.ExtraBold,
+            fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = TextPrimary,
             // Original SVGs use Arial; Android's default Roboto glyphs are
             // ~3.5% narrower for 30sp headers in real 390px screenshots.
             style = TextStyle(textGeometricTransform = TextGeometricTransform(scaleX = 1.035f)),
@@ -38,7 +38,7 @@ internal fun ReferenceHeading(title: String, subtitle: String, caption: String) 
         Text(
             subtitle,
             modifier = Modifier.offset(y = 3.dp).testTag("reference-heading-subtitle"),
-            fontSize = 22.sp, fontWeight = FontWeight.Bold,
+            fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary,
             style = TextStyle(textGeometricTransform = TextGeometricTransform(scaleX = 1.015f)),
             maxLines = 2, overflow = TextOverflow.Ellipsis
         )
