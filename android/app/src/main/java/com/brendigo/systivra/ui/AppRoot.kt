@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import kotlin.math.roundToInt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -960,6 +961,14 @@ private fun Settings(open: (String) -> Unit) {
                                     temperatureUnit = "C"
                                     preferences.edit().putString(TEMPERATURE_PREF_KEY, "C").apply()
                                 },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Panel,
+                                    labelColor = TextPrimary,
+                                    selectedContainerColor = Color(0xFF153B68),
+                                    selectedLabelColor = TextPrimary,
+                                    disabledContainerColor = Raised,
+                                    disabledLabelColor = Muted
+                                ),
                                 label = { Text("Celsius · °C") }
                             )
                             FilterChip(
@@ -969,6 +978,14 @@ private fun Settings(open: (String) -> Unit) {
                                     temperatureUnit = "F"
                                     preferences.edit().putString(TEMPERATURE_PREF_KEY, "F").apply()
                                 },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Panel,
+                                    labelColor = TextPrimary,
+                                    selectedContainerColor = Color(0xFF153B68),
+                                    selectedLabelColor = TextPrimary,
+                                    disabledContainerColor = Raised,
+                                    disabledLabelColor = Muted
+                                ),
                                 label = { Text("Fahrenheit · °F") }
                             )
                         }
