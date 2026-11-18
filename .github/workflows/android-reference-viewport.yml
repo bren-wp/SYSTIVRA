@@ -14,6 +14,8 @@ on:
       - "tools/visual-diff.py"
       - "tools/report-typography-baselines.py"
       - "tools/report-screen-regions.py"
+      - "tools/audit-native-screen-ink.py"
+      - "tools/capture-interactive-contrast.sh"
       - "brending/screens/**"
   push:
     branches: [feat/systivra-visual-parity-390dp-qa, fix/systivra-qa-stability-20261115, feat/systivra-reference-actions-metrics-20261115, feat/priority-five-screen-parity-and-splash-qa, feat/systivra-v011-five-screen-preview, feat/systivra-v0112-pixel-parity]
@@ -81,7 +83,7 @@ jobs:
           emulator-boot-timeout: 600
           disable-animations: true
           emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
-          script: bash tools/capture-reference-viewport.sh
+          script: bash tools/capture-reference-viewport.sh && bash tools/capture-interactive-contrast.sh
       - name: Compare matching viewport pixels (diagnostic, not an acceptance claim)
         run: |
           python3 tools/visual-diff.py \
@@ -105,6 +107,10 @@ jobs:
             --actual qa/reference-viewport/screenshots \
             --output qa/reference-viewport/diff
           cat qa/reference-viewport/diff/regions.md >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/audit-native-screen-ink.py \
+            --screenshots qa/reference-viewport/screenshots \
+            --output qa/reference-viewport/diff
+          cat qa/reference-viewport/diff/native-screen-ink.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload actual 390x844 captures and reproducible reference evidence
         if: always()
         uses: actions/upload-artifact@v7

@@ -43,6 +43,10 @@ fun RecordingLibraryScreen(
 
     pendingDelete?.let { session ->
         AlertDialog(
+            // Never allow inherited dark text on a midnight dialog surface.
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
             onDismissRequest = { pendingDelete = null },
             title = { Text("Delete this recording?") },
             text = {

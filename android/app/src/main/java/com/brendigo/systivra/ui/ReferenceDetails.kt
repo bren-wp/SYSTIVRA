@@ -22,6 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -177,7 +178,19 @@ internal fun ReferenceDetailScreen(
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth().testTag("metric-search-$route"),
                 label = { Text("Search readings") },
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    disabledTextColor = Muted,
+                    focusedLabelColor = TextPrimary,
+                    unfocusedLabelColor = Muted,
+                    focusedBorderColor = Cyan,
+                    unfocusedBorderColor = Muted,
+                    cursorColor = Cyan,
+                    focusedContainerColor = Panel,
+                    unfocusedContainerColor = Panel
+                )
             )
         }
         if (filtered.isEmpty()) {
