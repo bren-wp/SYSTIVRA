@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicInteger
 
 class MainActivity : ComponentActivity() {
     private sealed interface StorageAction {
@@ -32,8 +33,27 @@ class MainActivity : ComponentActivity() {
         data class Select(val sessionId: Long?) : StorageAction
     }
 
-    // A single IO consumer orders the actions, including start/stop and deletion.
+    // A single IO consumer preserves control-action order. Individual hardware
+    // snapshots are large: independently bound queued samples so a slow/full
+    // SQLite database cannot exhaust app memory during a prolonged recording.
+    // Start/stop/delete actions must never be silently dropped due to backpressure.
     private val actions = Channel<StorageAction>(Channel.UNLIMITED)
+    private val pendingSampleWrites = AtomicInteger(0)
+    private companion object {
+        const val MAX_PENDING_SAMPLE_WRITES = 32
+    }
+
+    private fun queueBoundedSample(snapshot: DeviceSnapshot) {
+        if (pendingSampleWrites.incrementAndGet() > MAX_PENDING_SAMPLE_WRITES) {
+            pendingSampleWrites.decrementAndGet()
+            storageError.value = "Recording storage is busy; some samples were skipped."
+            return
+        }
+        if (actions.trySend(StorageAction.Add(snapshot)).isFailure) {
+            pendingSampleWrites.decrementAndGet()
+            storageError.value = "Recording storage is unavailable."
+        }
+    }
     private val storageReady = MutableStateFlow(false)
     private val storageError = MutableStateFlow<String?>(null)
     private val live = MutableStateFlow(DeviceSnapshot.empty())
@@ -108,8 +128,12 @@ class MainActivity : ComponentActivity() {
                         refresh()
                         storageError.value = null
                     }.onFailure {
-                        storageError.value = "Saved history action failed: " +
-                            (it.localizedMessage ?: "Please retry")
+                        // Do not show SQLite exceptions, internal paths or
+                        // provider implementation details in the user interface.
+                        storageError.value = "Saved history action failed. Please retry."
+                    }
+                    if (action is StorageAction.Add) {
+                        pendingSampleWrites.decrementAndGet()
                     }
                 }
             }
@@ -131,7 +155,7 @@ class MainActivity : ComponentActivity() {
                         live.value = it
                         history.value = (history.value + it).takeLast(60)
                         if (recording.value && storageReady.value) {
-                            actions.trySend(StorageAction.Add(it))
+                            queueBoundedSample(it)
                         }
                     }
                     delay(preferences.getInt("sampling_seconds", 2).coerceIn(1, 10) * 1_000L)
