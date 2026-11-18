@@ -23,8 +23,11 @@ internal class RecordingSampleGate(private val maxPending: Int = 32) {
     }
 
     fun release() {
-        val before = pending.getAndDecrement()
-        check(before > 0) { "Storage sample release without successful enqueue" }
+        while (true) {
+            val current = pending.get()
+            check(current > 0) { "Storage sample release without successful enqueue" }
+            if (pending.compareAndSet(current, current - 1)) return
+        }
     }
 
     fun pendingCount(): Int = pending.get()
