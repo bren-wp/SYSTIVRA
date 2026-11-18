@@ -33,6 +33,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
+import androidx.compose.material3.FilterChip
 import kotlin.math.roundToInt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -567,12 +568,12 @@ internal fun ReferenceMetricRow(
     val tone = if (index % 2 == 0) Color(0xFF153B68) else Color(0xFF34245B)
     val glyphColor = if (index % 2 == 0) Cyan else Color(0xFFC39BFF)
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth().height(69.dp)
             // SVG action rows start 82px apart; LazyColumn uses a 12px gap.
             // Apply a -1dp hero-to-row correction, then +1dp per subsequent row.
             .offset(y = (index - 1).dp)
-            .testTag("reference-row-" + label.lowercase().replace(" ", "-"))
-            .clickable(role = Role.Button, onClick = onClick),
+            .testTag("reference-row-" + label.lowercase().replace(" ", "-")),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
         border = BorderStroke(1.dp, Color(0xFF223654))
@@ -585,7 +586,8 @@ internal fun ReferenceMetricRow(
                 Modifier.size(34.dp).background(tone, RoundedCornerShape(10.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(glyph, color = glyphColor, fontSize = 18.sp)
+                ReferenceSymbol(glyph, glyphColor, "reference-row-icon-" +
+                    label.lowercase().replace(" ", "-"))
             }
             Column(
                 Modifier.weight(1f).padding(start = 13.dp),
@@ -638,6 +640,8 @@ private fun HardwareExplorer(open: (String) -> Unit) {
 
 @Composable
 private fun MetricScreen(readings: List<Reading>, subtitle: String) {
+    val context = LocalContext.current
+    val fahrenheit = remember(context) { preferredFahrenheit(context) }
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item { Text(subtitle, fontSize = 13.sp, color = Muted) }
         if (readings.isEmpty()) item { Text("Waiting for device readings…", color = Muted) }
@@ -646,7 +650,7 @@ private fun MetricScreen(readings: List<Reading>, subtitle: String) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(item.name, fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.weight(1f), fontSize = 14.sp)
-                    Text(item.display, color = if (item.value == null) Muted else Cyan,
+                    Text(displayReading(item, fahrenheit), color = if (item.value == null) Muted else Cyan,
                         fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 2)
                 }
                 Text("Source: " + item.source, fontSize = 11.sp, color = Muted)
@@ -909,6 +913,9 @@ private fun Settings(open: (String) -> Unit) {
     var samplingSeconds by rememberSaveable {
         mutableIntStateOf(preferences.getInt("sampling_seconds", 2).coerceIn(1, 10))
     }
+    var temperatureUnit by rememberSaveable {
+        mutableStateOf(preferences.getString(TEMPERATURE_PREF_KEY, "C")?.takeIf { it == "F" } ?: "C")
+    }
     var activeDialog by rememberSaveable { mutableStateOf<String?>(null) }
 
     if (activeDialog != null) {
@@ -934,7 +941,34 @@ private fun Settings(open: (String) -> Unit) {
                         )
                         Text("Applied to live device sampling and saved for future launches.", color = Muted)
                     }
-                    "Units" -> Text("Measurements use the units supplied by Android. Unit conversion is not currently supported, so no nonfunctional selector is shown.")
+                    "Units" -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("Temperature display")
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            FilterChip(
+                                modifier = Modifier.testTag("units-celsius"),
+                                selected = temperatureUnit == "C",
+                                onClick = {
+                                    temperatureUnit = "C"
+                                    preferences.edit().putString(TEMPERATURE_PREF_KEY, "C").apply()
+                                },
+                                label = { Text("Celsius · °C") }
+                            )
+                            FilterChip(
+                                modifier = Modifier.testTag("units-fahrenheit"),
+                                selected = temperatureUnit == "F",
+                                onClick = {
+                                    temperatureUnit = "F"
+                                    preferences.edit().putString(TEMPERATURE_PREF_KEY, "F").apply()
+                                },
+                                label = { Text("Fahrenheit · °F") }
+                            )
+                        }
+                        Text(
+                            "Applies to battery and thermal readings in device details. " +
+                                "Original Android measurements and exports are unchanged.",
+                            color = Muted
+                        )
+                    }
                 }
             },
             confirmButton = {
