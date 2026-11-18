@@ -86,6 +86,10 @@ internal fun ReferenceHistory(
 
     if (showFilter) {
         AlertDialog(
+            // Never allow inherited dark text on a midnight dialog surface.
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
             onDismissRequest = { showFilter = false },
             title = { Text("History filters") },
             text = {
