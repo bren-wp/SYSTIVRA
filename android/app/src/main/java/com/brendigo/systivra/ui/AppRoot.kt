@@ -84,7 +84,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.style.TextGeometricTransform
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -602,7 +602,7 @@ internal fun ReferenceMetricRow(
                         .offset(x = 1.dp, y = 4.dp),
                     // Native Roboto label glyphs render slightly wider than the
                     // original Arial-based 16sp SVG row titles.
-                    style = TextStyle(textGeometricTransform = TextGeometricTransform(scaleX = 0.98f)),
+                    style = LocalTextStyle.current.copy(textGeometricTransform = TextGeometricTransform(scaleX = 0.98f)),
                     fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("Details / availability",
