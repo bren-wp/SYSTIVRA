@@ -60,34 +60,35 @@ internal fun ReferenceBottomBar(
                 .background(Color(0xFF0D192B)),
             verticalAlignment = Alignment.CenterVertically
         ) {
-        entries.forEachIndexed { index, (id, label, _) ->
-            Box(
-                modifier = Modifier.weight(widths[index]).fillMaxHeight()
-                    .testTag("reference-bottom-tab-$id")
-                    .clickable(role = Role.Tab) { onNavigate(id) }
-                    .semantics {
-                        stateDescription = if (selectedTab == id) "Selected" else "Not selected"
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    label,
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(
-                            start = when (index) {
-                                0 -> 30.dp
-                                1, 2 -> 4.dp
-                                else -> 0.dp
-                            },
-                            end = if (index == 3) 8.dp else 0.dp
-                        )
-                        .testTag("reference-bottom-label-$id"),
-                    fontSize = 12.sp,
-                    color = if (selectedTab == id) Cyan else Muted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center
-                )
+            entries.forEachIndexed { index, (id, label, _) ->
+                Box(
+                    modifier = Modifier.weight(widths[index]).fillMaxHeight()
+                        .testTag("reference-bottom-tab-$id")
+                        .clickable(role = Role.Tab) { onNavigate(id) }
+                        .semantics {
+                            stateDescription = if (selectedTab == id) "Selected" else "Not selected"
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        label,
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(
+                                start = when (index) {
+                                    0 -> 30.dp
+                                    1, 2 -> 4.dp
+                                    else -> 0.dp
+                                },
+                                end = if (index == 3) 8.dp else 0.dp
+                            )
+                            .testTag("reference-bottom-label-$id"),
+                        fontSize = 12.sp,
+                        color = if (selectedTab == id) Cyan else Muted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
         Spacer(Modifier.fillMaxWidth().height(8.dp))
