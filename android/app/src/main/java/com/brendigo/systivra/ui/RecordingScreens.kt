@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -81,14 +82,22 @@ fun RecordingSessionScreen(
                         val elapsed = (readings.last().time - readings.first().time).coerceAtLeast(0L)
                         Text("Recorded span: " + (elapsed / 1000L).toString() + " seconds", color = Muted)
                     }
-                    Button(enabled = ready, onClick = toggle) { Text(if (active) "Stop recording" else if (ready) "Start recording" else "Loading saved history…") }
-                    Button(enabled = ready && !active && readings.isNotEmpty(), onClick = { confirmClear = true }) { Text("Delete all saved recordings") }
+                    Button(enabled = ready, colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = toggle) { Text(if (active) "Stop recording" else if (ready) "Start recording" else "Loading saved history…") }
+                    Button(enabled = ready && !active && readings.isNotEmpty(), colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = { confirmClear = true }) { Text("Delete all saved recordings") }
                 }
             }
         }
-        item { Button(enabled = readings.isNotEmpty(), onClick = { open("session-analysis") }) { Text("Analyze recorded samples") } }
+        item { Button(enabled = readings.isNotEmpty(), colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = { open("session-analysis") }) { Text("Analyze recorded samples") } }
         item { Button(onClick = { open("recording-library") }) { Text("Open Recording Library") } }
-        item { Button(enabled = readings.isNotEmpty(), onClick = { open("reports-export") }) { Text("Export current session") } }
+        item { Button(enabled = readings.isNotEmpty(), colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = Raised, disabledContentColor = Muted
+                    ), onClick = { open("reports-export") }) { Text("Export current session") } }
         item { Text("Sampling pauses when SYSTIVRA leaves the foreground. At most 900 entries are retained locally. Database backup is disabled.", color = Muted, fontSize = 12.sp) }
         if (storageError != null) item { Text(storageError, color = Cyan, fontSize = 12.sp) }
     }
