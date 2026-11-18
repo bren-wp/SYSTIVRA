@@ -64,7 +64,10 @@ internal val SystivraDarkColorScheme = darkColorScheme(
     onPrimary = Background,
     primaryContainer = Color(0xFF153B68),
     onPrimaryContainer = TextPrimary,
-    secondary = Purple,
+    // Material 3 filled-secondary controls need readable light labels.
+    // The original #8B5CF6 brand Purple remains unchanged in reference art.
+    // This slightly deeper interactive fill reaches >=4.5:1 with TextPrimary.
+    secondary = Color(0xFF794BF0),
     onSecondary = TextPrimary,
     secondaryContainer = Color(0xFF34245B),
     onSecondaryContainer = TextPrimary,
