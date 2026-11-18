@@ -167,14 +167,18 @@ Every milestone is designed to publish:
 
 See [Releases](https://github.com/bren-wp/SYSTIVRA/releases) for builds. Preview builds are **not production-certified**. Release automation will not publish artifacts when compilation or unit tests fail.
 
+## 🔎 Security, dead-code and visual QA audit — 18 November 2026
+
+The [full source-level audit and per-screen evidence matrix](docs/AUDIT-2026-11-18.md) covers local recording backpressure, Android 12+ cloud/device-transfer privacy, error-message redaction, permission/export checks, navigation completeness, CSS/Kotlin dead-code candidates and 36 native 390×844 screenshot comparisons. CI runs [the deterministic security/dead-code gate](tools/audit-android-surface.py). This is **not an external security certification, complete transitive CVE scan, or 1:1 design sign-off**. The Play release AAB remains unsigned without the user-controlled upload key.
+
 ## 🧪 Quality & roadmap
 
 **v0.9 identity migration:** every Kotlin package, source path, instrumented test, `namespace`, `applicationId` and screenshot test identifier was migrated to `com.brendigo.systivra`. CI refuses builds with mismatched IDs. This creates a **new app identity** in Google Play; installations and local recordings from the old ID do not transfer automatically. Previous preview APKs must not be used to test the new application identity.
 
-**Dependencies:** stable AGP 9.4.0, Gradle 9.9.1 (security fixes), Kotlin 2.4.21, Compose BOM 2026.09.00, coroutines 1.11.0, Activity 1.13.0, Lifecycle 2.11.0. See [dependency audit](docs/DEPENDENCY-AUDIT-2026-11.md).
+**Dependencies:** pinned AGP 9.5.1, Gradle 9.9.1 (security fixes), Kotlin 2.4.21, Compose BOM 2026.09.00, coroutines 1.11.0, Activity 1.13.0, Lifecycle 2.11.0. See [dependency audit](docs/DEPENDENCY-AUDIT-2026-11.md).
 
 
-Dependency security and version status: [November 2026 stable dependency audit](docs/DEPENDENCY-AUDIT-2026-11.md). Stable AGP 9.4.0 and AndroidX SplashScreen 1.2.0; optional Usage Access now includes an affirmative explanation before Android system settings.
+Dependency security and version status: [November 2026 stable dependency audit](docs/DEPENDENCY-AUDIT-2026-11.md). Pinned AGP 9.5.1 and AndroidX SplashScreen 1.2.0; optional Usage Access now includes an affirmative explanation before Android system settings.
 
 
 The [37-screen implementation matrix](docs/SCREEN-STATUS.md) tracks each route and the as-yet unverified 1:1 pixel comparisons. A dedicated [Android emulator capture workflow](.github/workflows/android-screenshots.yml) generates real screenshot evidence; these are not interchangeable with concept images.
