@@ -121,7 +121,7 @@ class ReferenceBottomBarTest {
             (tab.bottom - tab.top).value, 1f)
         assertTrue("Tab must not extend below its safe-area host",
             wholeBar.bottom.value >= tab.bottom.value)
-        assertTrue("System navigation area must be reserved below the last tab pixel",
-            (wholeBar.bottom - tab.bottom).value >= navigationInsetDp - 1f)
+        assertTrue("System navigation and an 8dp visual gutter must be below the tab targets",
+            (wholeBar.bottom - tab.bottom).value >= navigationInsetDp + 8f - 1f)
     }
 }

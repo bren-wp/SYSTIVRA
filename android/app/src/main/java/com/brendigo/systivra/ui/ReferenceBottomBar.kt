@@ -3,6 +3,8 @@ package com.brendigo.systivra.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,16 +46,20 @@ internal fun ReferenceBottomBar(
     // SVG-derived touch-region boundaries at x=0,120,216,300,390.
     // Ratios preserve the visual anchors without absolute-positioned hit targets.
     val widths = listOf(120f, 96f, 84f, 90f)
-    Row(
+    // Separate the application's own four tabs from Android's Back/Home/Recents
+    // or gesture handle. A dark 8dp visual gutter remains on pre-edge-to-edge
+    // devices, while navigationBarsPadding reserves the actual system inset.
+    Column(
         modifier = Modifier.fillMaxWidth()
             .testTag("reference-bottom-safe-area")
-            .background(Color(0xFF0D192B))
-            // Paint behind the gesture zone, but keep all 62dp tab hit targets above it.
-            // This automatically becomes a no-op when Android already fits system bars.
+            .background(Color(0xFF08111D))
             .navigationBarsPadding()
-            .height(62.dp),
-        verticalAlignment = Alignment.CenterVertically
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().height(62.dp)
+                .background(Color(0xFF0D192B)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         entries.forEachIndexed { index, (id, label, _) ->
             Box(
                 modifier = Modifier.weight(widths[index]).fillMaxHeight()
@@ -84,5 +90,6 @@ internal fun ReferenceBottomBar(
                 )
             }
         }
+        Spacer(Modifier.fillMaxWidth().height(8.dp))
     }
 }

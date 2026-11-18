@@ -2,7 +2,8 @@
 <resources>
   <style name="Theme.Systivra" parent="android:style/Theme.Material.Light.NoActionBar">
     <item name="android:statusBarColor">#0D1F3F</item>
-    <item name="android:navigationBarColor">#0D192B</item>
+    <item name="android:navigationBarColor">#08111D</item>
+    <item name="android:windowLightNavigationBar">false</item>
     <item name="android:windowLightStatusBar">false</item>
   </style>
   <style name="Theme.Systivra.Starting" parent="Theme.SplashScreen">
