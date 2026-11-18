@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -105,6 +106,7 @@ internal fun ReferenceDetailScreen(
     val selected = selectedLabel?.let { metricDetailForRow(route, it, readings) }
     val filtered = filterDeviceReadings(readings, searchQuery)
     val context = LocalContext.current
+    val fahrenheit = remember(context) { preferredFahrenheit(context) }
 
     fun copyReading(reading: Reading) {
         val available = reading.value?.takeIf(String::isNotBlank) ?: return
@@ -155,7 +157,7 @@ internal fun ReferenceDetailScreen(
                 ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(selectedLabel ?: reading.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text(reading.display, fontSize = 17.sp,
+                        Text(displayReading(reading, fahrenheit), fontSize = 17.sp,
                             color = if (reading.value.isNullOrBlank()) Muted else Mint)
                         Text("Source: ${reading.source}", color = Muted, fontSize = 12.sp)
                         if (!reading.value.isNullOrBlank()) {
@@ -196,7 +198,7 @@ internal fun ReferenceDetailScreen(
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(reading.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                    Text(reading.display, fontSize = 16.sp,
+                    Text(displayReading(reading, fahrenheit), fontSize = 16.sp,
                         color = if (reading.value.isNullOrBlank()) Muted else Cyan)
                     Text("Source: ${reading.source}", color = Muted, fontSize = 11.sp)
                     if (!reading.value.isNullOrBlank()) {
