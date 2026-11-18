@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,9 +48,25 @@ import java.util.TimeZone
  * No storage permissions, Internet access or automatic file writes.
  */
 @Composable
-fun ReportExportScreen(samples: List<DeviceSnapshot>) {
+fun ReportExportScreen(
+    samples: List<DeviceSnapshot>,
+    preferredFormat: String? = null
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    // Action cards on the SVG Reports landing should reveal the matching
+    // functional export control, not always leave the user at the CSV card.
+    LaunchedEffect(preferredFormat) {
+        val item = when (preferredFormat) {
+            "csv" -> 1
+            "json" -> 2
+            "pdf" -> 3
+            "share" -> 4
+            else -> null
+        }
+        if (item != null) listState.scrollToItem(item)
+    }
     var csvResult by remember { mutableStateOf("No report exported yet.") }
     var jsonResult by remember { mutableStateOf("") }
     var pdfResult by remember { mutableStateOf("") }
@@ -118,13 +137,20 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
             }
         }
     }
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(
+        state = listState,
+        contentPadding = PaddingValues(18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         item {
             Text("Session Report", fontWeight = FontWeight.Bold, fontSize = 25.sp)
             Text("Saved recordings remain on this device unless you explicitly export them.", color = Muted)
         }
         item {
-            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+            Card(
+                modifier = Modifier.testTag("report-export-format-csv"),
+                colors = CardDefaults.cardColors(containerColor = Panel)
+            ) {
                 Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("CSV Export", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Cyan)
                     Text("Available samples: " + snapshot.size)
@@ -142,7 +168,10 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
             }
         }
         item {
-            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+            Card(
+                modifier = Modifier.testTag("report-export-format-json"),
+                colors = CardDefaults.cardColors(containerColor = Panel)
+            ) {
                 Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("JSON Export", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Cyan)
                     Text("Export timestamps, battery, memory, thermal and measured CPU load as structured JSON.", color = Muted, fontSize = 13.sp)
@@ -159,7 +188,10 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
             }
         }
         item {
-            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+            Card(
+                modifier = Modifier.testTag("report-export-format-pdf"),
+                colors = CardDefaults.cardColors(containerColor = Panel)
+            ) {
                 Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("PDF Export", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Cyan)
                     Text("Generate a multipage PDF from measured UTC timestamps, charge, temperature, RAM and thermal state.", color = Muted, fontSize = 13.sp)
@@ -176,7 +208,10 @@ fun ReportExportScreen(samples: List<DeviceSnapshot>) {
             }
         }
         item {
-            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+            Card(
+                modifier = Modifier.testTag("report-export-format-share"),
+                colors = CardDefaults.cardColors(containerColor = Panel)
+            ) {
                 Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Android Sharesheet", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Cyan)
                     Text("Share the recorded CSV as text only after choosing the receiving app. No background uploads.", color = Muted, fontSize = 13.sp)

@@ -1,3 +1,7 @@
+## Unreleased fixes (v0.12.0-preview.5)
+- Reports SVG actions select and scroll to matching CSV/JSON/PDF/Sharesheet controls; added Compose emulator navigation checks.
+- Split and bound Splash QA dependency installation for clearer failure diagnosis; retained the authentic Splash verification gate.
+
 # Changelog
 
 ## v0.12.0-preview.5 — per-format export outcomes and CSV safety (2026-11-18)
