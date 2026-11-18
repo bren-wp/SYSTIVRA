@@ -40,9 +40,17 @@ class RecordingSampleGateTest {
         assertEquals(0, gate.pendingCount())
     }
 
-    @Test(expected = IllegalStateException::class)
-    fun releaseWithoutAcquireIsRejected() {
-        RecordingSampleGate().release()
+    @Test fun releaseWithoutAcquireIsRejectedWithoutCorruptingState() {
+        val gate = RecordingSampleGate()
+        try {
+            gate.release()
+            throw AssertionError("An invalid release must throw")
+        } catch (_: IllegalStateException) {
+            assertEquals(0, gate.pendingCount())
+        }
+        assertTrue(gate.tryAcquire())
+        gate.release()
+        assertEquals(0, gate.pendingCount())
     }
 
     @Test(expected = IllegalArgumentException::class)
