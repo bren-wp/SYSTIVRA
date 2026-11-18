@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sensitive local SQLite sessions, app settings and diagnostic verdicts must
+     not be transferred through either cloud backup or device migration.
+     Retained allowBackup=false and fullBackupContent=false cover older APIs. -->
+<data-extraction-rules xmlns:android="http://schemas.android.com/apk/res/android">
+    <cloud-backup>
+        <exclude domain="root" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+    </device-transfer>
+</data-extraction-rules>
