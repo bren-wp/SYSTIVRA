@@ -36,8 +36,8 @@ class ReferenceComponentInteractionAuditTest {
             val icon = rule.onNodeWithTag(
                 "reference-row-icon-$name", useUnmergedTree = true
             ).getUnclippedBoundsInRoot()
-            assertEquals("$name icon width", 18f, icon.width.value, 1.0f)
-            assertEquals("$name icon height", 18f, icon.height.value, 1.0f)
+            assertEquals("$name icon width", 18f, (icon.right - icon.left).value, 1.0f)
+            assertEquals("$name icon height", 18f, (icon.bottom - icon.top).value, 1.0f)
         }
     }
 
@@ -46,7 +46,7 @@ class ReferenceComponentInteractionAuditTest {
         val row = rule.onNodeWithTag("reference-row-memory")
         row.assertHasClickAction()
         val region = row.getUnclippedBoundsInRoot()
-        assertEquals(69f, region.height.value, 1.0f)
+        assertEquals(69f, (region.bottom - region.top).value, 1.0f)
         row.performClick()
         rule.onNodeWithTag("reference-detail-memory-details").assertExists()
     }
