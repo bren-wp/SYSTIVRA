@@ -5,7 +5,10 @@ name: Publish SYSTIVRA v0.12.0 Preview 2
 on:
   push:
     branches: [feat/systivra-v012-preview2-functional-units-icons-ui]
-    paths: [".github/workflows/release-v012-preview2.yml"]
+    paths:
+      - ".github/workflows/release-v012-preview2.yml"
+      - "android/**"
+      - "docs/releases/v0.12.0-preview.2.md"
   workflow_dispatch:
 permissions:
   contents: write
