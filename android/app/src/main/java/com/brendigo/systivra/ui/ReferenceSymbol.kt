@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -34,8 +33,10 @@ internal fun ReferenceSymbol(symbol: String, color: Color, testTag: String) {
         return
     }
     Canvas(
+        // Canvas has no text or content description: it remains decorative
+        // for TalkBack, while its stable tag stays visible to the unmerged
+        // Compose test tree for pixel-exact bounds verification.
         Modifier.size(18.dp)
-            .clearAndSetSemantics { }
             .testTag(testTag)
     ) {
         val step = size.minDimension / 18f
