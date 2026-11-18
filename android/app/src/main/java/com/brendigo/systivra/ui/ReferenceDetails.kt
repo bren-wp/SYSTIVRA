@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.brendigo.systivra.data.DeviceSnapshot
+import com.brendigo.systivra.data.measuredChargePercentages
 import com.brendigo.systivra.data.Reading
 import kotlinx.coroutines.launch
 
@@ -79,13 +80,11 @@ internal val detailReferences = mapOf(
 
 private fun measuredPercentages(route: String, samples: List<DeviceSnapshot>): List<Float> {
     if (route == "memory-details") return samples.mapNotNull(::measuredMemoryUsage)
-    val readings = when (route) {
-        "cpu-details" -> samples.map { it.cpu.firstOrNull { r -> r.name == "System-wide CPU load" } }
-        "battery-details" -> samples.map { it.battery.firstOrNull { r -> r.name == "Charge level" } }
-        else -> emptyList()
-    }
-    return readings.mapNotNull { item ->
-        item?.value?.trim()?.removeSuffix("%")?.trim()?.toFloatOrNull()
+    if (route == "battery-details") return samples.measuredChargePercentages()
+    if (route != "cpu-details") return emptyList()
+    return samples.mapNotNull { sample ->
+        sample.cpu.firstOrNull { it.name == "System-wide CPU load" }
+            ?.value?.trim()?.removeSuffix("%")?.trim()?.toFloatOrNull()
             ?.takeIf { it.isFinite() && it in 0f..100f }
     }
 }
