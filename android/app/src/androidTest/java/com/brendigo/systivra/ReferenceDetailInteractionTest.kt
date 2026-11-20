@@ -7,7 +7,6 @@ import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextInput
 import com.brendigo.systivra.data.Reading
 import com.brendigo.systivra.ui.AppTheme
@@ -95,24 +94,40 @@ class ReferenceDetailInteractionTest {
         rule.runOnIdle { assertEquals("history", destination) }
     }
 
-    @Test fun usersCanFilterTheRealDeviceReadingListOffline() {
+    @Test fun referenceRowOpensQuickReadingWithoutForcedScroll() {
         rule.setContent {
             AppTheme {
                 ReferenceDetailScreen(
+                    route = "cpu-details",
+                    readings = listOf(Reading("ABI", "arm64-v8a", "Android Build")),
+                    samples = emptyList(), open = {}
+                )
+            }
+        }
+        rule.onNodeWithText("Architecture").performClick()
+        rule.onNodeWithTag("selected-metric-cpu-details")
+            .assert(hasAnyDescendant(hasText("arm64-v8a")))
+        rule.onNodeWithText("Close").performClick()
+        rule.onNodeWithTag("selected-metric-cpu-details").assertDoesNotExist()
+    }
+
+    @Test fun usersCanFilterTheDedicatedReadingScreenOffline() {
+        rule.setContent {
+            AppTheme {
+                com.brendigo.systivra.ui.DeviceReadingsBrowser(
                     route = "battery-details",
                     readings = listOf(
                         Reading("Charge level", "77%", "Battery status"),
                         Reading("Voltage", "4.1 V", "Battery voltage")
-                    ),
-                    samples = emptyList(),
-                    open = {}
+                    )
                 )
             }
         }
-        rule.onNodeWithTag("reference-detail-battery-details").performScrollToIndex(10)
         rule.onNodeWithTag("metric-search-battery-details").performTextInput("voltage")
         rule.waitForIdle()
         rule.onNodeWithText("Voltage").assertExists()
         rule.onNodeWithText("4.1 V").assertExists()
+        rule.onNodeWithText("Charge level").assertDoesNotExist()
     }
+
 }

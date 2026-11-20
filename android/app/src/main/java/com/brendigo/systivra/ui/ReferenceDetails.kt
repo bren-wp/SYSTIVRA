@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -29,7 +28,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +42,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.data.measuredChargePercentages
 import com.brendigo.systivra.data.Reading
-import kotlinx.coroutines.launch
 
 /**
  * The 390×844 SVGs in brending/screens are layout references, not device readings.
@@ -98,27 +95,27 @@ internal fun ReferenceDetailScreen(
     open: (String) -> Unit
 ) {
     val spec = detailReferences[route] ?: return
-    val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
     val measured = measuredPercentages(route, samples)
     var selectedLabel by rememberSaveable(route) { mutableStateOf<String?>(null) }
-    var searchQuery by rememberSaveable(route) { mutableStateOf("") }
     val selected = selectedLabel?.let { metricDetailForRow(route, it, readings) }
-    val filtered = filterDeviceReadings(readings, searchQuery)
     val context = LocalContext.current
     val fahrenheit = remember(context) { preferredFahrenheit(context) }
 
-    fun copyReading(reading: Reading) {
-        val available = reading.value?.takeIf(String::isNotBlank) ?: return
-        runCatching {
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-            clipboard?.setPrimaryClip(
-                ClipData.newPlainText("SYSTIVRA device measurement", "${reading.name}: $available")
-            )
-        }
+    if (selectedLabel != null) {
+        val reading = selected
+        ReferenceQuickResultDialog(
+            testTag = "selected-metric-$route",
+            title = selectedLabel.orEmpty(),
+            value = reading?.let { displayReading(it, fahrenheit) } ?: "Unavailable",
+            source = reading?.source,
+            onDismiss = { selectedLabel = null },
+            onCopy = reading?.takeIf { !it.value.isNullOrBlank() }?.let { valid ->
+                { copyMeasurement(context, valid) }
+            }
+        )
     }
+
     LazyColumn(
-        state = listState,
         modifier = Modifier.testTag("reference-detail-$route"),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -126,7 +123,7 @@ internal fun ReferenceDetailScreen(
         item { ReferenceHeading(spec.title, spec.subtitle, spec.description) }
         item {
             if (spec.hasChart) ReferenceMeasuredChart(measured)
-            else ReferenceHeroCard { open(if (route == "device-and-android") "system-overview" else "device-and-android") }
+            else ReferenceHeroCard { open("$route-readings") }
         }
         item { Spacer(Modifier.height(0.dp)) }
         items(spec.rows.size) { index ->
@@ -136,41 +133,39 @@ internal fun ReferenceDetailScreen(
                     open("history")
                 } else {
                     selectedLabel = label
-                    scope.launch { listState.animateScrollToItem(9) }
                 }
             }
         }
-        item { Spacer(Modifier.height(116.dp)) }
         item {
-            Text("Android device readings", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text(
-                "${readings.count { !it.value.isNullOrBlank() }} of ${readings.size} Android values available",
-                color = Muted, fontSize = 12.sp
-            )
+            TextButton(
+                onClick = { open("$route-readings") },
+                modifier = Modifier.fillMaxWidth().testTag("open-readings-$route")
+            ) { Text("All device readings") }
         }
-        item(key = "selected-metric") {
-            selected?.let { reading ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().testTag("selected-metric-$route"),
-                    colors = CardDefaults.cardColors(containerColor = Raised),
-                    border = BorderStroke(1.dp, Color(0xFF36547E))
-                ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(selectedLabel ?: reading.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text(displayReading(reading, fahrenheit), fontSize = 17.sp,
-                            color = if (reading.value.isNullOrBlank()) Muted else Mint)
-                        Text("Source: ${reading.source}", color = Muted, fontSize = 12.sp)
-                        if (!reading.value.isNullOrBlank()) {
-                            TextButton(onClick = { copyReading(reading) }) {
-                                Text("Copy measurement")
-                            }
-                        }
-                        TextButton(onClick = { selectedLabel = null }) {
-                            Text("Back to all readings")
-                        }
-                    }
-                }
-            }
+    }
+}
+
+
+/** A dedicated searchable screen; reference overview pages no longer duplicate
+ * every reading below a 116dp spacer. Readings come from Android only. */
+@Composable
+internal fun DeviceReadingsBrowser(route: String, readings: List<Reading>) {
+    val spec = detailReferences[route] ?: return
+    val context = LocalContext.current
+    val fahrenheit = remember(context) { preferredFahrenheit(context) }
+    var searchQuery by rememberSaveable(route) { mutableStateOf("") }
+    val filtered = filterDeviceReadings(readings, searchQuery)
+    LazyColumn(
+        modifier = Modifier.testTag("readings-browser-$route"),
+        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 14.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        item {
+            Text("${spec.title} readings", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(
+                "${readings.count { !it.value.isNullOrBlank() }} of ${readings.size} Android measurements available",
+                color = Muted
+            )
         }
         item {
             OutlinedTextField(
@@ -182,7 +177,6 @@ internal fun ReferenceDetailScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = TextPrimary,
                     unfocusedTextColor = TextPrimary,
-                    disabledTextColor = Muted,
                     focusedLabelColor = TextPrimary,
                     unfocusedLabelColor = Muted,
                     focusedBorderColor = Cyan,
@@ -196,8 +190,8 @@ internal fun ReferenceDetailScreen(
         if (filtered.isEmpty()) {
             item {
                 Text(
-                    if (readings.isEmpty()) "Waiting for available device readings"
-                    else "No readings match this search",
+                    if (readings.isEmpty()) "No readings are available from Android"
+                    else "No readings match your search",
                     color = Muted
                 )
             }
@@ -208,19 +202,31 @@ internal fun ReferenceDetailScreen(
                 colors = CardDefaults.cardColors(containerColor = Panel),
                 border = BorderStroke(1.dp, Color(0xFF233857))
             ) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(reading.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                    Text(displayReading(reading, fahrenheit), fontSize = 16.sp,
-                        color = if (reading.value.isNullOrBlank()) Muted else Cyan)
-                    Text("Source: ${reading.source}", color = Muted, fontSize = 11.sp)
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text(reading.name, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        displayReading(reading, fahrenheit),
+                        color = if (reading.value.isNullOrBlank()) Muted else Cyan
+                    )
+                    Text("Source: ${reading.source}", color = Muted)
                     if (!reading.value.isNullOrBlank()) {
-                        TextButton(onClick = { copyReading(reading) }) {
+                        TextButton(onClick = { copyMeasurement(context, reading) }) {
                             Text("Copy measurement")
                         }
                     }
                 }
             }
         }
+    }
+}
+
+private fun copyMeasurement(context: Context, reading: Reading) {
+    val available = reading.value?.takeIf(String::isNotBlank) ?: return
+    runCatching {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+        clipboard?.setPrimaryClip(
+            ClipData.newPlainText("SYSTIVRA device measurement", "${reading.name}: $available")
+        )
     }
 }
 
