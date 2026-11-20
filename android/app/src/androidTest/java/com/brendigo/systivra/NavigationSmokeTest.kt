@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
@@ -67,6 +68,17 @@ class NavigationSmokeTest {
         rule.onNodeWithText("Hardware capabilities").assertExists()
         rule.onNodeWithText("Memory and storage").performClick()
         rule.onNodeWithText("Device RAM and internal storage").assertExists()
+    }
+
+    @Test fun focusedDashboardOpensSearchableCatalogInsteadOfLongToolList() {
+        rule.waitForIdle()
+        rule.onNodeWithTag("dashboard-scroll")
+            .performScrollToNode(androidx.compose.ui.test.hasTestTag("dashboard-all-tools"))
+        rule.onNodeWithTag("dashboard-all-tools").performClick()
+        rule.onNodeWithTag("catalog-search").assertExists()
+        rule.onNodeWithTag("catalog-search").performTextInput("charging")
+        rule.onNodeWithText("Charging Analysis").assertExists()
+        rule.onNodeWithText("GPU Details").assertDoesNotExist()
     }
 
     @Test fun nestedBackStackReturnsToHardwareExplorer() {

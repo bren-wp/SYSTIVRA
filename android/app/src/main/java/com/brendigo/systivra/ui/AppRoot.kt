@@ -523,6 +523,12 @@ private fun Dashboard(
                 modifier = Modifier.fillMaxWidth().testTag("dashboard-all-tools")
             ) { Text("All tools") }
         }
+        item {
+            TextButton(
+                onClick = { open("hardware-explorer") },
+                modifier = Modifier.fillMaxWidth().testTag("dashboard-hardware-shortcut")
+            ) { Text("Hardware explorer") }
+        }
     }
 }
 
@@ -1058,7 +1064,13 @@ private fun Settings(open: (String) -> Unit) {
             TextButton(
                 onClick = { open("all-screens") },
                 modifier = Modifier.fillMaxWidth().testTag("settings-all-tools")
-            ) { Text("Browse all tools") }
+            ) { Text("Screen catalog") }
+        }
+        item {
+            TextButton(
+                onClick = { open("about") },
+                modifier = Modifier.fillMaxWidth().testTag("settings-about-shortcut")
+            ) { Text("About SYSTIVRA") }
         }
     }
 }
