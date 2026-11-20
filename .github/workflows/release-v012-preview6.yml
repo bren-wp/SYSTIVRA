@@ -13,6 +13,8 @@ on:
       - "tools/report-surface-luminance.py"
       - "tools/capture-interactive-contrast.sh"
       - ".github/workflows/android-reference-viewport.yml"
+      - ".github/workflows/android-responsive-qa.yml"
+      - ".github/workflows/android-splash-cold-start.yml"
       - "docs/AUDIT-2026-11-18.md"
       - "tools/audit-android-surface.py"
       - "README.md"
