@@ -2,6 +2,13 @@
 - Reports SVG actions select and scroll to matching CSV/JSON/PDF/Sharesheet controls; added Compose emulator navigation checks.
 - Split and bound Splash QA dependency installation for clearer failure diagnosis; retained the authentic Splash verification gate.
 
+## v0.12.0-preview.6 — Android navigation, accessibility and native SVG luminance QA (2026-11-20)
+- Maintained the reference 62dp application tab strip and 8dp safe gutter above Android's actual navigation controls, with a full-app Compose geometry regression.
+- Exposed selected tabs through accessibility-correct Compose `selectable` semantics, with real UI interaction regressions.
+- Fixed unrelated hero-card shortcuts on generic reference landing screens, now opening the relevant primary action.
+- Added per-screen signed brightness deltas and an unambiguous app-only tab-strip color comparison against original SVGs; full-screen pixel diffs remain untouched.
+- Bumped versionCode to **20**, versionName to **0.12.0-preview.6**. Exact-SHA lint, emulator, responsive, visual and Splash gates are mandatory; 1:1 and Play signing are not certified.
+
 # Changelog
 
 ## v0.12.0-preview.5 — per-format export outcomes and CSV safety (2026-11-18)

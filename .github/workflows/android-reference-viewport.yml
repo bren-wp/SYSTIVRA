@@ -12,6 +12,7 @@ on:
       - "android/app/src/test/**"
       - "tools/capture-reference-viewport.sh"
       - "tools/visual-diff.py"
+      - "tools/report-surface-luminance.py"
       - "tools/report-typography-baselines.py"
       - "tools/report-screen-regions.py"
       - "tools/audit-native-screen-ink.py"
@@ -32,6 +33,7 @@ on:
       - "tools/render-reference-viewport.py"
       - "tools/summarize-visual-qa.py"
       - "tools/visual-diff.py"
+      - "tools/report-surface-luminance.py"
       - "tools/report-typography-baselines.py"
       - "brending/screens/**"
 permissions:
@@ -107,6 +109,11 @@ jobs:
             --actual qa/reference-viewport/screenshots \
             --output qa/reference-viewport/diff
           cat qa/reference-viewport/diff/regions.md >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/report-surface-luminance.py \
+            --reference qa/reference-viewport/references \
+            --actual qa/reference-viewport/screenshots \
+            --output qa/reference-viewport/diff
+          cat qa/reference-viewport/diff/surface-luminance.md >> "$GITHUB_STEP_SUMMARY"
           python3 tools/audit-native-screen-ink.py \
             --screenshots qa/reference-viewport/screenshots \
             --output qa/reference-viewport/diff
