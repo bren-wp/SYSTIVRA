@@ -2,6 +2,8 @@ package com.brendigo.systivra
 
 import android.content.Context
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -52,9 +54,11 @@ class TemperaturePreferenceInteractionTest {
         rule.onNodeWithText("Close").performClick()
         rule.onNodeWithTag("reference-bottom-tab-dashboard").performClick()
         rule.onNodeWithText("Battery").performClick()
-        rule.onNodeWithTag("reference-detail-battery-details")
-            .performScrollToNode(hasText("95.0 °F"))
-        rule.onNodeWithText("95.0 °F").assertExists()
+        // A single tap now reveals the temperature without a long scroll
+        // through duplicated raw readings below the reference overview.
+        rule.onNodeWithText("Battery temperature").performClick()
+        rule.onNodeWithTag("selected-metric-battery-details")
+            .assert(hasAnyDescendant(hasText("95.0 °F")))
     }
 
     @Test fun settingsUnitsCanReturnToCelsiusWithoutResettingOtherPreferences() {

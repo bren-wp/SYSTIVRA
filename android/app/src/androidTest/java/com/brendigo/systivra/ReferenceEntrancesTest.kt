@@ -31,6 +31,14 @@ class ReferenceEntrancesTest {
         }
     }
 
+    @Test fun referenceOverviewHasItsOwnFocusedReadingsScreen() {
+        launch("gpu-details")
+        rule.onNodeWithTag("reference-hero").performClick()
+        rule.onNodeWithTag("readings-browser-gpu-details").assertExists()
+        rule.onNodeWithTag("metric-search-gpu-details").assertExists()
+        rule.onNodeWithText("GPU Details readings").assertExists()
+    }
+
     @Test fun referenceLandingHeroOpensTheRelatedActionInsteadOfUnrelatedDeviceDetails() {
         launch("network-details")
         rule.onNodeWithTag("reference-hero").performClick()

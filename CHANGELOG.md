@@ -2,6 +2,14 @@
 - Reports SVG actions select and scroll to matching CSV/JSON/PDF/Sharesheet controls; added Compose emulator navigation checks.
 - Split and bound Splash QA dependency installation for clearer failure diagnosis; retained the authentic Splash verification gate.
 
+## v0.12.0-preview.7 — focused functional screens and reduced scrolling (2026-11-20)
+- Removed redundant 116dp vertical gaps and long secondary inline controls/readings from primary hardware, benchmark, sensor and privacy reference-overview routes. First reference hero/four-row layout remains.
+- Quick Android measurement/result dialog on tap with actual source and optional copy, no automatic scroll-to-index. Preserved unavailability without fake values.
+- Added nine own-purpose searchable Android metric browsers, accessible from corresponding overview, and maintained deep-linkable navigation routes.
+- Reduced Dashboard and Settings to their main actions plus essential shortcuts (Hardware Explorer, feature catalog, About), preserving screen catalog search and complete navigation.
+- Added emulator tests for no-scroll metric interaction, offline reading search, feature catalog search, persisted Fahrenheit conversion, and all nine real reading routes.
+- versionCode **21**, versionName **0.12.0-preview.7**. Exact-SHA Android/emulator/visual/Splash/responsive release gate; original SVG references stay unchanged.
+
 ## v0.12.0-preview.6 — Android navigation, accessibility and native SVG luminance QA (2026-11-20)
 - Maintained the reference 62dp application tab strip and 8dp safe gutter above Android's actual navigation controls, with a full-app Compose geometry regression.
 - Exposed selected tabs through accessibility-correct Compose `selectable` semantics, with real UI interaction regressions.

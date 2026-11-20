@@ -19,6 +19,10 @@ class AllScreensSmokeTest {
     private val routes = listOf(
         "dashboard", "hardware-explorer", "system-health", "privacy-center",
         "cpu-details", "cpu-cores", "gpu-details", "memory-details",
+        "cpu-details-readings", "gpu-details-readings", "memory-details-readings",
+        "storage-details-readings", "battery-details-readings", "thermal-details-readings",
+        "display-details-readings", "device-and-android-readings",
+        "sensor-explorer-readings",
         "storage-details", "battery-details", "charging-analysis",
         "thermal-details", "display-details", "device-and-android",
         "network-details", "sensor-explorer", "sensor-live", "app-usage",

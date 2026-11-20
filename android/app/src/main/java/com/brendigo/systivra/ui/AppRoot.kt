@@ -124,6 +124,15 @@ private val sections = listOf(
     "device-and-android" to "Device & Android",
     "network-details" to "Network Details",
     "sensor-explorer" to "Sensor Explorer",
+    "cpu-details-readings" to "CPU Readings",
+    "gpu-details-readings" to "GPU Readings",
+    "memory-details-readings" to "Memory Readings",
+    "storage-details-readings" to "Storage Readings",
+    "battery-details-readings" to "Battery Readings",
+    "thermal-details-readings" to "Thermal Readings",
+    "display-details-readings" to "Display Readings",
+    "device-and-android-readings" to "Device Readings",
+    "sensor-explorer-readings" to "Sensor Readings",
     "sensor-live" to "Sensor Live View",
     "app-usage" to "App Usage",
     "live-monitor" to "Live Monitor",
@@ -176,6 +185,10 @@ private val enabledRoutes = setOf(
     "dashboard", "hardware-explorer", "cpu-details", "gpu-details",
     "memory-details", "storage-details", "battery-details", "thermal-details",
     "display-details", "device-and-android", "sensor-explorer", "live-monitor",
+    "cpu-details-readings", "gpu-details-readings", "memory-details-readings",
+    "storage-details-readings", "battery-details-readings", "thermal-details-readings",
+    "display-details-readings", "device-and-android-readings",
+    "sensor-explorer-readings",
     "diagnostics-center", "component-test", "history", "settings",
     "about", "device-detection", "system-overview",
     "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
@@ -456,6 +469,15 @@ fun AppRoot(
                     "system-overview" -> MetricScreen(snapshot.system, "Device identifiers and Android version")
 
                     "sensor-explorer" -> ReferenceDetailScreen("sensor-explorer", snapshot.sensors, samples, ::open)
+                    "cpu-details-readings" -> DeviceReadingsBrowser("cpu-details", snapshot.cpu)
+                    "gpu-details-readings" -> DeviceReadingsBrowser("gpu-details", snapshot.gpu)
+                    "memory-details-readings" -> DeviceReadingsBrowser("memory-details", snapshot.ram)
+                    "storage-details-readings" -> DeviceReadingsBrowser("storage-details", snapshot.storage)
+                    "battery-details-readings" -> DeviceReadingsBrowser("battery-details", snapshot.battery)
+                    "thermal-details-readings" -> DeviceReadingsBrowser("thermal-details", snapshot.thermal)
+                    "display-details-readings" -> DeviceReadingsBrowser("display-details", snapshot.display)
+                    "device-and-android-readings" -> DeviceReadingsBrowser("device-and-android", snapshot.system)
+                    "sensor-explorer-readings" -> DeviceReadingsBrowser("sensor-explorer", snapshot.sensors)
                     else -> Planned(sections.firstOrNull { it.first == route }?.second ?: "Feature")
                 }
             }
@@ -488,25 +510,20 @@ private fun Dashboard(
                 open(path)
             }
         }
-        item { Spacer(Modifier.height(116.dp)) }
+        // Dashboard has one task: show the overview and four primary metrics.
+        // All the previous "More tools" links remain reachable in one
+        // searchable feature catalog, not a long second scroll below the fold.
         item {
-            Text(
-                "More tools", fontSize = 18.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
+            TextButton(
+                onClick = { open("all-screens") },
+                modifier = Modifier.fillMaxWidth().testTag("dashboard-all-tools")
+            ) { Text("All tools") }
         }
-        item { LinkCard("Hardware explorer", "CPU, GPU, sensors and device properties") { open("hardware-explorer") } }
-        item { LinkCard("Monitoring", "Real device readings from Android") { open("live-monitor") } }
-        item { LinkCard("Charging analysis", "Recorded battery data") { open("charging-analysis") } }
-        item { LinkCard("CPU core inspector", "Supported cores and available metrics") { open("cpu-cores") } }
-        item { LinkCard("Diagnostics", "User-confirmed, on-device checks") { open("diagnostics-center") } }
-        item { LinkCard("Session insights", "Analyze your saved readings") { open("session-insights") } }
-        item { LinkCard("Storage and memory", "Details of actual device capacity") { open("storage-details") } }
         item {
-            Text(
-                "Real measurements are displayed on detail screens only when Android reports them.",
-                color = Muted, fontSize = 12.sp
-            )
+            TextButton(
+                onClick = { open("hardware-explorer") },
+                modifier = Modifier.fillMaxWidth().testTag("dashboard-hardware-shortcut")
+            ) { Text("Hardware explorer") }
         }
     }
 }
@@ -1037,31 +1054,54 @@ private fun Settings(open: (String) -> Unit) {
         item { ReferenceMetricRow("Update interval", "▤", 1) { activeDialog = "Update interval" } }
         item { ReferenceMetricRow("Units", "◉", 2) { activeDialog = "Units" } }
         item { ReferenceMetricRow("Privacy", "⌁", 3) { open("privacy-center") } }
-        item { Spacer(Modifier.height(116.dp)) }
-        item { Text("More tools", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
-        item { LinkCard("Reports · CSV & JSON", "Export locally recorded readings") { open("reports-export") } }
-        item { LinkCard("Session Insights", "Battery trends and measured thermal statistics") { open("session-insights") } }
-        item { LinkCard("Recording Library", "View, export or delete selected recordings") { open("recording-library") } }
-        item { LinkCard("System Health", "Measurement availability, not a fabricated score") { open("system-health") } }
-        item { LinkCard("Privacy Center", "Review access and local data policy") { open("privacy-center") } }
-        item { LinkCard("Screen catalog", "Browse available screens and tools") { open("all-screens") } }
-        item { LinkCard("Hardware Explorer", "See device data") { open("hardware-explorer") } }
-        item { LinkCard("Network state", "See active connection without network requests") { open("network-details") } }
-        item { LinkCard("App Usage", "Optional system Usage Access") { open("app-usage") } }
-        item { LinkCard("Alerts", "Local battery and thermal thresholds") { open("alerts") } }
-        item { LinkCard("Permission Center", "See granted Android access") { open("permission-center") } }
-        item { LinkCard("About SYSTIVRA", "Version, privacy and source limitations") { open("about") } }
+        // Settings is for preferences; the large list of unrelated feature
+        // shortcuts belongs in Screen Catalog, searchable by feature name.
+        item {
+            TextButton(
+                onClick = { open("all-screens") },
+                modifier = Modifier.fillMaxWidth().testTag("settings-all-tools")
+            ) { Text("Screen catalog") }
+        }
+        item {
+            TextButton(
+                onClick = { open("about") },
+                modifier = Modifier.fillMaxWidth().testTag("settings-about-shortcut")
+            ) { Text("About SYSTIVRA") }
+        }
     }
 }
 
 @Composable
 private fun ScreenCatalog(open: (String) -> Unit) {
-    LazyColumn(modifier = Modifier.testTag("screen-catalog-scroll"), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { Text("Available screens and device tools", color = Muted) }
-        items(sections.filter { enabledRoutes.contains(it.first) }) { (id, label) ->
-            LinkCard(label, "Open $label") {
-                open(id)
+    var query by rememberSaveable { mutableStateOf("") }
+    val available = sections.filter { enabledRoutes.contains(it.first) }
+    val matches = available.filter { (_, label) -> label.contains(query.trim(), ignoreCase = true) }
+    LazyColumn(
+        modifier = Modifier.testTag("screen-catalog-scroll"),
+        contentPadding = PaddingValues(18.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        item {
+            Text("Find a function", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+            Text("Each tool opens its own focused screen.", color = Muted)
+        }
+        item {
+            androidx.compose.material3.OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.fillMaxWidth().testTag("catalog-search"),
+                label = { Text("Search tools") },
+                placeholder = { Text("Battery, reports, diagnostics…") },
+                singleLine = true
+            )
+        }
+        if (matches.isEmpty()) {
+            item {
+                Text("No matching tools. Try another word.", color = Muted)
             }
+        }
+        items(matches, key = { it.first }) { (id, label) ->
+            LinkCard(label, "Open $label") { open(id) }
         }
     }
 }
