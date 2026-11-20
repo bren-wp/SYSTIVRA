@@ -185,6 +185,10 @@ private val enabledRoutes = setOf(
     "dashboard", "hardware-explorer", "cpu-details", "gpu-details",
     "memory-details", "storage-details", "battery-details", "thermal-details",
     "display-details", "device-and-android", "sensor-explorer", "live-monitor",
+    "cpu-details-readings", "gpu-details-readings", "memory-details-readings",
+    "storage-details-readings", "battery-details-readings", "thermal-details-readings",
+    "display-details-readings", "device-and-android-readings",
+    "sensor-explorer-readings",
     "diagnostics-center", "component-test", "history", "settings",
     "about", "device-detection", "system-overview",
     "system-health", "privacy-center", "cpu-cores", "charging-analysis", "metric-fullscreen", "reports-export",
@@ -465,23 +469,15 @@ fun AppRoot(
                     "system-overview" -> MetricScreen(snapshot.system, "Device identifiers and Android version")
 
                     "sensor-explorer" -> ReferenceDetailScreen("sensor-explorer", snapshot.sensors, samples, ::open)
-                    "cpu-details-readings", "gpu-details-readings", "memory-details-readings",
-                    "storage-details-readings", "battery-details-readings", "thermal-details-readings",
-                    "display-details-readings", "device-and-android-readings",
-                    "sensor-explorer-readings" -> DeviceReadingsBrowser(
-                        route = route.removeSuffix("-readings"),
-                        readings = when (route) {
-                            "cpu-details-readings" -> snapshot.cpu
-                            "gpu-details-readings" -> snapshot.gpu
-                            "memory-details-readings" -> snapshot.ram
-                            "storage-details-readings" -> snapshot.storage
-                            "battery-details-readings" -> snapshot.battery
-                            "thermal-details-readings" -> snapshot.thermal
-                            "display-details-readings" -> snapshot.display
-                            "device-and-android-readings" -> snapshot.system
-                            else -> snapshot.sensors
-                        }
-                    )
+                    "cpu-details-readings" -> DeviceReadingsBrowser("cpu-details", snapshot.cpu)
+                    "gpu-details-readings" -> DeviceReadingsBrowser("gpu-details", snapshot.gpu)
+                    "memory-details-readings" -> DeviceReadingsBrowser("memory-details", snapshot.ram)
+                    "storage-details-readings" -> DeviceReadingsBrowser("storage-details", snapshot.storage)
+                    "battery-details-readings" -> DeviceReadingsBrowser("battery-details", snapshot.battery)
+                    "thermal-details-readings" -> DeviceReadingsBrowser("thermal-details", snapshot.thermal)
+                    "display-details-readings" -> DeviceReadingsBrowser("display-details", snapshot.display)
+                    "device-and-android-readings" -> DeviceReadingsBrowser("device-and-android", snapshot.system)
+                    "sensor-explorer-readings" -> DeviceReadingsBrowser("sensor-explorer", snapshot.sensors)
                     else -> Planned(sections.firstOrNull { it.first == route }?.second ?: "Feature")
                 }
             }
