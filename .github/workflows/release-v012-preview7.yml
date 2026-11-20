@@ -4,7 +4,7 @@ name: Publish SYSTIVRA v0.12.0 Preview 7
 # Debug APK / unsigned AAB, NOT a Play-signed or 1:1 certified release.
 on:
   push:
-    branches: [feat/systivra-v012-preview7-nav-visual-accessibility]
+    branches: [feat/systivra-v012-preview7-focused-screens]
     paths:
       - ".github/workflows/release-v012-preview7.yml"
       - "android/**"
