@@ -10,6 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -90,6 +93,57 @@ class ReferenceBottomBarTest {
             assertEquals("$id SVG center anchor", centerX,
                 (label.left.value + label.right.value) / 2f, 1f)
         }
+    }
+
+
+    @Test fun tabsExposeActualSelectedStateToAndroidAccessibility() {
+        rule.setContent {
+            Box(Modifier.fillMaxSize()) {
+                AppRoot(
+                    snapshot = DeviceSnapshot.empty(),
+                    samples = emptyList(),
+                    recorded = emptyList(),
+                    isRecording = false,
+                    onToggleRecording = {},
+                    onClearRecording = {}
+                )
+            }
+        }
+        rule.onNodeWithTag("reference-bottom-tab-dashboard").assertIsSelected()
+        rule.onNodeWithTag("reference-bottom-tab-settings").assertIsNotSelected()
+        rule.onNodeWithTag("reference-bottom-tab-settings").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("reference-bottom-tab-settings").assertIsSelected()
+        rule.onNodeWithTag("reference-bottom-tab-dashboard").assertIsNotSelected()
+    }
+
+    @Test fun fullAppBottomBarIsAnchoredAndAlwaysLeavesItsSystemSafetyGutter() {
+        var navigationInsetDp = 0f
+        rule.setContent {
+            val density = LocalDensity.current
+            navigationInsetDp = with(density) {
+                WindowInsets.navigationBars.getBottom(density).toDp().value
+            }
+            Box(Modifier.fillMaxSize()) {
+                AppRoot(
+                    snapshot = DeviceSnapshot.empty(),
+                    samples = emptyList(),
+                    recorded = emptyList(),
+                    isRecording = false,
+                    onToggleRecording = {},
+                    onClearRecording = {}
+                )
+            }
+        }
+        val root = rule.onRoot().getUnclippedBoundsInRoot()
+        val host = rule.onNodeWithTag("reference-bottom-safe-area").getUnclippedBoundsInRoot()
+        val tab = rule.onNodeWithTag("reference-bottom-tab-dashboard").getUnclippedBoundsInRoot()
+        assertEquals("Bottom bar must be anchored at the viewport bottom",
+            root.bottom.value, host.bottom.value, 1f)
+        assertTrue("No app tab may enter the Android system control zone",
+            (root.bottom - tab.bottom).value >= navigationInsetDp + 8f - 1f)
+        assertEquals("Tab target retains SVG's 62dp geometry",
+            62f, (tab.bottom - tab.top).value, 1f)
     }
 
     @Test fun navigationTabsReserveTheActualAndroidSystemBottomInset() {

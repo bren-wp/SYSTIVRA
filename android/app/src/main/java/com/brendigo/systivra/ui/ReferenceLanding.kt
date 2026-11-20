@@ -37,7 +37,11 @@ internal fun ReferenceLanding(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item { ReferenceHeading(title, subtitle, caption) }
-        item { ReferenceHeroCard { open("device-and-android") } }
+        item {
+            // The shared reference hero is a primary action for this route,
+            // not an unrelated shortcut to Device & Android on every screen.
+            ReferenceHeroCard { open(actions.first().destination) }
+        }
         item { Spacer(Modifier.height(0.dp)) }
         itemsIndexed(actions) { index, action ->
             ReferenceMetricRow(
