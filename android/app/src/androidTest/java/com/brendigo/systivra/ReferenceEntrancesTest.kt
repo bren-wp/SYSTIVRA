@@ -31,6 +31,18 @@ class ReferenceEntrancesTest {
         }
     }
 
+    @Test fun referenceLandingHeroOpensTheRelatedActionInsteadOfUnrelatedDeviceDetails() {
+        launch("network-details")
+        rule.onNodeWithTag("reference-hero").performClick()
+        rule.onNodeWithText("Network status").assertExists()
+    }
+
+    @Test fun reportsHeroIsAWorkingShortcutToTheCsvExportControls() {
+        launch("reports-export")
+        rule.onNodeWithTag("reference-hero").performClick()
+        rule.onNodeWithTag("report-export-format-csv").assertIsDisplayed()
+    }
+
     @Test fun reportSvgPdfActionFocusesItsActualPdfExportControl() {
         launch("reports-export")
         rule.onNodeWithTag("reference-landing-reports-export").assertExists()

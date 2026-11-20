@@ -1,7 +1,7 @@
 package com.brendigo.systivra.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,8 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,6 +30,9 @@ import androidx.compose.ui.unit.sp
  * Each label is laid out INSIDE its own clickable region, rather than visually
  * translating the text into the next tab's hit target. The regions scale with
  * the available width, while text ellipsizes at high accessibility font scales.
+ *
+ * Android TalkBack exposes the selected tab through Compose selectable
+ * semantics; the original visual colors and 390dp glyph centers are unchanged.
  *
  * The 62dp design bar sits ABOVE Android's own gesture/3-button navigation
  * zone. Android 15+/target 35+ can draw apps edge-to-edge; reserve the system
@@ -64,10 +65,11 @@ internal fun ReferenceBottomBar(
                 Box(
                     modifier = Modifier.weight(widths[index]).fillMaxHeight()
                         .testTag("reference-bottom-tab-$id")
-                        .clickable(role = Role.Tab) { onNavigate(id) }
-                        .semantics {
-                            stateDescription = if (selectedTab == id) "Selected" else "Not selected"
-                        },
+                        .selectable(
+                            selected = selectedTab == id,
+                            role = Role.Tab,
+                            onClick = { onNavigate(id) }
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
