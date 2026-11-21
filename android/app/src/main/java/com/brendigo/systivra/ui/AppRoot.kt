@@ -438,7 +438,7 @@ fun AppRoot(
                     "history" -> ReferenceHistory(samples, savedSessions, onSelectSession, ::open)
                     "settings" -> Settings(::open)
                     "about" -> About(::open)
-                    "all-screens" -> ScreenCatalog(::open)
+                    "all-screens" -> ScreenCatalog(sections, enabledRoutes, ::open)
 
                     "cpu-details" -> ReferenceDetailScreen("cpu-details", snapshot.cpu, samples, ::open)
 
