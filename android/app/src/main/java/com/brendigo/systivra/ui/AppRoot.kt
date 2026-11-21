@@ -323,7 +323,8 @@ fun AppRoot(
                     )
                     "reports-export-controls" -> ReportExportScreen(
                         if (selectedSessionId == null) recorded else selectedSessionSamples,
-                        preferredFormat = reportPreferredFormat
+                        preferredFormat = reportPreferredFormat,
+                        onStartRecording = { open("recording-session") }
                     )
                     "sensor-live" -> NextPriorityReferenceScreen(
                         "sensor-live", snapshot, samples, benchmark,

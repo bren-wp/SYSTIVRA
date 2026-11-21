@@ -7,7 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -66,7 +65,7 @@ fun ReportExportScreen(
         mutableStateOf(preferredFormat?.takeIf { it in formats } ?: "csv")
     }
     LaunchedEffect(preferredFormat) {
-        if (preferredFormat in formats) selectedFormat = preferredFormat!!
+        preferredFormat?.takeIf { it in formats }?.let { selectedFormat = it }
     }
     var csvResult by remember { mutableStateOf("No report exported yet.") }
     var jsonResult by remember { mutableStateOf("") }
