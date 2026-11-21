@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -115,20 +116,16 @@ internal fun ReferenceDetailScreen(
         )
     }
 
-    LazyColumn(
-        modifier = Modifier.testTag("reference-detail-$route"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("reference-detail-$route")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading(spec.title, spec.subtitle, spec.description) }
-        item {
-            if (spec.hasChart) ReferenceMeasuredChart(measured)
-            else ReferenceHeroCard { open("$route-readings") }
-        }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(spec.rows.size) { index ->
-            ReferenceMetricRow(spec.rows[index], listOf("◇", "▤", "◉", "⌁")[index], index) {
-                val label = spec.rows[index]
+        ReferenceHeading(spec.title, spec.subtitle, spec.description)
+        if (spec.hasChart) ReferenceMeasuredChart(measured)
+        else ReferenceHeroCard { open("$route-readings") }
+        spec.rows.forEachIndexed { index, label ->
+            ReferenceMetricRow(label, listOf("◇", "▤", "◉", "⌁")[index], index) {
                 if (route == "memory-details" && label == "History") {
                     open("history")
                 } else {
@@ -136,12 +133,10 @@ internal fun ReferenceDetailScreen(
                 }
             }
         }
-        item {
-            TextButton(
-                onClick = { open("$route-readings") },
-                modifier = Modifier.fillMaxWidth().testTag("open-readings-$route")
-            ) { Text("All device readings") }
-        }
+        TextButton(
+            onClick = { open("$route-readings") },
+            modifier = Modifier.fillMaxWidth().testTag("open-readings-$route")
+        ) { Text("All device readings") }
     }
 }
 
