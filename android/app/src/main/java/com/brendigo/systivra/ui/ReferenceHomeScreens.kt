@@ -21,6 +21,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Storage
@@ -52,39 +57,55 @@ internal fun Dashboard(
     samples: List<DeviceSnapshot>,
     open: (String) -> Unit
 ) {
+    var showActions by rememberSaveable { mutableStateOf(false) }
     val primary = listOf(
         Triple("Memory", "◇", "memory-details"),
         Triple("Storage", "▤", "storage-details"),
         Triple("Battery", "◉", "battery-details"),
         Triple("Thermal status", "⌁", "thermal-details")
     )
-    LazyColumn(
-        modifier = Modifier.testTag("dashboard-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    if (showActions) {
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { showActions = false },
+            title = { Text("Device shortcuts") },
+            text = {
+                Column {
+                    TextButton(onClick = {
+                        showActions = false
+                        open("device-and-android")
+                    }, modifier = Modifier.fillMaxWidth()) { Text("Device & Android") }
+                    TextButton(onClick = {
+                        showActions = false
+                        open("all-screens")
+                    }, modifier = Modifier.fillMaxWidth().testTag("dashboard-all-tools")) {
+                        Text("All tools")
+                    }
+                    TextButton(onClick = {
+                        showActions = false
+                        open("hardware-explorer")
+                    }, modifier = Modifier.fillMaxWidth().testTag("dashboard-hardware-shortcut")) {
+                        Text("Hardware explorer")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showActions = false }) { Text("Close") }
+            }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("dashboard-page")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading("Dashboard", "Your device at a glance", "Live information") }
-        item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(primary) { (label, symbol, path) ->
-            ReferenceMetricRow(label, symbol, primary.indexOfFirst { it.first == label }) {
-                open(path)
-            }
-        }
-        // Dashboard has one task: show the overview and four primary metrics.
-        // All the previous "More tools" links remain reachable in one
-        // searchable feature catalog, not a long second scroll below the fold.
-        item {
-            TextButton(
-                onClick = { open("all-screens") },
-                modifier = Modifier.fillMaxWidth().testTag("dashboard-all-tools")
-            ) { Text("All tools") }
-        }
-        item {
-            TextButton(
-                onClick = { open("hardware-explorer") },
-                modifier = Modifier.fillMaxWidth().testTag("dashboard-hardware-shortcut")
-            ) { Text("Hardware explorer") }
+        ReferenceHeading("Dashboard", "Your device at a glance", "Live information")
+        ReferenceHeroCard { showActions = true }
+        Spacer(Modifier.height(0.dp))
+        primary.forEachIndexed { index, (label, symbol, destination) ->
+            ReferenceMetricRow(label, symbol, index) { open(destination) }
         }
     }
 }
@@ -205,31 +226,51 @@ internal fun ReferenceMetricRow(
 
 @Composable
 internal fun HardwareExplorer(open: (String) -> Unit) {
+    var showMore by rememberSaveable { mutableStateOf(false) }
     val primary = listOf(
         Triple("CPU and SoC", "◇", "cpu-details"),
         Triple("GPU", "▤", "gpu-details"),
         Triple("Memory", "◉", "memory-details"),
         Triple("Sensors", "⌁", "sensor-explorer")
     )
-    LazyColumn(
-        modifier = Modifier.testTag("hardware-explorer-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    if (showMore) {
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { showMore = false },
+            title = { Text("Additional hardware") },
+            text = {
+                Column {
+                    listOf(
+                        "Storage" to "storage-details",
+                        "Battery" to "battery-details",
+                        "Thermal" to "thermal-details",
+                        "Display" to "display-details",
+                        "Device & Android" to "device-and-android"
+                    ).forEach { (label, destination) ->
+                        TextButton(
+                            onClick = { showMore = false; open(destination) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text(label) }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showMore = false }) { Text("Close") }
+            }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("hardware-explorer-page")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading("Hardware Explorer", "Explore components", "Hardware information") }
-        item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(primary) { (name, symbol, path) ->
-            ReferenceMetricRow(name, symbol, primary.indexOfFirst { it.first == name }) {
-                open(path)
-            }
+        ReferenceHeading("Hardware Explorer", "Explore components", "Hardware information")
+        ReferenceHeroCard { showMore = true }
+        Spacer(Modifier.height(0.dp))
+        primary.forEachIndexed { index, (label, symbol, destination) ->
+            ReferenceMetricRow(label, symbol, index) { open(destination) }
         }
-        item { Spacer(Modifier.height(88.dp)) }
-        item { Text("Additional hardware", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
-        item { LinkCard("Storage", "Read available and total storage") { open("storage-details") } }
-        item { LinkCard("Battery", "Charge and temperature values") { open("battery-details") } }
-        item { LinkCard("Thermal", "Android-reported thermal status") { open("thermal-details") } }
-        item { LinkCard("Display", "Resolution, refresh rate and density") { open("display-details") } }
-        item { LinkCard("Device & Android", "Read platform identifiers and OS version") { open("device-and-android") } }
     }
 }
