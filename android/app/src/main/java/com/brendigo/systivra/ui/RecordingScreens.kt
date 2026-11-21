@@ -166,7 +166,7 @@ fun DiagnosticResultsScreen(statusFilter: String? = null) {
         "Display & touch test" to (prefs.getString("display_touch", "Not assessed") ?: "Not assessed"),
         "Vibration (user-confirmed)" to (prefs.getString("vibration", "Not assessed") ?: "Not assessed"),
         "Speaker test (user-confirmed)" to (prefs.getString("speaker", "Not assessed") ?: "Not assessed"),
-        "Microphone / camera" to "Not implemented — no result"
+        "Microphone / camera" to "Unavailable — access not requested"
     )
     val visible = filteredDiagnosticResults(results, statusFilter)
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -126,7 +126,6 @@ fun BenchmarkCenterScreen(controller: BenchmarkController, onStart: () -> Unit) 
         if (controller.result != null) {
             item { BenchCard("Previous result", controller.result!!.iterationsPerSecond.toString() + " iterations/s") }
         }
-        item { BenchCard("GPU, memory and storage benchmarks", "Not implemented in this preview; no simulated points are shown.") }
     }
 }
 

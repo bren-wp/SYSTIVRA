@@ -1147,8 +1147,8 @@ private fun Planned(title: String) {
     Box(Modifier.fillMaxSize().padding(18.dp), contentAlignment = Alignment.Center) {
         PanelCard {
             Text(title, fontWeight = FontWeight.Bold, fontSize = 23.sp)
-            Text("This module is not implemented yet.", color = Muted)
-            Text("No simulated measurements or results are shown.", color = Muted)
+            Text("This screen is unavailable.", color = Muted)
+            Text("No measurements or test results are displayed.", color = Muted)
         }
     }
 }
