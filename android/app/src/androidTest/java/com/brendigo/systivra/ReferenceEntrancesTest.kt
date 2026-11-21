@@ -127,8 +127,7 @@ class ReferenceEntrancesTest {
         rule.onNodeWithTag("reference-landing-overlay-configuration").assertExists()
         rule.onNodeWithText("Size").performClick()
         rule.onNodeWithTag("hud-preview-controls").assertExists()
-        rule.onNodeWithTag("hud-preview-controls")
-            .performScrollToNode(hasTestTag("hud-position-top-right"))
+        rule.onNodeWithTag("hud-tab-position").performClick()
         rule.onNodeWithTag("hud-position-top-right").performClick()
         rule.onNodeWithText("Preview position: Top right").assertExists()
     }
