@@ -37,9 +37,10 @@ class RecordingLibraryPagingTest {
         rule.onNodeWithTag("recording-session-1").assertExists()
         rule.onNodeWithTag("recording-session-7").assertDoesNotExist()
         repeat(6) {
-            rule.onNodeWithTag("recording-library-next").performClick()
-            if (rule.onAllNodesWithTag("recording-library-next")
-                    .fetchSemanticsNodes().isEmpty()) return@repeat
+            if (rule.onAllNodesWithTag("recording-session-7")
+                    .fetchSemanticsNodes().isEmpty()) {
+                rule.onNodeWithTag("recording-library-next").performClick()
+            }
         }
         rule.onNodeWithTag("recording-session-7").performClick()
         rule.onNodeWithText("Analyze").performClick()
