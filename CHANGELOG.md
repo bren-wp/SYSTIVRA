@@ -2,6 +2,12 @@
 - Reports SVG actions select and scroll to matching CSV/JSON/PDF/Sharesheet controls; added Compose emulator navigation checks.
 - Split and bound Splash QA dependency installation for clearer failure diagnosis; retained the authentic Splash verification gate.
 
+## v0.12.0-preview.9 — bounded navigation, local catalog filters, SQLite session cleanup (2026-11-21)
+- Added five categories and All to the functional Screen Catalog, with compact 2×3 selection chips, offline combined search and reset for empty matches. All original reference-first layouts and Android safe areas remain unchanged.
+- Replaced unbounded Compose saved navigation stack with cycle-aware, max-24-route history; primary bottom tabs still reset navigation. Added JVM tests for 250 route hops, revisits, tabs and back behavior.
+- Atomically remove empty completed recording sessions at Stop and on DB reopen, while keeping active sessions and real saved readings unchanged. Added instrumented SQLite regression tests, preserving v1→v2 migration.
+- Android `versionCode 23`, `versionName 0.12.0-preview.9`. Strict exact-SHA release gate includes native device interaction tests, visual/responsive QA, Splash, lint and artifact checksums. Physical-device visual 1:1 signoff and Play signing are not yet certified.
+
 ## v0.12.0-preview.8 — one task per screen, recording/permission usability (2026-11-21)
 - Replaced four vertically stacked CSV/JSON/PDF/Sharesheet controls with a responsive 2×2 selectable format switcher and one corresponding export card; removed automatic report scroll-to-item. Original Reports SVG landing view unchanged.
 - Added accessible no-samples state and direct Recording route; preserved per-format export outcomes and disabled empty exports.
