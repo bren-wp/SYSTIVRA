@@ -4,6 +4,8 @@ package com.brendigo.systivra.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -198,6 +200,7 @@ internal fun ReferenceHistory(
     ) {
         ReferenceHeading("History", "Recent sessions", "Local device records")
         ReferenceHeroCard { open("recording-library") }
+        Spacer(Modifier.height(0.dp))
         ReferenceMetricRow("Today", "◇", 0) {
             windowName = HistoryWindow.TODAY.name
             sessionPage = 0

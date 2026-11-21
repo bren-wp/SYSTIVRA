@@ -35,6 +35,7 @@ internal fun ReferenceLanding(
     ) {
         ReferenceHeading(title, subtitle, caption)
         ReferenceHeroCard { open(actions.first().destination) }
+        Spacer(Modifier.height(0.dp))
         actions.forEachIndexed { index, action ->
             ReferenceMetricRow(
                 action.title, listOf("◇", "▤", "◉", "⌁")[index], index
