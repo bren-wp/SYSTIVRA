@@ -1069,8 +1069,8 @@ private fun Settings(open: (String) -> Unit) {
 @Composable
 private fun ScreenCatalog(open: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
-    val available = sections.filter { enabledRoutes.contains(it.first) }
-    val matches = available.filter { (_, label) -> label.contains(query.trim(), ignoreCase = true) }
+    var category by rememberSaveable { mutableStateOf("All") }
+    val matches = filterCatalogRoutes(sections, enabledRoutes, category, query)
     LazyColumn(
         modifier = Modifier.testTag("screen-catalog-scroll"),
         contentPadding = PaddingValues(18.dp),
@@ -1078,7 +1078,7 @@ private fun ScreenCatalog(open: (String) -> Unit) {
     ) {
         item {
             Text("Find a function", fontWeight = FontWeight.Bold, fontSize = 22.sp)
-            Text("Each tool opens its own focused screen.", color = Muted)
+            Text("Choose a category or search. Each tool has its own screen.", color = Muted)
         }
         item {
             androidx.compose.material3.OutlinedTextField(
@@ -1090,9 +1090,42 @@ private fun ScreenCatalog(open: (String) -> Unit) {
                 singleLine = true
             )
         }
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth().testTag("catalog-categories"),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                catalogCategories.chunked(3).forEach { row ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        row.forEach { label ->
+                            FilterChip(
+                                selected = category == label,
+                                onClick = { category = label },
+                                modifier = Modifier.weight(1f)
+                                    .testTag("catalog-category-${label.lowercase(Locale.ROOT)}"),
+                                label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Panel,
+                                    labelColor = TextPrimary,
+                                    selectedContainerColor = Color(0xFF153B68),
+                                    selectedLabelColor = TextPrimary
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
         if (matches.isEmpty()) {
             item {
-                Text("No matching tools. Try another word.", color = Muted)
+                Text("No tools match. Change category or search.", color = Muted)
+                TextButton(
+                    onClick = { query = ""; category = "All" },
+                    modifier = Modifier.testTag("catalog-clear-filters")
+                ) { Text("Show all tools") }
             }
         }
         items(matches, key = { it.first }) { (id, label) ->
