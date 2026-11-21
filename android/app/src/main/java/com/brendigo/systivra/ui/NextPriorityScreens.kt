@@ -1,7 +1,10 @@
 package com.brendigo.systivra.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -87,50 +91,65 @@ internal fun NextPriorityReferenceScreen(
         )
     }
 
-    LazyColumn(
-        modifier = Modifier.testTag("next-reference-$route"),
-        contentPadding = PaddingValues(
-            start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp
-        ),
+    var showActions by rememberSaveable(route) { mutableStateOf(false) }
+    if (showActions) {
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { showActions = false },
+            title = { Text("Performance options") },
+            text = {
+                Column {
+                    if (detailRoute != null) {
+                        TextButton(onClick = {
+                            showActions = false
+                            open(detailRoute)
+                        }, modifier = Modifier.fillMaxWidth().testTag("next-controls-$route")) {
+                            Text("Open full controls")
+                        }
+                    }
+                    if (route == "benchmark-center" && benchmark.result != null) {
+                        TextButton(onClick = {
+                            showActions = false
+                            open("benchmark-results")
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            Text("View last CPU result")
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showActions = false }) { Text("Close") }
+            }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("next-reference-$route")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            ReferenceHeading(spec.title, spec.subtitle, spec.caption)
-        }
-        item {
-            if (spec.hasChart) {
+        ReferenceHeading(spec.title, spec.subtitle, spec.caption)
+        if (spec.hasChart) {
+            Box(
+                Modifier.fillMaxWidth().clickable { open(detailRoute ?: "dashboard") }
+            ) {
                 ReferenceMeasuredChart(
                     if (route == "metric-fullscreen") validBatteryPercentages(samples)
                     else emptyList()
                 )
-            } else {
-                ReferenceHeroCard { open(detailRoute ?: "dashboard") }
+            }
+        } else {
+            ReferenceHeroCard {
+                if (route == "benchmark-center") showActions = true
+                else open(detailRoute ?: "dashboard")
             }
         }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(spec.rows.size) { index ->
+        Spacer(Modifier.height(0.dp))
+        spec.rows.forEachIndexed { index, label ->
             ReferenceMetricRow(
-                spec.rows[index],
-                listOf("◇", "▤", "◉", "⌁")[index], index
-            ) {
-                select(spec.rows[index])
-            }
-        }
-        // A separate functional screen owns real controls and live readings.
-        if (detailRoute != null) {
-            item {
-                TextButton(
-                    modifier = Modifier.fillMaxWidth().testTag("next-controls-$route"),
-                    onClick = { open(detailRoute) }
-                ) { Text("Open full controls") }
-            }
-        }
-        if (route == "benchmark-center" && benchmark.result != null) {
-            item {
-                TextButton(onClick = { open("benchmark-results") }) {
-                    Text("View last CPU result")
-                }
-            }
+                label, listOf("◇", "▤", "◉", "⌁")[index], index
+            ) { select(label) }
         }
     }
 }

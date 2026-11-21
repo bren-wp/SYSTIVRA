@@ -107,8 +107,6 @@ class NextPriorityInteractionTest {
         rule.onNodeWithTag("next-selected-benchmark-center")
             .assert(hasAnyDescendant(hasText("Unavailable")))
         rule.runOnIdle { assertEquals(0, starts) }
-        rule.onNodeWithTag("next-reference-benchmark-center")
-            .performScrollToIndex(3)
         rule.onNodeWithText("CPU test").performClick()
         rule.runOnIdle { assertEquals(1, starts) }
     }
