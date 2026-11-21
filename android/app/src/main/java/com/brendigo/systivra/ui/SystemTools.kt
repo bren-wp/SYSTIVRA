@@ -222,20 +222,32 @@ fun AppUsageScreen() {
             openUsageSettings(context)
         }
     )
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text("App usage — last 24 hours", fontWeight = FontWeight.Bold, fontSize = 22.sp) }
-        item { Text("Optional Usage Access. No statistics leave the device.", color = Muted) }
-        if (!allowed) {
-            item { DetailCard("Permission required", "Allow Usage Access in Android settings.") }
-            item { Button(onClick = {
-                showUsageDisclosure = true
-            }) { Text("Open Usage Access settings") } }
-        } else {
-            item { Button(onClick = { refresh++ }) { Text("Refresh usage") } }
-            if (top.isEmpty()) item { DetailCard("No readings", "Android returned no usage data for this period.") }
-            items(top) { (pkg, ms) -> DetailCard(pkg, (ms / 60000).toString() + " minutes in foreground") }
+    var requestedPage by rememberSaveable { mutableIntStateOf(0) }
+    BoxWithConstraints(Modifier.fillMaxSize().testTag("app-usage-page")) {
+        val perPage = if (maxHeight < 570.dp) 1 else 2
+        val page = requestedPage.coerceIn(0, pageCount(top.size, perPage) - 1)
+        Column(Modifier.fillMaxSize().padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("App usage — last 24 hours", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+            Text("Optional Usage Access. Statistics stay on this device.", color = Muted)
+            if (!allowed) {
+                DetailCard("Permission required", "Allow Usage Access in Android settings.")
+                Button(onClick = { showUsageDisclosure = true }) {
+                    Text("Open Usage Access settings")
+                }
+            } else {
+                Button(onClick = { requestedPage = 0; refresh++ }) { Text("Refresh usage") }
+                if (top.isEmpty()) {
+                    DetailCard("No readings", "Android returned no usage data for this period.")
+                }
+                pageItems(top, page, perPage).forEach { (pkg, ms) ->
+                    DetailCard(pkg, "${ms / 60000L} minutes in foreground")
+                }
+                PageControls(top.size, perPage, page, { requestedPage = it }, "app-usage")
+            }
+            Text("Package names are shown without requesting extra app discovery access.",
+                fontSize = 12.sp, color = Muted)
         }
-        item { Text("Package names are shown to avoid unnecessary app discovery permissions.", fontSize = 12.sp, color = Muted) }
     }
 }
 
@@ -265,29 +277,32 @@ fun AlertsScreen(snapshot: DeviceSnapshot) {
         charge != null && charge <= threshold -> "Low battery: " + charge + "%"
         else -> "No threshold warnings at this time"
     }
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text("Live Alerts", fontWeight = FontWeight.Bold, fontSize = 24.sp) }
-        item { Text("Local in-app warnings only; no notification or background monitoring service.", color = Muted) }
-        item {
-            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
-                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Enable on-screen warnings")
-                    Switch(checked = enabled, onCheckedChange = {
-                        enabled = it
-                        prefs.edit().putBoolean("enabled", it).apply()
-                    })
-                    Text("Battery threshold: " + threshold.toInt() + "%", color = Cyan)
-                    Slider(value = threshold, valueRange = 5f..40f, steps = 6, enabled = enabled,
-                        onValueChange = {
-                            threshold = it
-                            prefs.edit().putFloat("battery", it).apply()
-                        })
-                }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("alerts-control-page").padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text("Live Alerts", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Text("Local in-app warnings only. No background monitoring or notifications.",
+            color = Muted, fontSize = 13.sp)
+        Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+            Column(Modifier.fillMaxWidth().padding(15.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Enable on-screen warnings")
+                Switch(checked = enabled, onCheckedChange = {
+                    enabled = it
+                    prefs.edit().putBoolean("enabled", it).apply()
+                })
+                Text("Battery threshold: ${threshold.toInt()}%", color = Cyan)
+                Slider(
+                    value = threshold, valueRange = 5f..40f, steps = 6, enabled = enabled,
+                    onValueChange = {
+                        threshold = it
+                        prefs.edit().putFloat("battery", it).apply()
+                    }
+                )
             }
         }
-        item { DetailCard("Current status", warning) }
-        item { DetailCard("Android thermal state", thermal ?: "Unavailable") }
-        item { Text("Warnings appear only on this screen, while this app is active.", color = Muted, fontSize = 12.sp) }
+        DetailCard("Current status", warning)
+        DetailCard("Android thermal state", thermal ?: "Unavailable")
     }
 }
 
@@ -305,16 +320,35 @@ fun PermissionCenterScreen() {
             openUsageSettings(context)
         }
     )
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text("Permission Center", fontWeight = FontWeight.Bold, fontSize = 24.sp) }
-        item { DetailCard("Monitoring", "Uses Android platform APIs and requires no dangerous runtime permissions.") }
-        item { DetailCard("Network state", "Normal system permission. No Internet permission requested.") }
-        item { DetailCard("App Usage Access", if (usageAllowed) "Allowed" else "Not granted") }
-        item { Button(onClick = { showUsageDisclosure = true }) {
-            Text("Manage Usage Access")
-        } }
-        item { Button(onClick = { refresh++ }) { Text("Refresh status") } }
-        item { DetailCard("Camera, microphone, floating overlays", "Not requested in this build.") }
+    var details by rememberSaveable { mutableStateOf(false) }
+    if (details) {
+        AlertDialog(
+            containerColor = Raised, titleContentColor = TextPrimary, textContentColor = TextPrimary,
+            onDismissRequest = { details = false },
+            title = { Text("Permissions and privacy") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Monitoring uses Android system APIs without dangerous runtime permissions.")
+                    Text("Network state is a normal system permission; INTERNET is not requested.")
+                    Text("Camera, microphone and cross-app overlays are not requested.")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { details = false }) { Text("Close") }
+            }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("permission-controls-page").padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text("Permission Center", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        DetailCard("App Usage Access", if (usageAllowed) "Allowed" else "Not granted")
+        Button(onClick = { showUsageDisclosure = true }) { Text("Manage Usage Access") }
+        Button(onClick = { refresh++ }) { Text("Refresh status") }
+        TextButton(onClick = { details = true }) { Text("Review other permissions") }
+        Text("Device monitoring remains usable without optional Usage Access.",
+            color = Muted, fontSize = 13.sp)
     }
 }
 
