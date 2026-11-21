@@ -1,6 +1,10 @@
 package com.brendigo.systivra.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -74,45 +79,52 @@ internal fun RecordingReferenceScreen(
             onDismiss = { chosen = null }
         )
     }
-    LazyColumn(
-        modifier = Modifier.testTag("recording-reference-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    var moreActions by rememberSaveable { mutableStateOf(false) }
+    if (moreActions) {
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { moreActions = false },
+            title = { Text("Recording options") },
+            text = {
+                Column {
+                    TextButton(onClick = {
+                        moreActions = false
+                        open("recording-session-controls")
+                    }, modifier = Modifier.fillMaxWidth().testTag("recording-open-controls")) {
+                        Text("Recording controls")
+                    }
+                    TextButton(onClick = {
+                        moreActions = false
+                        open("recording-library")
+                    }, modifier = Modifier.fillMaxWidth().testTag("recording-open-library")) {
+                        Text("Saved recordings")
+                    }
+                    if (storageError != null) {
+                        Text(storageError, color = Muted, fontSize = 13.sp)
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { moreActions = false }) { Text("Close") } }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("recording-reference-scroll")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            ReferenceHeading("Recording Session", "Session capture", "User-controlled recording")
+        ReferenceHeading("Recording Session", "Session capture", "User-controlled recording")
+        Box(Modifier.fillMaxWidth().clickable { moreActions = true }) {
+            ReferenceMeasuredChart(recordedBatteryPoints(recorded))
         }
-        item { ReferenceMeasuredChart(recordedBatteryPoints(recorded)) }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(recordingReferenceRows.size) { index ->
-            val label = recordingReferenceRows[index]
+        Spacer(Modifier.height(0.dp))
+        recordingReferenceRows.forEachIndexed { index, label ->
             ReferenceMetricRow(label, listOf("◇", "▤", "◉", "⌁")[index], index) {
                 chosen = label
                 if (ready && label == "Start" && !recording) toggle()
                 if (ready && label == "Pause" && recording) toggle()
             }
-        }
-        if (storageError != null) {
-            item {
-                Text(
-                    storageError,
-                    modifier = Modifier.fillMaxWidth().testTag("recording-storage-error"),
-                    color = Muted,
-                    fontSize = 13.sp
-                )
-            }
-        }
-        item {
-            TextButton(
-                onClick = { open("recording-session-controls") },
-                modifier = Modifier.fillMaxWidth().testTag("recording-open-controls")
-            ) { Text("Recording controls") }
-        }
-        item {
-            TextButton(
-                onClick = { open("recording-library") },
-                modifier = Modifier.fillMaxWidth().testTag("recording-open-library")
-            ) { Text("Saved recordings") }
         }
     }
 }
@@ -129,26 +141,18 @@ internal fun PermissionReferenceScreen(open: (String) -> Unit) {
             onDismiss = { chosen = null }
         )
     }
-    LazyColumn(
-        modifier = Modifier.testTag("permission-reference-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("permission-reference-scroll")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading("Permission Center", "Access overview", "Optional features") }
-        item { ReferenceHeroCard { open("permission-center-controls") } }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(permissionReferenceRows.size) { index ->
-            ReferenceMetricRow(
-                permissionReferenceRows[index], listOf("◇", "▤", "◉", "⌁")[index], index
-            ) {
-                chosen = permissionReferenceRows[index]
+        ReferenceHeading("Permission Center", "Access overview", "Optional features")
+        ReferenceHeroCard { open("permission-center-controls") }
+        Spacer(Modifier.height(0.dp))
+        permissionReferenceRows.forEachIndexed { index, label ->
+            ReferenceMetricRow(label, listOf("◇", "▤", "◉", "⌁")[index], index) {
+                chosen = label
             }
-        }
-        item {
-            TextButton(
-                onClick = { open("permission-center-controls") },
-                modifier = Modifier.fillMaxWidth().testTag("permission-open-controls")
-            ) { Text("Review Android permissions") }
         }
     }
 }
