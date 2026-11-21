@@ -1,3 +1,4 @@
+// SYSTIVRA by Brendigo
 pluginManagement {
     repositories { google(); mavenCentral(); gradlePluginPortal() }
 }
