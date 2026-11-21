@@ -86,7 +86,7 @@ class ReferenceEntrancesTest {
         rule.onNodeWithText("CSV").performClick()
         rule.onNodeWithText("No recorded samples").assertIsDisplayed()
         rule.onNodeWithTag("report-start-recording").performClick()
-        rule.onNodeWithTag("reference-landing-recording-session").assertExists()
+        rule.onNodeWithTag("recording-reference-scroll").assertExists()
     }
 
     @Test fun reportSvgJsonActionFocusesItsActualJsonExportControl() {
