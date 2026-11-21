@@ -20,7 +20,7 @@ class NavigationSmokeTest {
     @Test fun dashboardRendersWithoutAccountOrOnboarding() {
         rule.waitForIdle()
         rule.onNodeWithText("SYSTIVRA").assertExists()
-        rule.onNodeWithTag("dashboard-scroll").assertExists()
+        rule.onNodeWithTag("dashboard-page").assertExists()
     }
 
     @Test fun settingsReferenceRowsOpenRealControls() {
@@ -37,9 +37,8 @@ class NavigationSmokeTest {
     @Test fun aboutReferenceRowsProvideRealNavigation() {
         rule.waitForIdle()
         rule.onNodeWithText("More").performClick()
-        rule.onNodeWithTag("settings-scroll")
-            .performScrollToNode(hasText("About SYSTIVRA"))
-        rule.onNodeWithText("About SYSTIVRA").performClick()
+        rule.onNodeWithTag("reference-hero").performClick()
+        rule.onNodeWithTag("settings-about-shortcut").performClick()
         rule.onNodeWithText("Version and licenses").assertExists()
         rule.onNodeWithText("Source code").assertExists()
         rule.onNodeWithText("MIT license").assertExists()
@@ -60,9 +59,8 @@ class NavigationSmokeTest {
     @Test fun deviceDetectionReferenceActionsOpenRealHardwareReadings() {
         rule.waitForIdle()
         rule.onNodeWithText("More").performClick()
-        rule.onNodeWithTag("settings-scroll")
-            .performScrollToNode(hasText("Screen catalog"))
-        rule.onNodeWithText("Screen catalog").performClick()
+        rule.onNodeWithTag("reference-hero").performClick()
+        rule.onNodeWithTag("settings-all-tools").performClick()
         rule.onNodeWithTag("screen-catalog-page").assertExists()
         rule.onNodeWithTag("catalog-search").performTextInput("Device Detection")
         rule.onNodeWithText("Device Detection").performClick()
@@ -73,8 +71,7 @@ class NavigationSmokeTest {
 
     @Test fun focusedDashboardOpensSearchableCatalogInsteadOfLongToolList() {
         rule.waitForIdle()
-        rule.onNodeWithTag("dashboard-scroll")
-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("dashboard-all-tools"))
+        rule.onNodeWithTag("reference-hero").performClick()
         rule.onNodeWithTag("dashboard-all-tools").performClick()
         rule.onNodeWithTag("catalog-search").assertExists()
         rule.onNodeWithTag("catalog-search").performTextInput("charging")
@@ -84,8 +81,7 @@ class NavigationSmokeTest {
 
     @Test fun catalogCategoryChipsFindFunctionsWithoutLongScrolling() {
         rule.waitForIdle()
-        rule.onNodeWithTag("dashboard-scroll")
-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("dashboard-all-tools"))
+        rule.onNodeWithTag("reference-hero").performClick()
         rule.onNodeWithTag("dashboard-all-tools").performClick()
         rule.onNodeWithTag("screen-catalog-page").assertExists()
         rule.onNodeWithTag("catalog-category-records").performClick()
@@ -105,9 +101,8 @@ class NavigationSmokeTest {
 
     @Test fun nestedBackStackReturnsToHardwareExplorer() {
         rule.waitForIdle()
-        rule.onNodeWithTag("dashboard-scroll")
-            .performScrollToNode(hasText("Hardware explorer", ignoreCase = true))
-        rule.onNodeWithText("Hardware explorer", ignoreCase = true).performClick()
+        rule.onNodeWithTag("reference-hero").performClick()
+        rule.onNodeWithTag("dashboard-hardware-shortcut").performClick()
         rule.onNodeWithText("Explore components").assertExists()
         rule.onNodeWithText("CPU and SoC").performClick()
         rule.onNodeWithText("Processor overview").assertExists()
