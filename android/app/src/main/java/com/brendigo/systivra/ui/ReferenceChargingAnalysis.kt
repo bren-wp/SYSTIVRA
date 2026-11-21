@@ -4,6 +4,9 @@ package com.brendigo.systivra.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,44 +42,26 @@ internal fun ReferenceChargingAnalysis(
         "Temperature" to "battery-details",
         "Session duration" to "session-analysis"
     )
-    LazyColumn(
-        modifier = Modifier.testTag("reference-charging-analysis"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("reference-charging-analysis")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading("Charging Analysis", "Power session", "Battery trends") }
-        item {
-            Box(
-                Modifier.fillMaxWidth()
-                    .testTag("reference-charging-chart-target")
-                    .clickable(role = Role.Button, onClickLabel = "Open measured battery timeline") {
-                        open("metric-fullscreen-data")
-                    }
-            ) {
-                ReferenceMeasuredChart(chargeSeries)
-            }
+        ReferenceHeading("Charging Analysis", "Power session", "Battery trends")
+        Box(
+            Modifier.fillMaxWidth()
+                .testTag("reference-charging-chart-target")
+                .clickable(role = Role.Button, onClickLabel = "Open measured battery timeline") {
+                    open("metric-fullscreen-data")
+                }
+        ) {
+            ReferenceMeasuredChart(chargeSeries)
         }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(actions.size) { index ->
-            val (label, destination) = actions[index]
+        Spacer(Modifier.height(0.dp))
+        actions.forEachIndexed { index, (label, destination) ->
             ReferenceMetricRow(label, listOf("◇", "▤", "◉", "⌁")[index], index) {
                 open(destination)
             }
-        }
-        item { Spacer(Modifier.height(116.dp)) }
-        item {
-            Text(
-                if (chargeSeries.size >= 2)
-                    "Graph shows Android-reported charge samples, not an estimated charging curve."
-                else
-                    "A graph is unavailable until at least two genuine battery readings exist."
-            )
-        }
-        item {
-            Text(
-                "Current Android charge: " + (snapshot.chargeLevelText() ?: "Unavailable") +
-                    ". Current, temperature and session timing are available in their detailed screens."
-            )
         }
     }
 }
