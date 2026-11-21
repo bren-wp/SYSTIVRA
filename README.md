@@ -82,7 +82,7 @@ The app requests no camera/microphone recording or floating-window permission. O
 
 [**Open GitHub Releases**](https://github.com/bren-wp/SYSTIVRA/releases)
 
-The latest published version is **v0.12.0-preview.10** (versionCode 24). Active development toward the next preview takes place in [PR #42](https://github.com/bren-wp/SYSTIVRA/pull/42), where large Kotlin files are being modularized and non-scrolling screens verified.
+The current development candidate is **v0.12.0-preview.11** (versionCode 25). Open [GitHub Releases](https://github.com/bren-wp/SYSTIVRA/releases) for the latest successfully published build, and [PR #42](https://github.com/bren-wp/SYSTIVRA/pull/42) for source changes and test results. The new code separates large Kotlin files and replaces scrolling UI lists with focused controls and paging.
 
 Release assets distinguish the **debug-signed APK** (for installation/testing) from an **unsigned AAB** (not ready for a Google Play upload). Production signing requires a private signing key that must never be committed.
 
@@ -113,7 +113,7 @@ The source pins Kotlin 2.4.21, AGP 9.5.1, a compatible Compose BOM and reviewed 
 
 ### Project links
 
-[License (MIT)](LICENSE) · [Changelog](CHANGELOG.md) · [Current release notes](docs/releases/v0.12.0-preview.10.md) · [Source security audit](docs/AUDIT-2026-11-18.md) · [Android UI QA](docs/VISUAL-QA.md) · [Google Play readiness](docs/GOOGLE-PLAY-RELEASE-GATE.md)
+[License (MIT)](LICENSE) · [Changelog](CHANGELOG.md) · [Preview 11 notes](docs/releases/v0.12.0-preview.11.md) · [Source security audit](docs/AUDIT-2026-11-18.md) · [Android UI QA](docs/VISUAL-QA.md) · [Google Play readiness](docs/GOOGLE-PLAY-RELEASE-GATE.md)
 
 Visual QA, physical Android device testing, complete third-party security review and production signing remain separate acceptance gates. An automated green build alone does not establish 1:1 pixel identity across all 37 reference screens.
 

@@ -53,7 +53,7 @@ References:
 
 ## November 21 current stable dependency refresh
 
-- Updated app Compose BOM **2026.09.00 → 2026.11.01** (Google Maven release dated Nov 19, 2026). This aligns current Compose runtime/foundation modules with November stable releases rather than introducing alpha modules.
+- Evaluated the November stable Compose BOM **2026.11.01**, but CI detected that Compose 1.13.0 requires **compileSdk 37.1+**. Kept compatible **2026.09.00** for compileSdk 37.0; the next upgrade requires a platform/tooling migration.
 - Updated AndroidX Lifecycle runtime KTX and runtime Compose **2.11.0 → 2.11.1** (Nov 18 stable patch).
 - Retained Kotlin **2.4.21** rather than the November Kotlin 2.5 release candidate, and AGP **9.5.1** rather than a prerelease. Activity Compose **1.13.0**, AndroidX Core **1.19.1**, AndroidX SplashScreen **1.2.0** and coroutines **1.11.0** remain pinned until a strictly newer stable version and compatibility are verified.
 - These changes require Gradle resolution, lint/JVM/device tests and visual native comparison. A successful build does **not** replace transitive dependency SBOM/CVE review.
