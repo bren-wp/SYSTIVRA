@@ -73,21 +73,27 @@ fun ReportExportScreen(
     var pdfResult by remember { mutableStateOf("") }
     var shareResult by remember { mutableStateOf("") }
     val snapshot = samples.toList()
+    val csvPending = remember { PendingReportExport() }
+    val jsonPending = remember { PendingReportExport() }
+    val pdfPending = remember { PendingReportExport() }
     val csvDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri: Uri? ->
+        val captured = csvPending.consume()
         if (uri == null) {
             csvResult = "Export canceled."
+        } else if (captured.isNullOrEmpty()) {
+            csvResult = "Export request expired. Choose CSV export again."
         } else {
             csvResult = "Exporting CSV…"
             scope.launch {
                 csvResult = withContext(Dispatchers.IO) {
                     runCatching {
-                        val csv = buildSessionCsv(snapshot)
+                        val csv = buildSessionCsv(captured)
                         val output = context.contentResolver.openOutputStream(uri)
                             ?: error("The selected document cannot be opened.")
                         output.bufferedWriter(Charsets.UTF_8).use { it.write(csv) }
-                        "Exported " + snapshot.size + " CSV samples successfully."
+                        "Exported " + captured.size + " CSV samples successfully."
                     }.getOrElse { "Export failed. Check the selected document location and try again." }
                 }
             }
@@ -96,8 +102,11 @@ fun ReportExportScreen(
     val jsonDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
+        val captured = jsonPending.consume()
         if (uri == null) {
             jsonResult = "Export canceled."
+        } else if (captured.isNullOrEmpty()) {
+            jsonResult = "Export request expired. Choose JSON export again."
         } else {
             jsonResult = "Exporting JSON…"
             scope.launch {
@@ -106,9 +115,9 @@ fun ReportExportScreen(
                         val output = context.contentResolver.openOutputStream(uri)
                             ?: error("The selected document cannot be opened.")
                         output.bufferedWriter(Charsets.UTF_8).use {
-                            it.write(buildSessionJson(snapshot))
+                            it.write(buildSessionJson(captured))
                         }
-                        "Exported " + snapshot.size + " JSON samples successfully."
+                        "Exported " + captured.size + " JSON samples successfully."
                     }.getOrElse { "Export failed. Check the selected document location and try again." }
                 }
             }
@@ -117,14 +126,17 @@ fun ReportExportScreen(
     val pdfDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/pdf")
     ) { uri: Uri? ->
+        val captured = pdfPending.consume()
         if (uri == null) {
             pdfResult = "PDF export canceled."
+        } else if (captured.isNullOrEmpty()) {
+            pdfResult = "Export request expired. Choose PDF export again."
         } else {
             pdfResult = "Exporting PDF…"
             scope.launch {
                 pdfResult = withContext(Dispatchers.IO) {
                     runCatching {
-                        val document = buildSessionPdf(snapshot)
+                        val document = buildSessionPdf(captured)
                         try {
                             val output = context.contentResolver.openOutputStream(uri)
                                 ?: error("The selected document cannot be opened.")
@@ -132,7 +144,7 @@ fun ReportExportScreen(
                         } finally {
                             document.close()
                         }
-                        "Exported " + snapshot.size + " readings as PDF."
+                        "Exported " + captured.size + " readings as PDF."
                     }.getOrElse { "PDF export failed. Check available storage and try again." }
                 }
             }
@@ -223,7 +235,10 @@ fun ReportExportScreen(
                             disabledContainerColor = Raised,
                             disabledContentColor = Muted
                         ),
-                        onClick = { csvDocument.launch("SYSTIVRA-session.csv") }
+                        onClick = {
+                            csvPending.prepare(snapshot)
+                            csvDocument.launch("SYSTIVRA-session.csv")
+                        }
                     ) { Text("Choose export location") }
                     Text(csvResult, color = Muted, fontSize = 13.sp)
                 }
@@ -243,7 +258,10 @@ fun ReportExportScreen(
                             disabledContainerColor = Raised,
                             disabledContentColor = Muted
                         ),
-                        onClick = { jsonDocument.launch("SYSTIVRA-session.json") }
+                        onClick = {
+                            jsonPending.prepare(snapshot)
+                            jsonDocument.launch("SYSTIVRA-session.json")
+                        }
                     ) { Text("Save JSON report") }
                     if (jsonResult.isNotEmpty()) Text(jsonResult, color = Muted, fontSize = 13.sp)
                 }
@@ -263,7 +281,10 @@ fun ReportExportScreen(
                             disabledContainerColor = Raised,
                             disabledContentColor = Muted
                         ),
-                        onClick = { pdfDocument.launch("SYSTIVRA-session.pdf") }
+                        onClick = {
+                            pdfPending.prepare(snapshot)
+                            pdfDocument.launch("SYSTIVRA-session.pdf")
+                        }
                     ) { Text("Create PDF document") }
                     if (pdfResult.isNotEmpty()) Text(pdfResult, color = Muted, fontSize = 13.sp)
                 }
