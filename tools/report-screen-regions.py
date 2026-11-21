@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Compare actual Android pixels with original SVG in app-owned UI regions.
 
 This intentionally does NOT discard OS bars from the raw pixel-diff report.

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Promote only authentic, unmodified Android emulator captures into the Play bundle."""
 from pathlib import Path
 from PIL import Image

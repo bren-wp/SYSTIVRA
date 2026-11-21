@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SYSTIVRA by Brendigo
 set -uo pipefail
 # Keep UI tests on their own fresh emulator, separate from 38 forced-route captures.
 # A known Maven Central metadata outage is retried ONCE only if UTP's JUnit
