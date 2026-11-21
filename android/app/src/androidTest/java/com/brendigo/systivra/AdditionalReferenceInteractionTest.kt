@@ -48,6 +48,23 @@ class AdditionalReferenceInteractionTest {
         rule.runOnIdle { assertEquals(1, toggles) }
     }
 
+    @Test fun recordingDetailsOpenImmediatelyWithoutForcedScroll() {
+        rule.setContent {
+            AppTheme {
+                RecordingReferenceScreen(
+                    recorded = emptyList(), sessions = emptyList(),
+                    recording = false, ready = true, storageError = null,
+                    toggle = {}, open = {}
+                )
+            }
+        }
+        rule.onNodeWithText("Duration").performClick()
+        rule.onNodeWithTag("recording-reference-data")
+            .assert(hasAnyDescendant(hasText("No saved session available")))
+        rule.onNodeWithText("Close").performClick()
+        rule.onNodeWithTag("recording-reference-data").assertDoesNotExist()
+    }
+
     @Test fun permissionCardReportsAndroidManifestInsteadOfInventingPermission() {
         rule.setContent {
             AppTheme {

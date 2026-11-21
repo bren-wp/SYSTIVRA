@@ -63,6 +63,32 @@ class ReferenceEntrancesTest {
         rule.onNodeWithText("Create PDF document").assertIsDisplayed()
     }
 
+    @Test fun exportControlsShowOnlyOneFocusedFormatAndSwitchWithoutScrolling() {
+        launch("reports-export")
+        rule.onNodeWithText("PDF").performClick()
+        rule.onNodeWithTag("report-format-selector").assertIsDisplayed()
+        rule.onNodeWithTag("report-export-format-pdf").assertIsDisplayed()
+        rule.onNodeWithTag("report-export-format-csv").assertDoesNotExist()
+        rule.onNodeWithTag("report-export-format-share").assertDoesNotExist()
+
+        rule.onNodeWithTag("report-format-tab-json").performClick()
+        rule.onNodeWithTag("report-export-format-json").assertIsDisplayed()
+        rule.onNodeWithTag("report-export-format-pdf").assertDoesNotExist()
+        rule.onNodeWithText("Save JSON report").assertIsDisplayed()
+
+        rule.onNodeWithTag("report-format-tab-share").performClick()
+        rule.onNodeWithTag("report-export-format-share").assertIsDisplayed()
+        rule.onNodeWithTag("report-export-format-json").assertDoesNotExist()
+    }
+
+    @Test fun emptyExportOffersDirectRouteToRecordingInsteadOfDeadButton() {
+        launch("reports-export")
+        rule.onNodeWithText("CSV").performClick()
+        rule.onNodeWithText("No recorded samples").assertIsDisplayed()
+        rule.onNodeWithTag("report-start-recording").performClick()
+        rule.onNodeWithTag("recording-reference-scroll").assertExists()
+    }
+
     @Test fun reportSvgJsonActionFocusesItsActualJsonExportControl() {
         launch("reports-export")
         rule.onNodeWithText("JSON").performClick()

@@ -2,6 +2,13 @@
 - Reports SVG actions select and scroll to matching CSV/JSON/PDF/Sharesheet controls; added Compose emulator navigation checks.
 - Split and bound Splash QA dependency installation for clearer failure diagnosis; retained the authentic Splash verification gate.
 
+## v0.12.0-preview.8 — one task per screen, recording/permission usability (2026-11-21)
+- Replaced four vertically stacked CSV/JSON/PDF/Sharesheet controls with a responsive 2×2 selectable format switcher and one corresponding export card; removed automatic report scroll-to-item. Original Reports SVG landing view unchanged.
+- Added accessible no-samples state and direct Recording route; preserved per-format export outcomes and disabled empty exports.
+- Removed forced scroll and 116dp filler from Recording Session and Permission Center; source-labeled quick results, real toggles, dedicated controls, saved recordings and storage error visibility remain.
+- Added emulator tests for format switching/hidden inactive cards, empty-data recording navigation, quick Recording details and existing permission sources.
+- Bumped Android versionCode to **22**, versionName to **0.12.0-preview.8**; exact-SHA Android lint/unit/emulator/visual/responsive/Splash release gates remain mandatory. Pixel-perfect 1:1 and Play signing are not certified.
+
 ## v0.12.0-preview.7 — focused functional screens and reduced scrolling (2026-11-20)
 - Removed redundant 116dp vertical gaps and long secondary inline controls/readings from primary hardware, benchmark, sensor and privacy reference-overview routes. First reference hero/four-row layout remains.
 - Quick Android measurement/result dialog on tap with actual source and optional copy, no automatic scroll-to-index. Preserved unavailability without fake values.
