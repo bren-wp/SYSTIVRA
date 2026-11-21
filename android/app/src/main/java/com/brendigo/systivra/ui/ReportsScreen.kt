@@ -6,16 +6,20 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -25,10 +29,12 @@ import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,22 +56,17 @@ import java.util.TimeZone
 @Composable
 fun ReportExportScreen(
     samples: List<DeviceSnapshot>,
-    preferredFormat: String? = null
+    preferredFormat: String? = null,
+    onStartRecording: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
-    // Action cards on the SVG Reports landing should reveal the matching
-    // functional export control, not always leave the user at the CSV card.
+    val formats = listOf("csv", "json", "pdf", "share")
+    var selectedFormat by rememberSaveable {
+        mutableStateOf(preferredFormat?.takeIf { it in formats } ?: "csv")
+    }
     LaunchedEffect(preferredFormat) {
-        val item = when (preferredFormat) {
-            "csv" -> 1
-            "json" -> 2
-            "pdf" -> 3
-            "share" -> 4
-            else -> null
-        }
-        if (item != null) listState.scrollToItem(item)
+        if (preferredFormat in formats) selectedFormat = preferredFormat!!
     }
     var csvResult by remember { mutableStateOf("No report exported yet.") }
     var jsonResult by remember { mutableStateOf("") }
@@ -138,15 +139,67 @@ fun ReportExportScreen(
         }
     }
     LazyColumn(
-        state = listState,
+        modifier = Modifier.testTag("report-export-focused-screen"),
         contentPadding = PaddingValues(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             Text("Session Report", fontWeight = FontWeight.Bold, fontSize = 25.sp)
-            Text("Saved recordings remain on this device unless you explicitly export them.", color = Muted)
+            Text("Choose one format. Only the selected export action is shown.", color = Muted)
         }
         item {
+            Row(
+                modifier = Modifier.fillMaxWidth().testTag("report-format-selector"),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                formats.forEach { format ->
+                    FilterChip(
+                        selected = selectedFormat == format,
+                        onClick = { selectedFormat = format },
+                        modifier = Modifier.weight(1f).testTag("report-format-tab-$format"),
+                        label = {
+                            Text(
+                                when (format) {
+                                    "csv" -> "CSV"
+                                    "json" -> "JSON"
+                                    "pdf" -> "PDF"
+                                    else -> "Share"
+                                }
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = Panel,
+                            labelColor = TextPrimary,
+                            selectedContainerColor = Color(0xFF153B68),
+                            selectedLabelColor = TextPrimary
+                        )
+                    )
+                }
+            }
+        }
+        if (snapshot.isEmpty()) {
+            item {
+                Card(colors = CardDefaults.cardColors(containerColor = Raised)) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("No recorded samples", fontWeight = FontWeight.Bold, color = TextPrimary)
+                        Text(
+                            "Start a recording to collect real device readings before exporting.",
+                            color = Muted
+                        )
+                        if (onStartRecording != null) {
+                            TextButton(
+                                modifier = Modifier.testTag("report-start-recording"),
+                                onClick = onStartRecording
+                            ) { Text("Open Recording") }
+                        }
+                    }
+                }
+            }
+        }
+        if (selectedFormat == "csv") item {
             Card(
                 modifier = Modifier.testTag("report-export-format-csv"),
                 colors = CardDefaults.cardColors(containerColor = Panel)
@@ -167,7 +220,7 @@ fun ReportExportScreen(
                 }
             }
         }
-        item {
+        if (selectedFormat == "json") item {
             Card(
                 modifier = Modifier.testTag("report-export-format-json"),
                 colors = CardDefaults.cardColors(containerColor = Panel)
@@ -187,7 +240,7 @@ fun ReportExportScreen(
                 }
             }
         }
-        item {
+        if (selectedFormat == "pdf") item {
             Card(
                 modifier = Modifier.testTag("report-export-format-pdf"),
                 colors = CardDefaults.cardColors(containerColor = Panel)
@@ -207,7 +260,7 @@ fun ReportExportScreen(
                 }
             }
         }
-        item {
+        if (selectedFormat == "share") item {
             Card(
                 modifier = Modifier.testTag("report-export-format-share"),
                 colors = CardDefaults.cardColors(containerColor = Panel)
