@@ -45,7 +45,7 @@ SYSTIVRA keeps device information understandable. It displays **actual values re
 
 **Focused navigation:** a screen presents its primary task. Compact panels, tabs and **Previous / Next** controls replace long vertically scrolling feeds. The hardware catalog can be filtered by category or searched offline. Android system navigation remains separated from the app's own bottom menu.
 
-## Real screenshots of the running Android app
+## 📱 Real Android application screenshots
 
 These are genuine Android emulator captures saved in the repository on **15 November 2026**, not AI images, hand-drawn designs or source SVG renderings. They show the build captured on that date; interface details have evolved since then. Newer QA screenshot collections are available with each [published release](https://github.com/bren-wp/SYSTIVRA/releases).
 
@@ -64,7 +64,7 @@ These are genuine Android emulator captures saved in the repository on **15 Nove
 </tr>
 </table>
 
-**Latest verified release capture collection (21 November 2026):** [Preview 10 real emulator screenshot ZIP](https://github.com/bren-wp/SYSTIVRA/releases/download/v0.12.0-preview.10/SYSTIVRA-v0.12.0-preview.10-real-Android-emulator-screenshots-NOT-Play-approved.zip). All images are real app captures but **not yet manually approved for Google Play or independently certified pixel-perfect**.
+**Latest verified release capture collection (21 November 2026):** [Preview 10 real emulator screenshot ZIP](https://github.com/bren-wp/SYSTIVRA/releases/download/v0.12.0-preview.10/SYSTIVRA-v0.12.0-preview.10-real-Android-emulator-screenshots-NOT-Play-approved.zip). All images are genuine app captures but **not approved** for Google Play and not independently certified pixel-perfect.
 
 The [37 original SVG screen references](brending/screens/index.html) describe the intended visual design, not running app screenshots. [Review the design comparison criteria](docs/VISUAL-QA.md) separately.
 
