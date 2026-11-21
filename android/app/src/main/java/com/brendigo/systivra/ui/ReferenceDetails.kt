@@ -6,6 +6,7 @@ import android.content.Context
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -122,8 +123,15 @@ internal fun ReferenceDetailScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         ReferenceHeading(spec.title, spec.subtitle, spec.description)
-        if (spec.hasChart) ReferenceMeasuredChart(measured)
-        else ReferenceHeroCard { open("$route-readings") }
+        if (spec.hasChart) {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+                    .testTag("open-readings-$route")
+                    .clickable { open("$route-readings") }
+            ) { ReferenceMeasuredChart(measured) }
+        } else {
+            ReferenceHeroCard { open("$route-readings") }
+        }
         Spacer(Modifier.height(0.dp))
         spec.rows.forEachIndexed { index, label ->
             ReferenceMetricRow(label, listOf("◇", "▤", "◉", "⌁")[index], index) {
@@ -134,10 +142,6 @@ internal fun ReferenceDetailScreen(
                 }
             }
         }
-        TextButton(
-            onClick = { open("$route-readings") },
-            modifier = Modifier.fillMaxWidth().testTag("open-readings-$route")
-        ) { Text("All device readings") }
     }
 }
 
