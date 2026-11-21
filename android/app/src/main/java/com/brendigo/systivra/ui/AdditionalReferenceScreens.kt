@@ -99,6 +99,16 @@ internal fun RecordingReferenceScreen(
                 if (ready && label == "Pause" && recording) toggle()
             }
         }
+        if (storageError != null) {
+            item {
+                Text(
+                    storageError,
+                    modifier = Modifier.fillMaxWidth().testTag("recording-storage-error"),
+                    color = Muted,
+                    fontSize = 13.sp
+                )
+            }
+        }
         item {
             TextButton(
                 onClick = { open("recording-session-controls") },

@@ -147,32 +147,39 @@ fun ReportExportScreen(
             Text("Choose one format. Only the selected export action is shown.", color = Muted)
         }
         item {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth().testTag("report-format-selector"),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                formats.forEach { format ->
-                    FilterChip(
-                        selected = selectedFormat == format,
-                        onClick = { selectedFormat = format },
-                        modifier = Modifier.weight(1f).testTag("report-format-tab-$format"),
-                        label = {
-                            Text(
-                                when (format) {
-                                    "csv" -> "CSV"
-                                    "json" -> "JSON"
-                                    "pdf" -> "PDF"
-                                    else -> "Share"
-                                }
+                formats.chunked(2).forEach { pair ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        pair.forEach { format ->
+                            FilterChip(
+                                selected = selectedFormat == format,
+                                onClick = { selectedFormat = format },
+                                modifier = Modifier.weight(1f).testTag("report-format-tab-$format"),
+                                label = {
+                                    Text(
+                                        when (format) {
+                                            "csv" -> "CSV"
+                                            "json" -> "JSON"
+                                            "pdf" -> "PDF"
+                                            else -> "Share"
+                                        }
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Panel,
+                                    labelColor = TextPrimary,
+                                    selectedContainerColor = Color(0xFF153B68),
+                                    selectedLabelColor = TextPrimary
+                                )
                             )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = Panel,
-                            labelColor = TextPrimary,
-                            selectedContainerColor = Color(0xFF153B68),
-                            selectedLabelColor = TextPrimary
-                        )
-                    )
+                        }
+                    }
                 }
             }
         }
