@@ -1,15 +1,12 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -17,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -34,7 +32,6 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-/** Local-calendar filtering avoids DST errors from subtracting fixed 24-hour durations. */
 internal enum class HistoryWindow { TODAY, WEEK, ALL }
 
 internal fun historyWindowStart(
@@ -80,98 +77,142 @@ internal fun ReferenceHistory(
     var windowName by rememberSaveable { mutableStateOf(HistoryWindow.ALL.name) }
     val window = HistoryWindow.entries.firstOrNull { it.name == windowName } ?: HistoryWindow.ALL
     var newestFirst by rememberSaveable { mutableStateOf(true) }
-    var showFilter by rememberSaveable { mutableStateOf(false) }
-    val now = System.currentTimeMillis()
-    val filtered = visibleSavedSessions(savedSessions, window, now, newestFirst)
+    var showFilters by rememberSaveable { mutableStateOf(false) }
+    var showSessions by rememberSaveable { mutableStateOf(false) }
+    var showLive by rememberSaveable { mutableStateOf(false) }
+    var sessionPage by rememberSaveable { mutableIntStateOf(0) }
+    var livePage by rememberSaveable { mutableIntStateOf(0) }
+    val filtered = visibleSavedSessions(savedSessions, window, System.currentTimeMillis(), newestFirst)
 
-    if (showFilter) {
+    if (showFilters) {
         AlertDialog(
-            // Never allow inherited dark text on a midnight dialog surface.
             containerColor = Raised,
             titleContentColor = TextPrimary,
             textContentColor = TextPrimary,
-            onDismissRequest = { showFilter = false },
+            onDismissRequest = { showFilters = false },
             title = { Text("History filters") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Saved recordings are stored privately on this device.")
-                    TextButton(onClick = { newestFirst = true; showFilter = false }) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Local recordings only. Select the sort direction.")
+                    TextButton(onClick = { newestFirst = true; showFilters = false }) {
                         Text("Newest first")
                     }
-                    TextButton(onClick = { newestFirst = false; showFilter = false }) {
+                    TextButton(onClick = { newestFirst = false; showFilters = false }) {
                         Text("Oldest first")
                     }
+                    TextButton(onClick = {
+                        showFilters = false
+                        livePage = 0
+                        showLive = true
+                    }) { Text("Recent live readings") }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showFilter = false }) { Text("Close") }
+                TextButton(onClick = { showFilters = false }) { Text("Close") }
             }
         )
     }
 
-    LazyColumn(
-        modifier = Modifier.testTag("history-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    if (showSessions) {
+        val page = sessionPage.coerceIn(0, pageCount(filtered.size, 1) - 1)
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { showSessions = false },
+            title = { Text("Saved sessions · ${filtered.size}") },
+            text = {
+                Column(
+                    Modifier.fillMaxWidth().testTag("history-sessions-page"),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (filtered.isEmpty()) Text("No saved recordings for this period.", color = Muted)
+                    pageItems(filtered, page, 1).forEach { session ->
+                        Card(
+                            onClick = {
+                                showSessions = false
+                                onSelectSession(session.id)
+                                open("recording-library")
+                            },
+                            colors = CardDefaults.cardColors(containerColor = Panel),
+                            border = BorderStroke(1.dp, Color(0xFF233857))
+                        ) {
+                            Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text(
+                                    SimpleDateFormat("dd MMM yyyy · HH:mm", Locale.US)
+                                        .format(Date(session.startedAt)),
+                                    color = Cyan, fontWeight = FontWeight.Bold
+                                )
+                                Text("${session.sampleCount} recorded samples", color = Muted)
+                            }
+                        }
+                    }
+                    PageControls(
+                        total = filtered.size, pageSize = 1, page = page,
+                        onPageChange = { sessionPage = it }, tag = "history-sessions"
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSessions = false }) { Text("Close") }
+            }
+        )
+    }
+
+    if (showLive) {
+        val recent = samples.asReversed()
+        val page = livePage.coerceIn(0, pageCount(recent.size, 1) - 1)
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { showLive = false },
+            title = { Text("Recent live readings") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (recent.isEmpty()) Text("No live Android samples available.", color = Muted)
+                    pageItems(recent, page, 1).forEach { reading ->
+                        Text(
+                            SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(reading.time)),
+                            color = Cyan
+                        )
+                        Text("Battery: ${reading.battery.firstOrNull()?.display ?: "Unavailable"}")
+                        Text("Live readings are not saved without recording.", color = Muted)
+                    }
+                    PageControls(
+                        total = recent.size, pageSize = 1, page = page,
+                        onPageChange = { livePage = it }, tag = "history-live"
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLive = false }) { Text("Close") }
+            }
+        )
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(start = 20.dp, end = 20.dp, top = 48.dp)
+            .testTag("history-page"),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading("History", "Recent sessions", "Local device records") }
-        item { ReferenceHeroCard { open("recording-library") } }
-        item { Spacer(Modifier.height(0.dp)) }
-        item { ReferenceMetricRow("Today", "◇", 0) { windowName = HistoryWindow.TODAY.name } }
-        item { ReferenceMetricRow("This week", "▤", 1) { windowName = HistoryWindow.WEEK.name } }
-        item { ReferenceMetricRow("All sessions", "◉", 2) { windowName = HistoryWindow.ALL.name } }
-        item { ReferenceMetricRow("Filters", "⌁", 3) { showFilter = true } }
-        item { Spacer(Modifier.height(116.dp)) }
-        item {
-            Text("Saved recordings · ${filtered.size} sessions", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text("Period: ${when (window) {
-                HistoryWindow.TODAY -> "Today"
-                HistoryWindow.WEEK -> "This week"
-                HistoryWindow.ALL -> "All sessions"
-            }}", fontSize = 13.sp, color = Muted)
+        ReferenceHeading("History", "Recent sessions", "Local device records")
+        ReferenceHeroCard { open("recording-library") }
+        ReferenceMetricRow("Today", "◇", 0) {
+            windowName = HistoryWindow.TODAY.name
+            sessionPage = 0
+            showSessions = true
         }
-        item {
-            TextButton(onClick = { open("recording-library") }) {
-                Text("Open Recording Library")
-            }
+        ReferenceMetricRow("This week", "▤", 1) {
+            windowName = HistoryWindow.WEEK.name
+            sessionPage = 0
+            showSessions = true
         }
-        if (filtered.isEmpty()) {
-            item { Text("No saved recordings for this period.", fontSize = 13.sp, color = Muted) }
+        ReferenceMetricRow("All sessions", "◉", 2) {
+            windowName = HistoryWindow.ALL.name
+            sessionPage = 0
+            showSessions = true
         }
-        items(filtered, key = { "saved-${it.id}" }) { session ->
-            Card(
-                onClick = {
-                    onSelectSession(session.id)
-                    open("recording-library")
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Panel),
-                border = BorderStroke(1.dp, Color(0xFF233857))
-            ) {
-                Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(
-                        SimpleDateFormat("dd MMM yyyy · HH:mm", Locale.US)
-                            .format(Date(session.startedAt)),
-                        fontWeight = FontWeight.Bold, color = Cyan
-                    )
-                    Text("${session.sampleCount} recorded samples", color = Muted, fontSize = 13.sp)
-                }
-            }
-        }
-        item {
-            Text("Recent in-memory readings · ${samples.size}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text("These live samples are not saved unless recording is started.", fontSize = 12.sp, color = Muted)
-        }
-        items(samples.asReversed().take(10)) { reading ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Panel)
-            ) {
-                Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(reading.time)), color = Cyan)
-                    Text("Battery: ${reading.battery.firstOrNull()?.display ?: "Unavailable"}", fontSize = 13.sp)
-                }
-            }
-        }
+        ReferenceMetricRow("Filters", "⌁", 3) { showFilters = true }
     }
 }
