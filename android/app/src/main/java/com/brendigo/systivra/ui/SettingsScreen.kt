@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Slider
@@ -123,31 +125,44 @@ internal fun Settings(open: (String) -> Unit) {
         )
     }
 
-    LazyColumn(
-        modifier = Modifier.testTag("settings-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    var shortcuts by rememberSaveable { mutableStateOf(false) }
+    if (shortcuts) {
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { shortcuts = false },
+            title = { Text("More options") },
+            text = {
+                Column {
+                    listOf(
+                        Triple("Screen catalog", "all-screens", "settings-all-tools"),
+                        Triple("About SYSTIVRA", "about", "settings-about-shortcut"),
+                        Triple("Device & Android", "device-and-android", "settings-device-shortcut")
+                    ).forEach { (label, destination, tag) ->
+                        TextButton(
+                            onClick = { shortcuts = false; open(destination) },
+                            modifier = Modifier.fillMaxWidth().testTag(tag)
+                        ) { Text(label) }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { shortcuts = false }) { Text("Close") }
+            }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("settings-page")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading("Settings", "Preferences", "Customize your experience") }
-        item { ReferenceHeroCard { open("device-and-android") } }
-        item { Spacer(Modifier.height(0.dp)) }
-        item { ReferenceMetricRow("Appearance", "◇", 0) { activeDialog = "Appearance" } }
-        item { ReferenceMetricRow("Update interval", "▤", 1) { activeDialog = "Update interval" } }
-        item { ReferenceMetricRow("Units", "◉", 2) { activeDialog = "Units" } }
-        item { ReferenceMetricRow("Privacy", "⌁", 3) { open("privacy-center") } }
-        // Settings is for preferences; the large list of unrelated feature
-        // shortcuts belongs in Screen Catalog, searchable by feature name.
-        item {
-            TextButton(
-                onClick = { open("all-screens") },
-                modifier = Modifier.fillMaxWidth().testTag("settings-all-tools")
-            ) { Text("Screen catalog") }
-        }
-        item {
-            TextButton(
-                onClick = { open("about") },
-                modifier = Modifier.fillMaxWidth().testTag("settings-about-shortcut")
-            ) { Text("About SYSTIVRA") }
-        }
+        ReferenceHeading("Settings", "Preferences", "Customize your experience")
+        ReferenceHeroCard { shortcuts = true }
+        Spacer(Modifier.height(0.dp))
+        ReferenceMetricRow("Appearance", "◇", 0) { activeDialog = "Appearance" }
+        ReferenceMetricRow("Update interval", "▤", 1) { activeDialog = "Update interval" }
+        ReferenceMetricRow("Units", "◉", 2) { activeDialog = "Units" }
+        ReferenceMetricRow("Privacy", "⌁", 3) { open("privacy-center") }
     }
 }
