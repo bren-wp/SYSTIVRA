@@ -1,6 +1,8 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -133,7 +135,7 @@ internal fun PriorityReferenceScreen(
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("priority-reference-$route")
+        modifier = Modifier.fillMaxSize().testTag("priority-reference-$route").verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

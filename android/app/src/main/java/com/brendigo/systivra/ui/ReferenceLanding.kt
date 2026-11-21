@@ -1,6 +1,8 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +32,7 @@ internal fun ReferenceLanding(
     require(actions.size in 1..4) { "Reference layout supports one to four real actions" }
 
     Column(
-        modifier = Modifier.fillMaxSize().testTag("reference-landing-$route")
+        modifier = Modifier.fillMaxSize().testTag("reference-landing-$route").verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

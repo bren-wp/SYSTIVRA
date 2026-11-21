@@ -64,7 +64,7 @@ class NavigationSmokeTest {
         rule.onNodeWithTag("settings-all-tools").performClick()
         rule.onNodeWithTag("screen-catalog-page").assertExists()
         rule.onNodeWithTag("catalog-search").performTextInput("Device Detection")
-        rule.onNodeWithText("Device Detection").performClick()
+        rule.onNodeWithText("Open Device Detection").performClick()
         rule.onNodeWithText("Hardware capabilities").assertExists()
         rule.onNodeWithText("Memory and storage").performClick()
         rule.onNodeWithText("Device RAM and internal storage").assertExists()

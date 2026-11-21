@@ -8,6 +8,8 @@ import android.os.Build
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.os.VibrationEffect
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -133,7 +135,7 @@ internal fun LiveMonitor(
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("live-monitor-scroll")
+        modifier = Modifier.fillMaxSize().testTag("live-monitor-scroll").verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -211,7 +213,7 @@ internal fun Diagnostics(open: (String) -> Unit) {
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("diagnostics-center-scroll")
+        modifier = Modifier.fillMaxSize().testTag("diagnostics-center-scroll").verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

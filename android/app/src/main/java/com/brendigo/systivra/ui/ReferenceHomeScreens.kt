@@ -1,6 +1,8 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -97,7 +99,7 @@ internal fun Dashboard(
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("dashboard-page")
+        modifier = Modifier.fillMaxSize().testTag("dashboard-page").verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -262,7 +264,7 @@ internal fun HardwareExplorer(open: (String) -> Unit) {
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("hardware-explorer-page")
+        modifier = Modifier.fillMaxSize().testTag("hardware-explorer-page").verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

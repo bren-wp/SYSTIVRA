@@ -1,6 +1,8 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra
 
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -34,6 +36,9 @@ class ReferenceComponentInteractionAuditTest {
     @Test fun allFourNativeVectorIconsExistAtOriginal18dpSize() {
         dashboard()
         for (name in listOf("memory", "storage", "battery", "thermal-status")) {
+            // Reach the row first; bounds for offscreen nodes are clipped.
+            rule.onNodeWithTag("dashboard-page")
+                .performScrollToNode(hasTestTag("reference-row-$name"))
             val icon = rule.onNodeWithTag(
                 "reference-row-icon-$name", useUnmergedTree = true
             ).getUnclippedBoundsInRoot()

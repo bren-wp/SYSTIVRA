@@ -46,8 +46,8 @@ class ChargingReferenceInteractionTest {
         assertEquals(24f, (first.top - chart.bottom).value, 1.5f)
         rule.onNodeWithTag("reference-row-current-if-available").assertExists()
         rule.onNodeWithTag("reference-row-temperature").assertExists()
-        // LazyColumn creates only visible rows. Scroll to the final card
-        // before asserting it exists and is genuinely reachable by touch.
+        // The overview keeps reference geometry while providing a scroll fallback
+        // so the final card remains reachable on short displays.
         rule.onNodeWithTag("reference-charging-analysis")
             .performScrollToNode(hasTestTag("reference-row-session-duration"))
         rule.onNodeWithTag("reference-row-session-duration").assertExists()
@@ -74,6 +74,8 @@ class ChargingReferenceInteractionTest {
     @Test fun currentRowShowsRealAndroidDataRatherThanPlaceholder() {
         render()
         rule.onNodeWithText("Current if available").performClick()
-        rule.onNodeWithText("Measured battery values only. A charge capacity estimate is not available in this version.").assertExists()
+        rule.onNodeWithTag("charging-readings-page").assertExists()
+        rule.onNodeWithText("Real Android battery readings. No fabricated capacity estimate.").assertExists()
+        rule.onNodeWithText("No battery metrics available from Android.").assertExists()
     }
 }

@@ -1,6 +1,8 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra
 
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -35,7 +37,6 @@ class ReferenceGeometryTest {
         val memory = rule.onNodeWithTag("reference-row-memory").getUnclippedBoundsInRoot()
         val storage = rule.onNodeWithTag("reference-row-storage").getUnclippedBoundsInRoot()
         val battery = rule.onNodeWithTag("reference-row-battery").getUnclippedBoundsInRoot()
-        val thermal = rule.onNodeWithTag("reference-row-thermal-status").getUnclippedBoundsInRoot()
 
         // The reference places cards at x=20, text at x=24 and rings at x=34.
         assertEquals(24f, heading.left.value, 0.7f)
@@ -47,7 +48,7 @@ class ReferenceGeometryTest {
         assertEquals(123f, (heroTitle.left - hero.left).value, 0.7f)
         assertEquals(128f, (hero.bottom - hero.top).value, 0.7f)
 
-        listOf(memory, storage, battery, thermal).forEach { row ->
+        listOf(memory, storage, battery).forEach { row ->
             assertEquals(20f, row.left.value, 0.7f)
             assertEquals(69f, (row.bottom - row.top).value, 0.7f)
             assertEquals((hero.right - hero.left).value, (row.right - row.left).value, 0.7f)
@@ -55,7 +56,15 @@ class ReferenceGeometryTest {
         // SVG action rows: 69dp height + 13dp from top-to-top in the gap.
         assertEquals(82f, (storage.top - memory.top).value, 0.7f)
         assertEquals(82f, (battery.top - storage.top).value, 0.7f)
-        assertEquals(82f, (thermal.top - battery.top).value, 0.7f)
+        // On short/large-font viewports, scroll instead of measuring the
+        // clipped visible fragment as though it were the whole fourth row.
+        rule.onNodeWithTag("dashboard-page")
+            .performScrollToNode(hasTestTag("reference-row-thermal-status"))
+        val thermal = rule.onNodeWithTag("reference-row-thermal-status").getUnclippedBoundsInRoot()
+        val batteryAfterScroll = rule.onNodeWithTag("reference-row-battery").getUnclippedBoundsInRoot()
+        assertEquals(20f, thermal.left.value, 0.7f)
+        assertEquals(69f, (thermal.bottom - thermal.top).value, 0.7f)
+        assertEquals(82f, (thermal.top - batteryAfterScroll.top).value, 0.7f)
         // SVG hero ends at y=336, first row starts at 359.
         assertEquals(23f, (memory.top - hero.bottom).value, 1.2f)
     }

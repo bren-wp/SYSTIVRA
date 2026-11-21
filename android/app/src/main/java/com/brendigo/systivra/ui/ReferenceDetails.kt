@@ -5,6 +5,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -119,7 +121,7 @@ internal fun ReferenceDetailScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().testTag("reference-detail-$route")
+        modifier = Modifier.fillMaxSize().testTag("reference-detail-$route").verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
