@@ -16,6 +16,8 @@ import android.os.Process
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,11 +39,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -96,38 +100,36 @@ fun SensorLiveScreen() {
             if (enabled) runCatching { manager?.unregisterListener(listener) }
         }
     }
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item {
-            Text("Live Sensor Inspector", fontSize = 23.sp, fontWeight = FontWeight.Bold)
-            Text("Readings are from SensorManager; the listener is removed when you leave this screen.",
-                color = Muted, fontSize = 13.sp)
-        }
+    val selectedIndex = available.indexOfFirst { it.first == sensorId }.coerceAtLeast(0)
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("sensor-live-page").padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text("Live Sensor Inspector", fontSize = 23.sp, fontWeight = FontWeight.Bold)
+        Text("Real SensorManager events; listener stops when leaving this screen.",
+            color = Muted, fontSize = 13.sp)
         if (available.isEmpty()) {
-            item { DetailCard("No supported sensors", "The device exposes none of the supported sensor types.") }
+            DetailCard("No supported sensors", "No supported sensor type is exposed by Android.")
         } else {
-            item { Text("Select a sensor", color = Cyan, fontWeight = FontWeight.Bold) }
-            items(available) { (id, label, _) ->
-                Card(onClick = { sensorId = id },
-                    colors = CardDefaults.cardColors(containerColor = if (sensorId == id) Raised else Panel)) {
-                    Text((if (sensorId == id) "● " else "○ ") + label,
-                        modifier = Modifier.fillMaxWidth().padding(13.dp),
-                        color = if (sensorId == id) Cyan else Muted)
-                }
-            }
-            item {
-                DetailCard("Live values", if (values.isEmpty()) "Waiting for sensor event…" else
-                    values.mapIndexed { i, value ->
-                        listOf("X", "Y", "Z", "W").getOrElse(i) { "Value " + i } +
-                            ": " + String.format(Locale.US, "%.3f", value)
-                    }.joinToString("\n"))
-            }
-            item {
-                DetailCard("Sensor metadata",
-                    "Units: " + (selected?.let { unitForSensor(it.type) } ?: "Unavailable") +
+            DetailCard("Selected sensor", available[selectedIndex].second)
+            PageControls(
+                available.size, 1, selectedIndex,
+                { page -> sensorId = available[page].first }, "sensor-selection"
+            )
+            DetailCard("Live values",
+                if (values.isEmpty()) "Waiting for a sensor event…"
+                else values.mapIndexed { i, value ->
+                    listOf("X", "Y", "Z", "W").getOrElse(i) { "Value $i" } +
+                        ": " + String.format(Locale.US, "%.3f", value)
+                }.joinToString("\n")
+            )
+            DetailCard(
+                "Sensor metadata",
+                "Units: " + (selected?.let { unitForSensor(it.type) } ?: "Unavailable") +
                     "\nResolution: " + (selected?.resolution?.toString() ?: "Unavailable") +
-                    "\nAccuracy code: " + (accuracy?.toString() ?: "Unavailable") +
-                    "\nVendor: " + (selected?.vendor ?: "Unavailable"))
-            }
+                    "\nAccuracy: " + (accuracy?.toString() ?: "Unavailable") +
+                    "\nVendor: " + (selected?.vendor ?: "Unavailable")
+            )
         }
     }
 }
@@ -160,17 +162,30 @@ fun NetworkDetailsScreen() {
         caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "Ethernet"
         else -> "Other transport"
     }
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text("Network status", fontWeight = FontWeight.Bold, fontSize = 24.sp) }
-        item { Text("Reads connection state only. No internet request or speed test is performed.", color = Muted) }
-        item { DetailCard("Transport", transport) }
-        item { DetailCard("Validated Internet", caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            ?.let { if (it) "Yes" else "No" } ?: "Unavailable") }
-        item { DetailCard("Metered network", if (network == null || cm == null) "Unavailable" else
-            runCatching { if (cm.isActiveNetworkMetered) "Yes" else "No" }.getOrDefault("Unavailable")) }
-        item { DetailCard("Reported downstream bandwidth", caps?.linkDownstreamBandwidthKbps
-            ?.takeIf { it > 0 }?.toString()?.plus(" Kbps") ?: "Unavailable") }
-        item { Text("Link bandwidth is a platform estimate, not a measured transfer speed.", color = Muted, fontSize = 12.sp) }
+    val entries = listOf(
+        "Transport" to transport,
+        "Validated Internet" to (caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            ?.let { if (it) "Yes" else "No" } ?: "Unavailable"),
+        "Metered network" to (if (network == null || cm == null) "Unavailable" else
+            runCatching { if (cm.isActiveNetworkMetered) "Yes" else "No" }.getOrDefault("Unavailable")),
+        "Reported downstream bandwidth" to
+            (caps?.linkDownstreamBandwidthKbps?.takeIf { it > 0 }?.toString()?.plus(" Kbps") ?: "Unavailable")
+    )
+    var requestedPage by rememberSaveable { mutableIntStateOf(0) }
+    BoxWithConstraints(Modifier.fillMaxSize().testTag("network-details-page")) {
+        val perPage = if (maxHeight < 550.dp) 1 else 2
+        val page = requestedPage.coerceIn(0, pageCount(entries.size, perPage) - 1)
+        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Network status", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Text("Reads connection state only. No internet request or speed test is performed.",
+                color = Muted)
+            pageItems(entries, page, perPage).forEach { (label, value) ->
+                DetailCard(label, value)
+            }
+            PageControls(entries.size, perPage, page, { requestedPage = it }, "network-details")
+            Text("Link bandwidth is an Android estimate, not a measured transfer speed.",
+                color = Muted, fontSize = 12.sp)
+        }
     }
 }
 
