@@ -7,7 +7,7 @@ import org.junit.Test
 class PagedContentTest {
     @Test fun onePageExistsForEmptyResults() {
         assertEquals(1, pageCount(0, 2))
-        assertEquals(emptyList<Int>(), pageItems(emptyList(), 7, 2))
+        assertEquals(emptyList<Int>(), pageItems(emptyList<Int>(), 7, 2))
     }
 
     @Test fun allResultsAreAccessibleWithoutScroll() {
