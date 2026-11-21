@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
@@ -185,22 +186,24 @@ fun ReportExportScreen(
         }
         if (snapshot.isEmpty()) {
             item {
-                Card(colors = CardDefaults.cardColors(containerColor = Raised)) {
-                    Column(
-                        Modifier.fillMaxWidth().padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text("No recorded samples", fontWeight = FontWeight.Bold, color = TextPrimary)
-                        Text(
-                            "Start a recording to collect real device readings before exporting.",
-                            color = Muted
-                        )
-                        if (onStartRecording != null) {
-                            TextButton(
-                                modifier = Modifier.testTag("report-start-recording"),
-                                onClick = onStartRecording
-                            ) { Text("Open Recording") }
-                        }
+                // Keep the chosen action visible without vertical scrolling on
+                // compact phones. Empty-state guidance occupies only one row.
+                Row(
+                    modifier = Modifier.fillMaxWidth().testTag("report-empty-state"),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "No recorded samples",
+                        modifier = Modifier.weight(1f),
+                        color = Muted,
+                        fontSize = 13.sp
+                    )
+                    if (onStartRecording != null) {
+                        TextButton(
+                            modifier = Modifier.testTag("report-start-recording"),
+                            onClick = onStartRecording
+                        ) { Text("Open Recording") }
                     }
                 }
             }
