@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -34,6 +35,8 @@ import androidx.compose.material.icons.rounded.Sensors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -63,19 +66,26 @@ import com.brendigo.systivra.data.Reading
 internal fun MetricScreen(readings: List<Reading>, subtitle: String) {
     val context = LocalContext.current
     val fahrenheit = remember(context) { preferredFahrenheit(context) }
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Text(subtitle, fontSize = 13.sp, color = Muted) }
-        if (readings.isEmpty()) item { Text("Waiting for device readings…", color = Muted) }
-        items(readings) { item ->
-            PanelCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(item.name, fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f), fontSize = 14.sp)
-                    Text(displayReading(item, fahrenheit), color = if (item.value == null) Muted else Cyan,
-                        fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 2)
+    var requestedPage by rememberSaveable(subtitle) { mutableIntStateOf(0) }
+    BoxWithConstraints(Modifier.fillMaxSize().testTag("metric-reading-page")) {
+        val perPage = if (maxHeight < 530.dp) 1 else 2
+        val page = requestedPage.coerceIn(0, pageCount(readings.size, perPage) - 1)
+        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(subtitle, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            if (readings.isEmpty()) Text("Waiting for device readings…", color = Muted)
+            pageItems(readings, page, perPage).forEach { reading ->
+                PanelCard {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(reading.name, modifier = Modifier.weight(1f),
+                            fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(displayReading(reading, fahrenheit),
+                            color = if (reading.value == null) Muted else Cyan,
+                            fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 2)
+                    }
+                    Text("Source: ${reading.source}", color = Muted, fontSize = 11.sp)
                 }
-                Text("Source: " + item.source, fontSize = 11.sp, color = Muted)
             }
+            PageControls(readings.size, perPage, page, { requestedPage = it }, "metric-reading")
         }
     }
 }
@@ -89,66 +99,77 @@ internal fun LiveMonitor(
     open: (String) -> Unit
 ) {
     val history = samples.measuredChargePercentages()
-    val rows = listOf(
+    val primary = listOf(
         Triple("Battery", "◇", "battery-details"),
         Triple("Memory", "▤", "memory-details"),
         Triple("Thermal status", "◉", "thermal-details"),
         Triple("Storage", "⌁", "storage-details")
     )
-    LazyColumn(
-        modifier = Modifier.testTag("live-monitor-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    var tools by rememberSaveable { mutableStateOf(false) }
+    if (tools) {
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { tools = false },
+            title = { Text("Monitor tools") },
+            text = {
+                Column {
+                    listOf(
+                        "History" to "history",
+                        "Recording Library" to "recording-library",
+                        "Session Insights" to "session-insights",
+                        "Session Recorder" to "recording-session",
+                        "Performance HUD" to "overlay-configuration"
+                    ).forEach { (title, route) ->
+                        TextButton(
+                            onClick = { tools = false; open(route) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text(title) }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { tools = false }) { Text("Close") } }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("live-monitor-scroll")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading("Live Monitor", "System readings", "Real-time activity") }
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth().height(172.dp).clickable { open("metric-fullscreen") },
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
-                border = BorderStroke(1.dp, Color(0xFF233857))
-            ) {
-                Column(Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 14.dp)) {
-                    Text("Live data chart", color = Muted, fontSize = 13.sp)
-                    Spacer(Modifier.height(12.dp))
-                    Canvas(Modifier.fillMaxWidth().height(84.dp)) {
-                        if (history.size >= 2) {
-                            val w = size.width / (history.size - 1)
-                            history.zipWithNext().forEachIndexed { index, pair ->
-                                drawLine(
-                                    Mint,
-                                    Offset(w * index, size.height * (1f - pair.first / 100f)),
-                                    Offset(w * (index + 1), size.height * (1f - pair.second / 100f)),
-                                    strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round
-                                )
-                            }
+        ReferenceHeading("Live Monitor", "System readings", "Real-time activity")
+        Card(
+            modifier = Modifier.fillMaxWidth().height(172.dp).clickable { tools = true },
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
+            border = BorderStroke(1.dp, Color(0xFF233857))
+        ) {
+            Column(Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 14.dp)) {
+                Text("Live data chart", color = Muted, fontSize = 13.sp)
+                Spacer(Modifier.height(12.dp))
+                Canvas(Modifier.fillMaxWidth().height(84.dp)) {
+                    if (history.size >= 2) {
+                        val dx = size.width / (history.size - 1)
+                        history.zipWithNext().forEachIndexed { index, pair ->
+                            drawLine(
+                                Mint,
+                                Offset(dx * index, size.height * (1f - pair.first / 100f)),
+                                Offset(dx * (index + 1), size.height * (1f - pair.second / 100f)),
+                                strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round
+                            )
                         }
                     }
-                    Spacer(Modifier.height(7.dp))
-                    Text(
-                        if (history.size >= 2) "Actual battery readings · " + history.size + " samples"
-                        else "Waiting for real device readings",
-                        color = Muted, fontSize = 11.sp
-                    )
                 }
+                Spacer(Modifier.height(7.dp))
+                Text(
+                    if (history.size >= 2) "Actual Android battery readings · ${history.size} samples"
+                    else "Waiting for real device readings", color = Muted, fontSize = 11.sp
+                )
             }
         }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(rows) { (label, symbol, path) ->
-            ReferenceMetricRow(label, symbol, rows.indexOfFirst { it.first == label }) { open(path) }
-        }
-        item { Spacer(Modifier.height(90.dp)) }
-        item { Text("Monitor tools", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
-        item { LinkCard("History", "Last " + samples.size + " foreground readings") { open("history") } }
-        item { LinkCard("Recording Library", savedSessions.size.toString() + " saved sessions") { open("recording-library") } }
-        item { LinkCard("Session Insights", "Real historical trends") { open("session-insights") } }
-        item { LinkCard("Session Recorder", "Explicit user-controlled recording") { open("recording-session") } }
-        item { LinkCard("Performance HUD", "In-app overlay settings") { open("overlay-configuration") } }
-        item {
-            Text(
-                "Only actual readings reported by Android are shown. No synthetic sensor graph values.",
-                color = Muted, fontSize = 12.sp
-            )
+        Spacer(Modifier.height(0.dp))
+        primary.forEachIndexed { index, (title, symbol, route) ->
+            ReferenceMetricRow(title, symbol, index) { open(route) }
         }
     }
 }
@@ -161,28 +182,44 @@ internal fun Diagnostics(open: (String) -> Unit) {
         Triple("Speakers", "◉", "component-test"),
         Triple("Sensors", "⌁", "sensor-explorer")
     )
-    LazyColumn(
-        modifier = Modifier.testTag("diagnostics-center-scroll"),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp),
+    var additional by rememberSaveable { mutableStateOf(false) }
+    if (additional) {
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { additional = false },
+            title = { Text("Additional tests") },
+            text = {
+                Column {
+                    listOf(
+                        "Live sensors" to "sensor-live",
+                        "CPU benchmark" to "benchmark-center",
+                        "Diagnostic results" to "diagnostic-results",
+                        "Thermal status" to "thermal-details"
+                    ).forEach { (title, route) ->
+                        TextButton(
+                            onClick = { additional = false; open(route) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text(title) }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { additional = false }) { Text("Close") }
+            }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("diagnostics-center-scroll")
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading("Diagnostics Center", "Hardware checks", "Opt-in device testing") }
-        item { ReferenceHeroCard { open("diagnostic-results") } }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(rows) { (label, icon, path) ->
-            ReferenceMetricRow(label, icon, rows.indexOfFirst { it.first == label }) { open(path) }
-        }
-        item { Spacer(Modifier.height(90.dp)) }
-        item { Text("Additional tests", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
-        item { LinkCard("Live sensors", "Read values from Android sensors") { open("sensor-live") } }
-        item { LinkCard("CPU benchmark", "Bounded user-started workload") { open("benchmark-center") } }
-        item { LinkCard("Diagnostic results", "User-confirmed results only") { open("diagnostic-results") } }
-        item { LinkCard("Thermal status", "Android platform thermal status") { open("thermal-details") } }
-        item {
-            Text(
-                "Tests do not automatically prove device health; results depend on user confirmation.",
-                color = Muted, fontSize = 12.sp
-            )
+        ReferenceHeading("Diagnostics Center", "Hardware checks", "Opt-in device testing")
+        ReferenceHeroCard { additional = true }
+        Spacer(Modifier.height(0.dp))
+        rows.forEachIndexed { index, (title, icon, route) ->
+            ReferenceMetricRow(title, icon, index) { open(route) }
         }
     }
 }
