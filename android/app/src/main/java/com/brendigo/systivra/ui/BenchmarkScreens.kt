@@ -7,6 +7,8 @@ import android.os.PowerManager
 import android.os.SystemClock
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,11 +18,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -114,54 +121,92 @@ class BenchmarkController(context: Context) {
 
 @Composable
 fun BenchmarkCenterScreen(controller: BenchmarkController, onStart: () -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item {
-            Text("Performance Lab", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-            Text("A transparent local CPU microbenchmark. No online ranking or invented score.", color = Muted)
-        }
-        item { BenchCard("CPU single-worker test", "Deterministic integer workload for approximately 2 seconds.") }
-        item { BenchCard("Safety", "Stops on severe Android thermal status and supports immediate cancellation. Avoid running on a hot device.") }
-        item { Button(enabled = !controller.running, colors = ButtonDefaults.buttonColors(
-                        disabledContainerColor = Raised, disabledContentColor = Muted
-                    ), onClick = onStart) { Text("Start CPU test") } }
-        if (controller.result != null) {
-            item { BenchCard("Previous result", controller.result!!.iterationsPerSecond.toString() + " iterations/s") }
+    var safety by rememberSaveable { mutableStateOf(false) }
+    if (safety) {
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { safety = false },
+            title = { Text("CPU benchmark safety") },
+            text = { Text("One worker, at most two seconds. Stops at severe Android thermal status. Avoid running when the device is already hot.") },
+            confirmButton = { TextButton(onClick = { safety = false }) { Text("Close") } }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().padding(18.dp).testTag("benchmark-lab-page"),
+        verticalArrangement = Arrangement.spacedBy(11.dp)
+    ) {
+        Text("Performance Lab", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Text("A local CPU workload with real measurements, no invented score.", color = Muted)
+        BenchCard("CPU single-worker test", "Deterministic, bounded two-second workload.")
+        Button(
+            enabled = !controller.running,
+            colors = ButtonDefaults.buttonColors(disabledContainerColor = Raised, disabledContentColor = Muted),
+            onClick = onStart
+        ) { Text("Start CPU test") }
+        TextButton(onClick = { safety = true }) { Text("Test safety") }
+        controller.result?.let { result ->
+            Text("Last result: ${String.format(Locale.US, "%,d", result.iterationsPerSecond)} iterations/s", color = Cyan)
         }
     }
 }
 
 @Composable
 fun BenchmarkRunningScreen(controller: BenchmarkController, open: (String) -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text("CPU Benchmark", fontWeight = FontWeight.Bold, fontSize = 24.sp) }
-        item { BenchCard("Status", controller.message) }
-        item { BenchCard("Workload", "At most 2 seconds, single worker. Thermal cut-off: severe or above.") }
+    Column(
+        modifier = Modifier.fillMaxSize().padding(18.dp).testTag("benchmark-running-page"),
+        verticalArrangement = Arrangement.spacedBy(11.dp)
+    ) {
+        Text("CPU Benchmark", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        BenchCard("Status", controller.message)
+        Text("Maximum two seconds; Android thermal safety cutoff is active.", color = Muted)
         if (controller.running) {
-            item { Button(onClick = controller::cancel) { Text("Stop test") } }
+            Button(onClick = controller::cancel) { Text("Stop test") }
         } else {
-            item { Button(enabled = controller.result != null, colors = ButtonDefaults.buttonColors(
-                        disabledContainerColor = Raised, disabledContentColor = Muted
-                    ), onClick = { open("benchmark-results") }) { Text("View results") } }
-            item { Button(onClick = { open("benchmark-center") }) { Text("Back to Performance Lab") } }
+            Button(
+                enabled = controller.result != null,
+                colors = ButtonDefaults.buttonColors(disabledContainerColor = Raised, disabledContentColor = Muted),
+                onClick = { open("benchmark-results") }
+            ) { Text("View results") }
+            TextButton(onClick = { open("benchmark-center") }) { Text("Back to Performance Lab") }
         }
     }
 }
 
 @Composable
 fun BenchmarkResultsScreen(controller: BenchmarkController) {
-    val r = controller.result
-    LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text("Benchmark Results", fontWeight = FontWeight.Bold, fontSize = 24.sp) }
-        if (r == null) {
-            item { BenchCard("No completed test", "Start a CPU benchmark from Performance Lab.") }
-        } else {
-            item { BenchCard("Iterations / second", String.format(Locale.US, "%,d", r.iterationsPerSecond)) }
-            item { BenchCard("Elapsed time", r.elapsedMs.toString() + " ms") }
-            item { BenchCard("Total iterations", r.totalIterations.toString()) }
-            item { BenchCard("Checksum", r.checksum.toString()) }
-            item { BenchCard("Android thermal code", r.thermalStatus) }
-            item { BenchCard("Test status", if (r.stoppedEarly) "Stopped due to thermal load" else "Completed") }
-            item { Text("These numbers are local measurements only and cannot be compared to Geekbench or other suites.", color = Muted, fontSize = 12.sp) }
+    val result = controller.result
+    val metrics = if (result == null) emptyList() else listOf(
+        "Iterations / second" to String.format(Locale.US, "%,d", result.iterationsPerSecond),
+        "Elapsed time" to "${result.elapsedMs} ms",
+        "Total iterations" to result.totalIterations.toString(),
+        "Checksum" to result.checksum.toString(),
+        "Android thermal code" to result.thermalStatus,
+        "Test status" to if (result.stoppedEarly) "Stopped due to thermal load" else "Completed"
+    )
+    var requestedPage by rememberSaveable { mutableIntStateOf(0) }
+    BoxWithConstraints(Modifier.fillMaxSize().testTag("benchmark-results-page")) {
+        val pageSize = if (maxHeight < 590.dp) 1 else 2
+        val page = requestedPage.coerceIn(0, pageCount(metrics.size, pageSize) - 1)
+        Column(
+            modifier = Modifier.fillMaxSize().padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(11.dp)
+        ) {
+            Text("Benchmark Results", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            if (result == null) {
+                BenchCard("No completed test", "Start a CPU benchmark from Performance Lab.")
+            } else {
+                pageItems(metrics, page, pageSize).forEach { (label, value) ->
+                    BenchCard(label, value)
+                }
+                PageControls(
+                    total = metrics.size, pageSize = pageSize, page = page,
+                    onPageChange = { requestedPage = it }, tag = "benchmark-results"
+                )
+                Text("Local CPU measurements are not comparable to commercial benchmark rankings.",
+                    color = Muted, fontSize = 12.sp)
+            }
         }
     }
 }
