@@ -95,6 +95,63 @@ class RecordingStoreInstrumentedTest {
         context.deleteDatabase(name)
     }
 
+    @Test fun repeatedStartStopWithoutSamplesDoesNotAccumulateHiddenRows() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val name = "systivra-test-empty-cleanup.db"
+        context.deleteDatabase(name)
+        try {
+            RecordingStore(context, name).use { store ->
+                repeat(40) {
+                    val id = store.startSession(1730000000000L + it)
+                    store.stopSession(id, 1730000001000L + it)
+                }
+                store.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM recording_sessions", null
+                ).use { rows ->
+                    assertTrue(rows.moveToFirst())
+                    assertEquals(0L, rows.getLong(0))
+                }
+                assertTrue(store.listSessions().isEmpty())
+            }
+        } finally {
+            context.deleteDatabase(name)
+        }
+    }
+
+    @Test fun openingExistingDatabaseCleansOnlyOldEmptyEndedSessions() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val name = "systivra-test-legacy-empty.db"
+        context.deleteDatabase(name)
+        try {
+            var recordedId = 0L
+            var unfinishedId = 0L
+            RecordingStore(context, name).use { store ->
+                recordedId = store.startSession(1730000000000L)
+                store.insert(recordedId, snapshot(1730000000000L))
+                store.stopSession(recordedId)
+                unfinishedId = store.startSession(1730000005000L)
+                val oldEmpty = store.startSession(1730000010000L)
+                store.writableDatabase.execSQL(
+                    "UPDATE recording_sessions SET ended_at = ? WHERE id = ?",
+                    arrayOf(1730000011000L, oldEmpty)
+                )
+            }
+            RecordingStore(context, name).use { reopened ->
+                val ids = mutableListOf<Long>()
+                reopened.readableDatabase.rawQuery(
+                    "SELECT id FROM recording_sessions ORDER BY id", null
+                ).use { rows ->
+                    while (rows.moveToNext()) ids += rows.getLong(0)
+                }
+                assertEquals(listOf(recordedId, unfinishedId), ids)
+                assertEquals(1, reopened.readSession(recordedId).size)
+                assertTrue(reopened.readSession(unfinishedId).isEmpty())
+            }
+        } finally {
+            context.deleteDatabase(name)
+        }
+    }
+
     @Test fun emptySessionHasNoFakeMeasurement() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val name = "systivra-test-empty.db"

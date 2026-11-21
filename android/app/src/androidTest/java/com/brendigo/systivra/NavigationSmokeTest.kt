@@ -81,6 +81,30 @@ class NavigationSmokeTest {
         rule.onNodeWithText("GPU Details").assertDoesNotExist()
     }
 
+    @Test fun catalogCategoryChipsFindFunctionsWithoutLongScrolling() {
+        rule.waitForIdle()
+        rule.onNodeWithTag("dashboard-scroll")
+            .performScrollToNode(androidx.compose.ui.test.hasTestTag("dashboard-all-tools"))
+        rule.onNodeWithTag("dashboard-all-tools").performClick()
+        rule.onNodeWithTag("catalog-category-records").performClick()
+        rule.onNodeWithTag("screen-catalog-scroll")
+            .performScrollToNode(hasText("Reports & Export"))
+        rule.onNodeWithText("Reports & Export").assertExists()
+        rule.onNodeWithText("CPU Details").assertDoesNotExist()
+        rule.onNodeWithTag("screen-catalog-scroll")
+            .performScrollToNode(androidx.compose.ui.test.hasTestTag("catalog-category-hardware"))
+        rule.onNodeWithTag("catalog-category-hardware").performClick()
+        rule.onNodeWithTag("screen-catalog-scroll")
+            .performScrollToNode(hasText("CPU Details"))
+        rule.onNodeWithText("CPU Details").assertExists()
+        rule.onNodeWithText("Reports & Export").assertDoesNotExist()
+        rule.onNodeWithTag("screen-catalog-scroll")
+            .performScrollToNode(androidx.compose.ui.test.hasTestTag("catalog-search"))
+        rule.onNodeWithTag("catalog-search").performTextInput("nonexistent-xyz")
+        rule.onNodeWithTag("catalog-clear-filters").performClick()
+        rule.onNodeWithText("No tools match. Change category or search.").assertDoesNotExist()
+    }
+
     @Test fun nestedBackStackReturnsToHardwareExplorer() {
         rule.waitForIdle()
         rule.onNodeWithTag("dashboard-scroll")

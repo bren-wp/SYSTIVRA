@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
@@ -65,6 +66,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -248,18 +250,12 @@ fun AppRoot(
                 reportPreferredFormat = formatRequest
             }
             if (route == destination) return
-            navigationStack = if (tabs.any { it.first == destination }) {
-                arrayListOf(destination)
-            } else {
-                ArrayList(navigationStack).apply { add(destination) }
-            }
+            navigationStack = pushNavigationRoute(
+                navigationStack, destination, tabs.any { it.first == destination }
+            )
         }
         fun goBack() {
-            navigationStack = if (navigationStack.size > 1) {
-                ArrayList(navigationStack.dropLast(1))
-            } else {
-                arrayListOf("dashboard")
-            }
+            navigationStack = popNavigationRoute(navigationStack)
         }
         BackHandler(enabled = navigationStack.size > 1) { goBack() }
         Scaffold(
@@ -1075,16 +1071,22 @@ private fun Settings(open: (String) -> Unit) {
 @Composable
 private fun ScreenCatalog(open: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
-    val available = sections.filter { enabledRoutes.contains(it.first) }
-    val matches = available.filter { (_, label) -> label.contains(query.trim(), ignoreCase = true) }
+    var category by rememberSaveable { mutableStateOf("All") }
+    val matches = filterCatalogRoutes(sections, enabledRoutes, category, query)
+    val listState = rememberLazyListState()
+    // A new filter must reveal its first relevant action immediately, even
+    // if the user scrolled far down in the previous category. This does not
+    // move or change any of the 37 original reference SVG screens.
+    LaunchedEffect(category, query) { listState.scrollToItem(0) }
     LazyColumn(
+        state = listState,
         modifier = Modifier.testTag("screen-catalog-scroll"),
         contentPadding = PaddingValues(18.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
             Text("Find a function", fontWeight = FontWeight.Bold, fontSize = 22.sp)
-            Text("Each tool opens its own focused screen.", color = Muted)
+            Text("Choose a category or search. Each tool has its own screen.", color = Muted)
         }
         item {
             androidx.compose.material3.OutlinedTextField(
@@ -1096,9 +1098,42 @@ private fun ScreenCatalog(open: (String) -> Unit) {
                 singleLine = true
             )
         }
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth().testTag("catalog-categories"),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                catalogCategories.chunked(3).forEach { row ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        row.forEach { label ->
+                            FilterChip(
+                                selected = category == label,
+                                onClick = { category = label },
+                                modifier = Modifier.weight(1f)
+                                    .testTag("catalog-category-${label.lowercase(Locale.ROOT)}"),
+                                label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Panel,
+                                    labelColor = TextPrimary,
+                                    selectedContainerColor = Color(0xFF153B68),
+                                    selectedLabelColor = TextPrimary
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
         if (matches.isEmpty()) {
             item {
-                Text("No matching tools. Try another word.", color = Muted)
+                Text("No tools match. Change category or search.", color = Muted)
+                TextButton(
+                    onClick = { query = ""; category = "All" },
+                    modifier = Modifier.testTag("catalog-clear-filters")
+                ) { Text("Show all tools") }
             }
         }
         items(matches, key = { it.first }) { (id, label) ->
