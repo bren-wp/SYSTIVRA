@@ -81,6 +81,32 @@ class RecordingStore(
         error("No safe database migration from $oldVersion to $newVersion")
     }
 
+    /**
+     * Called once by the foreground Activity before accepting new recording
+     * actions. After an OS process kill, earlier sessions may have no end time.
+     * Preserve their actual recorded data, close them at the last sample and
+     * remove only orphaned empty sessions. Never run during live recording.
+     */
+    fun recoverInterruptedSessions() {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            db.execSQL(
+                "UPDATE recording_sessions SET ended_at = MAX(started_at, " +
+                    "COALESCE((SELECT MAX(recorded_at) FROM metric_samples " +
+                    "WHERE session_id = recording_sessions.id), started_at)) " +
+                    "WHERE ended_at IS NULL"
+            )
+            db.execSQL(
+                "DELETE FROM recording_sessions WHERE NOT EXISTS " +
+                    "(SELECT 1 FROM metric_samples WHERE session_id = recording_sessions.id)"
+            )
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
     fun startSession(atMillis: Long = System.currentTimeMillis()): Long =
         writableDatabase.insertOrThrow(
             "recording_sessions", null,

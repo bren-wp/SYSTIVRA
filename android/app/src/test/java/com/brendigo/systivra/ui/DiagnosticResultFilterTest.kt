@@ -9,7 +9,7 @@ class DiagnosticResultFilterTest {
         "Touch" to "Pass (user-confirmed)",
         "Vibration" to "Fail (user-confirmed)",
         "Speaker" to "Not assessed",
-        "Camera" to "Not implemented — no result",
+        "Camera" to "Unavailable — access not requested",
         "Other" to "Skipped by user"
     )
 

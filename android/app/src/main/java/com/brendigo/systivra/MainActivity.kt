@@ -84,7 +84,10 @@ class MainActivity : ComponentActivity() {
                 sessions.value = store.listSessions()
                 selectedSamples.value = selectedSessionId.value?.let(store::readSession) ?: emptyList()
             }
-            val loaded = runCatching { refresh() }
+            val loaded = runCatching {
+                store.recoverInterruptedSessions()
+                refresh()
+            }
             if (loaded.isFailure) {
                 storageError.value = "Saved history could not be opened"
             } else {

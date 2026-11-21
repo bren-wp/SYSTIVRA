@@ -152,6 +152,47 @@ class RecordingStoreInstrumentedTest {
         }
     }
 
+    @Test fun processRestartSealsInterruptedSessionsButRetainsRealSamples() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val name = "systivra-test-interrupted-sessions.db"
+        context.deleteDatabase(name)
+        try {
+            var interruptedId = 0L
+            var emptyId = 0L
+            RecordingStore(context, name).use { store ->
+                interruptedId = store.startSession(1730000000000L)
+                store.insert(interruptedId, snapshot(1730000001000L))
+                // Simulate process death: no Stop action reached SQLite.
+                emptyId = store.startSession(1730000002000L)
+            }
+            RecordingStore(context, name).use { recovered ->
+                recovered.recoverInterruptedSessions()
+                assertEquals(1, recovered.listSessions().size)
+                assertEquals(interruptedId, recovered.listSessions().single().id)
+                assertEquals("51.0%", recovered.readSession(interruptedId).single().battery[0].value)
+                recovered.readableDatabase.rawQuery(
+                    "SELECT ended_at FROM recording_sessions WHERE id = ?",
+                    arrayOf(interruptedId.toString())
+                ).use { rows ->
+                    assertTrue(rows.moveToFirst())
+                    assertEquals(1730000001000L, rows.getLong(0))
+                }
+                recovered.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM recording_sessions WHERE id = ?",
+                    arrayOf(emptyId.toString())
+                ).use { rows ->
+                    assertTrue(rows.moveToFirst())
+                    assertEquals(0L, rows.getLong(0))
+                }
+                // Idempotent on repeated app initialization.
+                recovered.recoverInterruptedSessions()
+                assertEquals(1, recovered.listSessions().size)
+            }
+        } finally {
+            context.deleteDatabase(name)
+        }
+    }
+
     @Test fun emptySessionHasNoFakeMeasurement() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val name = "systivra-test-empty.db"

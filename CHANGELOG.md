@@ -1,6 +1,9 @@
-## Unreleased fixes (v0.12.0-preview.5)
-- Reports SVG actions select and scroll to matching CSV/JSON/PDF/Sharesheet controls; added Compose emulator navigation checks.
-- Split and bound Splash QA dependency installation for clearer failure diagnosis; retained the authentic Splash verification gate.
+## v0.12.0-preview.10 — deterministic exports, recording recovery and production copy cleanup (2026-11-21)
+- CSV, JSON and PDF exports freeze their real recorded sample list and all nested reading collections at the instant the user launches the Android Storage Access Framework document picker. Later session changes or incoming recordings cannot silently alter the export. If pending state is lost after process recreation, exports fail closed with a clear retry message instead of exporting a different session.
+- Added JVM unit tests for frozen sample/history and nested-reading snapshots, single-consumption/cancel behavior and state loss. Preserved real native SAF document callbacks and error handling.
+- Startup now atomically closes interrupted SQLite recording sessions at their last genuinely sampled timestamp and removes only empty orphaned sessions. Instrumented Android tests cover abrupt process termination, recovery idempotence and preservation of real battery readings.
+- Removed inactive "not implemented" benchmark content from Performance Lab and replaced development-facing diagnostic text with accurate Android permission/unavailable status, without fabricating measurements or requesting extra device permissions.
+- Android versionCode **24**, versionName **0.12.0-preview.10**. Exact-commit Android lint/JVM/emulator UI/SQLite, native 390×844 source SVG diff, responsive/130% font, genuine Splash and artifact SHA256 checks remain mandatory. **Neither 1:1 pixel perfection nor Play signing is certified.**
 
 ## v0.12.0-preview.9 — bounded navigation, local catalog filters, SQLite session cleanup (2026-11-21)
 - Added five categories and All to the functional Screen Catalog, with compact 2×3 selection chips, offline combined search and reset for empty matches. All original reference-first layouts and Android safe areas remain unchanged.
