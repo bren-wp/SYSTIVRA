@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Validate genuine SYSTIVRA responsive emulator screenshots without stretch or fake 1:1 claims."""
 import argparse
 import hashlib

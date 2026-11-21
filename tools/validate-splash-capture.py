@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Validate authentic Android cold-start video frames; never certify 1:1 from a video alone."""
 import argparse
 import hashlib
