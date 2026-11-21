@@ -11,7 +11,7 @@ Originally 2026-11-15; reviewed 2026-11-21
 | Android SDK compile | API 37 | Already supported by AGP 9.4 |
 | Android SDK target | API 36 | Meets Google Play deadline August 31, 2026 |
 | Android minimum | API 24 | Existing supported minimum |
-| Compose BOM | 2026.11.01 | November 19, 2026 stable Google Maven BOM; CI validation required |
+| Compose BOM | 2026.09.00 | Compatible with pinned Android API 37.0; November BOM requires 37.1+ and is deferred |
 | AndroidX Activity Compose | 1.13.0 | Already stable |
 | AndroidX Core KTX | 1.19.1 | Already stable |
 | AndroidX Core SplashScreen | 1.2.0 | Updated from 1.0.1 |
@@ -63,3 +63,7 @@ Sources:
 - https://developer.android.com/jetpack/androidx/releases/lifecycle
 - https://mvnrepository.com/artifact/androidx.compose/compose-bom/2026.11.01
 - https://kotlinlang.org/docs/releases.html
+
+## 2026-11-21 compatibility gate: November Compose BOM intentionally deferred
+
+The exact-head CI build failed at `app:checkDebugAarMetadata`: Compose 1.13.0 from BOM `2026.11.01` requires **compileSdk 37.1+**, while SYSTIVRA builds and its strict visual/emulator workflows currently use **37.0**. This was a real dependency incompatibility, not a code error. Reverted BOM to the compatible pinned **2026.09.00**; retained the compatible Lifecycle **2.11.1** update pending full test verification. Do not assert that all dependencies are latest until the Android platform 37.1/37.2 upgrade and corresponding CI/emulator infrastructure have been validated. See https://developer.android.com/build and https://developer.android.com/reference/tools/gradle-api/9.5/com/android/build/api/dsl/CompileSdkSpec.
