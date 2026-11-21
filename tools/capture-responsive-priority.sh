@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SYSTIVRA by Brendigo
 set -euo pipefail
 # Responsive capture matrix is diagnostic; it does not stretch 390x844 SVG art.
 APP=com.brendigo.systivra

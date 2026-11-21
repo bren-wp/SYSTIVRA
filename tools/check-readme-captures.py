@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Check README screenshot links against genuine captured-image *files*.
 
 Structural validation does NOT prove app focus, freedom from system dialogs,

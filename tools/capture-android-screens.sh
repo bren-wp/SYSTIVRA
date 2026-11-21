@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SYSTIVRA by Brendigo
 set -euo pipefail
 # Capture only ACTUAL focused Android app screens; never save Quickstep or System UI ANRs.
 APP=com.brendigo.systivra

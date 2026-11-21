@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SYSTIVRA by Brendigo
 set -euo pipefail
 # Independent genuine Android system Splash capture; this is NOT an SVG render.
 # Screenrecord starts before the app process so even short Splash frames are retained.
