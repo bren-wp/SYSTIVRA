@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
@@ -65,6 +66,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -1071,7 +1073,13 @@ private fun ScreenCatalog(open: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     var category by rememberSaveable { mutableStateOf("All") }
     val matches = filterCatalogRoutes(sections, enabledRoutes, category, query)
+    val listState = rememberLazyListState()
+    // A new filter must reveal its first relevant action immediately, even
+    // if the user scrolled far down in the previous category. This does not
+    // move or change any of the 37 original reference SVG screens.
+    LaunchedEffect(category, query) { listState.scrollToItem(0) }
     LazyColumn(
+        state = listState,
         modifier = Modifier.testTag("screen-catalog-scroll"),
         contentPadding = PaddingValues(18.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
