@@ -248,18 +248,12 @@ fun AppRoot(
                 reportPreferredFormat = formatRequest
             }
             if (route == destination) return
-            navigationStack = if (tabs.any { it.first == destination }) {
-                arrayListOf(destination)
-            } else {
-                ArrayList(navigationStack).apply { add(destination) }
-            }
+            navigationStack = pushNavigationRoute(
+                navigationStack, destination, tabs.any { it.first == destination }
+            )
         }
         fun goBack() {
-            navigationStack = if (navigationStack.size > 1) {
-                ArrayList(navigationStack.dropLast(1))
-            } else {
-                arrayListOf("dashboard")
-            }
+            navigationStack = popNavigationRoute(navigationStack)
         }
         BackHandler(enabled = navigationStack.size > 1) { goBack() }
         Scaffold(

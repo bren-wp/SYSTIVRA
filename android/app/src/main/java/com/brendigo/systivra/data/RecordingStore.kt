@@ -40,6 +40,19 @@ class RecordingStore(
         db.execSQL("CREATE INDEX idx_metric_samples_session_time ON metric_samples(session_id, recorded_at)")
     }
 
+    override fun onOpen(db: SQLiteDatabase) {
+        super.onOpen(db)
+        if (!db.isReadOnly) {
+            // Remove only completed empty sessions left by older releases.
+            // In-progress sessions without a sample must NOT be touched.
+            db.execSQL(
+                "DELETE FROM recording_sessions WHERE ended_at IS NOT NULL " +
+                    "AND NOT EXISTS (SELECT 1 FROM metric_samples " +
+                    "WHERE session_id = recording_sessions.id)"
+            )
+        }
+    }
+
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion == 1 && newVersion == 2) {
             db.execSQL(
@@ -75,12 +88,28 @@ class RecordingStore(
         )
 
     fun stopSession(id: Long, atMillis: Long = System.currentTimeMillis()) {
-        writableDatabase.update(
-            "recording_sessions",
-            ContentValues().apply { put("ended_at", atMillis) },
-            "id = ? AND ended_at IS NULL",
-            arrayOf(id.toString())
-        )
+        // An immediate Start -> Stop before the first foreground sample must
+        // not leave an unlimited trail of invisible, empty SQLite rows.
+        // Update and cleanup atomically; never delete a recorded session.
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            db.update(
+                "recording_sessions",
+                ContentValues().apply { put("ended_at", atMillis) },
+                "id = ? AND ended_at IS NULL",
+                arrayOf(id.toString())
+            )
+            db.delete(
+                "recording_sessions",
+                "id = ? AND ended_at IS NOT NULL AND NOT EXISTS " +
+                    "(SELECT 1 FROM metric_samples WHERE session_id = ?)",
+                arrayOf(id.toString(), id.toString())
+            )
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
     fun readRecent(): List<DeviceSnapshot> = readSamples(null)
