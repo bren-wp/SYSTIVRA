@@ -86,7 +86,21 @@ jobs:
           gradle-version: "9.9.1"
       - name: Build genuine debuggable SYSTIVRA APK
         working-directory: android
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+        run: |
+          set -euo pipefail
+          log="${RUNNER_TEMP}/systivra-splash-gradle.log"
+          if gradle :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee "$log"; then
+            exit 0
+          fi
+          # Only a transient Compose plugin-marker repository lookup is retried.
+          # Compiler, lint, assertion and all other failures remain fatal.
+          if grep -Fq "org.jetbrains.kotlin.plugin.compose" "$log" &&
+             grep -Fq "was not found in any of the following sources" "$log"; then
+            echo "::warning::Transient Compose plugin lookup failed; refreshing dependencies once"
+            gradle :app:assembleDebug --refresh-dependencies --no-daemon --stacktrace
+          else
+            exit 1
+          fi
       - name: Allow emulator KVM acceleration
         run: |
           test -e /dev/kvm || { echo "::error::KVM unavailable"; exit 1; }
