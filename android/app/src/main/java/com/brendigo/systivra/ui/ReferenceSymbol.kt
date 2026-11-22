@@ -3,7 +3,7 @@ package com.brendigo.systivra.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius

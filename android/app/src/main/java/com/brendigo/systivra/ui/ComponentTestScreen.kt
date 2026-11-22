@@ -37,7 +37,7 @@ import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.Sensors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable

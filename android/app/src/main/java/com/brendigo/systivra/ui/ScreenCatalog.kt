@@ -14,7 +14,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,7 +40,7 @@ internal fun ScreenCatalog(
     var query by rememberSaveable { mutableStateOf("") }
     var category by rememberSaveable { mutableStateOf("All") }
     var requestedPage by rememberSaveable { mutableIntStateOf(0) }
-    val matches = filterCatalogRoutes(routes, enabled, category, query)
+    val matches = filterCatalogRoutes(routes, enabled, category, query, LocalUiLanguage.current)
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize().testTag("screen-catalog-page")
     ) {

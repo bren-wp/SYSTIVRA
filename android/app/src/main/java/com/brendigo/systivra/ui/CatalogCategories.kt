@@ -47,12 +47,15 @@ internal fun filterCatalogRoutes(
     routes: List<Pair<String, String>>,
     enabled: Set<String>,
     category: String,
-    query: String
+    query: String,
+    languageCode: String = UI_LANGUAGE_ENGLISH
 ): List<Pair<String, String>> {
     val term = query.trim()
     return routes.filter { (route, title) ->
         route in enabled &&
             (category == "All" || catalogCategoryFor(route) == category) &&
-            (term.isEmpty() || title.contains(term, ignoreCase = true))
+            (term.isEmpty() ||
+                title.contains(term, ignoreCase = true) ||
+                translatedUiText(title, languageCode).contains(term, ignoreCase = true))
     }
 }

@@ -20,7 +20,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
