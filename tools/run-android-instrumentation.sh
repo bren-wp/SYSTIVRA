@@ -7,10 +7,21 @@ set -uo pipefail
 mkdir -p qa/instrumentation
 adb logcat -c >/dev/null 2>&1 || true
 
+# A shard uses the standard Android Gradle instrumentation class filter.
+# Omit this variable to run the full suite locally (never a silent skip).
+runner_args=()
+if [[ -n "${SYSTIVRA_TEST_CLASSES:-}" ]]; then
+  runner_args+=("-Pandroid.testInstrumentationRunnerArguments.class=${SYSTIVRA_TEST_CLASSES}")
+fi
+
 run_connected_tests() {
   local output="$1"
   shift
-  if gradle -p android :app:connectedDebugAndroidTest --no-daemon --stacktrace "$@" 2>&1 | tee "$output"; then
+  # An emulator/test-runner deadlock must terminate with exit code 124
+  # and preserve diagnostics rather than silently consuming the entire job.
+  if timeout --signal=TERM --kill-after=30s "${SYSTIVRA_TEST_TIMEOUT:-22m}" \
+      gradle -p android :app:connectedDebugAndroidTest --no-daemon --stacktrace \
+      "${runner_args[@]}" "$@" 2>&1 | tee "$output"; then
     return 0
   else
     return "${PIPESTATUS[0]}"
@@ -28,5 +39,8 @@ if [[ "$status" -ne 0 ]] &&
 fi
 
 adb logcat -d -t 6000 > qa/instrumentation/logcat.txt 2>&1 || true
-echo "Android connected tests exit status: $status"
+if [[ "$status" -eq 124 ]]; then
+  echo "::error::Android instrumentation timed out; inspect this shard's Gradle log and logcat. No assertions were suppressed."
+fi
+echo "Android connected tests exit status: $status; class filter: ${SYSTIVRA_TEST_CLASSES:-ALL}"
 exit "$status"
