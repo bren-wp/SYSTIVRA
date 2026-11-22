@@ -12,6 +12,8 @@ on:
       - "android/app/src/test/**"
       - "tools/capture-reference-viewport.sh"
       - "tools/visual-diff.py"
+      - "tools/check-native-visual-regression.py"
+      - "qa/baselines/**"
       - "tools/report-surface-luminance.py"
       - "tools/report-typography-baselines.py"
       - "tools/report-screen-regions.py"
@@ -29,10 +31,13 @@ on:
       - "tools/capture-reference-viewport.sh"
       - "tools/run-android-instrumentation.sh"
       - "tools/summarize-android-instrumentation.py"
+      - "tools/check-instrumentation-shards.py"
       - "tools/validate-android-screens.py"
       - "tools/render-reference-viewport.py"
       - "tools/summarize-visual-qa.py"
       - "tools/visual-diff.py"
+      - "tools/check-native-visual-regression.py"
+      - "qa/baselines/**"
       - "tools/report-surface-luminance.py"
       - "tools/report-typography-baselines.py"
       - "brending/screens/**"
@@ -92,12 +97,17 @@ jobs:
             --reference qa/reference-viewport/references \
             --actual qa/reference-viewport/screenshots \
             --output qa/reference-viewport/diff \
-            --max-mae-percent 100 --max-changed-percent 100
+            --max-mae-percent 4.5 --max-changed-percent 43
           python3 tools/summarize-visual-qa.py \
             --report qa/reference-viewport/diff/report.csv \
             --output qa/reference-viewport/diff/summary.md \
             --geometry native
           cat qa/reference-viewport/diff/summary.md >> "$GITHUB_STEP_SUMMARY"
+          # Baseline: actual main commit fdfadda / run 44973870570, not design PNGs.
+          # This gate catches regression but does NOT certify screen parity.
+          python3 tools/check-native-visual-regression.py \
+            --baseline qa/baselines/native-390x844-preview12.csv \
+            --report qa/reference-viewport/diff/report.csv
           python3 tools/report-typography-baselines.py \
             --reference qa/reference-viewport/references \
             --actual qa/reference-viewport/screenshots \
