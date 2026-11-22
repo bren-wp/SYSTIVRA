@@ -43,7 +43,7 @@ SYSTIVRA keeps device information understandable. It displays **actual values re
 | 🔔 **Local alerts** | Configure battery thresholds and inspect thermal warnings within the app |
 | 🔏 **Privacy controls** | Review permissions and enable optional Usage Access only after explanation |
 
-**Focused navigation:** a screen presents its primary task. Compact panels, tabs and **Previous / Next** controls replace long vertically scrolling feeds. The hardware catalog can be filtered by category or searched offline. Android system navigation remains separated from the app's own bottom menu.
+**Focused navigation:** a screen presents its primary task. Compact panels, tabs and **Previous / Next** controls replace long feeds; short screens retain safe overflow scrolling for actions that cannot otherwise fit. The hardware catalog can be filtered by category or searched offline. Android system navigation remains separated from the app's own bottom menu.
 
 ## 📱 Real Android application screenshots
 
@@ -82,7 +82,7 @@ The app requests no camera/microphone recording or floating-window permission. O
 
 [**Open GitHub Releases**](https://github.com/bren-wp/SYSTIVRA/releases)
 
-The current development candidate is **v0.12.0-preview.11** (versionCode 25). Open [GitHub Releases](https://github.com/bren-wp/SYSTIVRA/releases) for the latest successfully published build, and [PR #42](https://github.com/bren-wp/SYSTIVRA/pull/42) for source changes and test results. The new code separates large Kotlin files and replaces scrolling UI lists with focused controls and paging.
+The next release candidate is **v0.12.0-preview.11** (versionCode 25), based on [merged PR #42](https://github.com/bren-wp/SYSTIVRA/pull/42). See [GitHub Releases](https://github.com/bren-wp/SYSTIVRA/releases) for the latest **successfully published** build. The code separates large Kotlin files, uses focused controls and paging, and retains overflow scrolling for short screens. This candidate must pass independent emulator and screenshot checks before publication.
 
 Release assets distinguish the **debug-signed APK** (for installation/testing) from an **unsigned AAB** (not ready for a Google Play upload). Production signing requires a private signing key that must never be committed.
 
