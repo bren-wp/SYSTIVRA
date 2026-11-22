@@ -13,6 +13,7 @@ on:
       - "tools/capture-reference-viewport.sh"
       - "tools/visual-diff.py"
       - "tools/check-native-visual-regression.py"
+      - "tools/verify-reference-layout.py"
       - "qa/baselines/**"
       - "tools/report-surface-luminance.py"
       - "tools/report-typography-baselines.py"
@@ -37,6 +38,7 @@ on:
       - "tools/summarize-visual-qa.py"
       - "tools/visual-diff.py"
       - "tools/check-native-visual-regression.py"
+      - "tools/verify-reference-layout.py"
       - "qa/baselines/**"
       - "tools/report-surface-luminance.py"
       - "tools/report-typography-baselines.py"
@@ -103,6 +105,11 @@ jobs:
             --output qa/reference-viewport/diff/summary.md \
             --geometry native
           cat qa/reference-viewport/diff/summary.md >> "$GITHUB_STEP_SUMMARY"
+          # Validate title starts, visible panel positions and chart grid
+          # against source SVG-derived pixels on all 36 genuine app screens.
+          python3 tools/verify-reference-layout.py \
+            --reference qa/reference-viewport/references \
+            --actual qa/reference-viewport/screenshots
           # Baseline: actual main commit fdfadda / run 44973870570, not design PNGs.
           # This gate catches regression but does NOT certify screen parity.
           python3 tools/check-native-visual-regression.py \
