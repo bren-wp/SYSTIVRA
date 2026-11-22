@@ -72,7 +72,7 @@ internal fun MetricScreen(readings: List<Reading>, subtitle: String) {
     BoxWithConstraints(Modifier.fillMaxSize().testTag("metric-reading-page")) {
         val perPage = if (maxHeight < 530.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(readings.size, perPage) - 1)
-        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(subtitle, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             if (readings.isEmpty()) Text("Waiting for device readings…", color = Muted)
             pageItems(readings, page, perPage).forEach { reading ->

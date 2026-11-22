@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -71,7 +74,7 @@ fun RecordingSessionScreen(
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("recording-controls-page").padding(18.dp),
+        modifier = Modifier.fillMaxSize().testTag("recording-controls-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text("Session Recorder", fontWeight = FontWeight.Bold, fontSize = 24.sp)
@@ -145,7 +148,7 @@ fun SessionAnalysisScreen(readings: List<DeviceSnapshot>, open: (String) -> Unit
     BoxWithConstraints(Modifier.fillMaxSize().testTag("session-analysis-page")) {
         val pageSize = if (maxHeight < 570.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(measures.size, pageSize) - 1)
-        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Text("Session Analysis", fontWeight = FontWeight.Bold, fontSize = 23.sp)
             Text("Statistics from explicitly saved device samples.", color = Muted, fontSize = 13.sp)
             if (measures.isEmpty()) {
@@ -208,7 +211,7 @@ fun DiagnosticResultsScreen(statusFilter: String? = null) {
     BoxWithConstraints(Modifier.fillMaxSize().testTag("diagnostic-results-page")) {
         val pageSize = if (maxHeight < 620.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(visible.size, pageSize) - 1)
-        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Text("Diagnostic Results" + (statusFilter?.let { " · $it" } ?: ""),
                 fontSize = 23.sp, fontWeight = FontWeight.Bold)
             Text("Only user-confirmed results appear. Unassessed tests are not passes.",

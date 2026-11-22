@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -112,6 +115,7 @@ internal fun RecordingReferenceScreen(
     }
     Column(
         modifier = Modifier.fillMaxSize().testTag("recording-reference-scroll")
+            .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -119,7 +123,7 @@ internal fun RecordingReferenceScreen(
         Box(Modifier.fillMaxWidth().clickable { moreActions = true }) {
             ReferenceMeasuredChart(recordedBatteryPoints(recorded))
         }
-        Spacer(Modifier.height(0.dp))
+        Spacer(Modifier.height(1.dp))
         recordingReferenceRows.forEachIndexed { index, label ->
             ReferenceMetricRow(label, listOf("◇", "▤", "◉", "⌁")[index], index) {
                 chosen = label
@@ -144,6 +148,7 @@ internal fun PermissionReferenceScreen(open: (String) -> Unit) {
     }
     Column(
         modifier = Modifier.fillMaxSize().testTag("permission-reference-scroll")
+            .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
