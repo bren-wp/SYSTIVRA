@@ -1,7 +1,7 @@
 name: Android build
 on:
   push:
-    paths: ["android/**", "README.md", "brending/google-play/real-screenshots/**", "tools/check-readme-captures.py", "tools/audit-android-surface.py", ".github/workflows/android-ci.yml"]
+    paths: ["android/**", "README.md", "brending/google-play/real-screenshots/**", "tools/gradle-compose-retry.sh", "tools/check-readme-captures.py", "tools/audit-android-surface.py", ".github/workflows/android-ci.yml"]
   pull_request:
     paths: ["android/**", "README.md", "brending/google-play/real-screenshots/**", "tools/check-readme-captures.py", "tools/audit-android-surface.py", ".github/workflows/android-ci.yml"]
 concurrency:
@@ -42,7 +42,7 @@ jobs:
           if-no-files-found: warn
       - name: Assemble debug APK
         working-directory: android
-        run: gradle :app:lintDebug :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:bundleRelease --stacktrace --no-daemon
+        run: bash ../tools/gradle-compose-retry.sh :app:lintDebug :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:bundleRelease
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
         with:

@@ -10,6 +10,7 @@ on:
       - "android/app/src/main/**"
       - "android/app/src/androidTest/**"
       - "android/app/src/test/**"
+      - "tools/gradle-compose-retry.sh"
       - "tools/capture-reference-viewport.sh"
       - "tools/visual-diff.py"
       - "tools/check-native-visual-regression.py"
@@ -71,7 +72,7 @@ jobs:
           gradle-version: "9.9.1"
       - name: Compile actual debug APK
         working-directory: android
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+        run: bash ../tools/gradle-compose-retry.sh :app:assembleDebug
       - name: Render 36 original non-Splash SVG references at their native viewport
         run: |
           python3 -m pip install --quiet Pillow CairoSVG
@@ -91,7 +92,7 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-animations: true
-          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader -noaudio
           script: bash tools/capture-reference-viewport.sh && bash tools/capture-interactive-contrast.sh
       - name: Compare matching viewport pixels (diagnostic, not an acceptance claim)
         run: |
@@ -184,7 +185,7 @@ jobs:
           gradle-version: "9.9.1"
       - name: Compile Android debug and instrumentation packages
         working-directory: android
-        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --stacktrace
+        run: bash ../tools/gradle-compose-retry.sh :app:assembleDebug :app:assembleDebugAndroidTest
       - name: Enable hardware acceleration
         run: |
           set -euo pipefail

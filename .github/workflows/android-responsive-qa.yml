@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/android-responsive-qa.yml"
       - "android/app/src/main/**"
+      - "tools/gradle-compose-retry.sh"
       - "tools/capture-responsive-priority.sh"
       - "tools/validate-responsive-priority.py"
   push:
@@ -57,7 +58,7 @@ jobs:
           gradle-version: "9.9.1"
       - name: Build the actual Android application for responsive captures
         working-directory: android
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+        run: bash ../tools/gradle-compose-retry.sh :app:assembleDebug
       - name: Enable KVM
         run: |
           test -e /dev/kvm || { echo "::error::KVM unavailable"; exit 1; }
