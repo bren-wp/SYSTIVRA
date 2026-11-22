@@ -203,6 +203,14 @@ class RecordingStore(
         val db = writableDatabase
         db.beginTransaction()
         try {
+            // Reject late writes after Stop/Delete/Clear. The check and insert
+            // run inside the same transaction so stale queued samples cannot
+            // create orphan rows (SQLite schema v2 has no foreign key).
+            val active = db.rawQuery(
+                "SELECT 1 FROM recording_sessions WHERE id = ? AND ended_at IS NULL LIMIT 1",
+                arrayOf(sessionId.toString())
+            ).use { it.moveToFirst() }
+            check(active) { "Recording session is missing or has already ended" }
             db.insertOrThrow("metric_samples", null, values)
             db.execSQL(
                 "DELETE FROM metric_samples WHERE id NOT IN " +
