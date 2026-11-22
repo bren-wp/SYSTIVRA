@@ -172,7 +172,7 @@ internal fun copyMeasurement(context: Context, reading: Reading) {
  * Only genuine finite, valid Android sample percentages become plotted points.
  */
 @Composable
-internal fun ReferenceMeasuredChart(points: List<Float>) {
+internal fun ReferenceMeasuredChart(points: List<Float>, footer: String? = null) {
     val valid = points.filter { it.isFinite() && it in 0f..100f }
     Card(
         modifier = Modifier.fillMaxWidth().height(170.dp).testTag("reference-measured-chart"),
@@ -229,7 +229,7 @@ internal fun ReferenceMeasuredChart(points: List<Float>) {
                 )
             }
             Text(
-                if (valid.size >= 2)
+                footer ?: if (valid.size >= 2)
                     "Recorded device samples · measured percentages"
                 else
                     "No illustrative or fabricated readings",
