@@ -21,6 +21,16 @@ def discover_tests() -> set[str]:
         source = file.read_text(encoding="utf-8")
         if "@Test" not in source:
             continue
+        # The project's instrumented screens use Column.verticalScroll.
+        # performScrollToNode searches LazyList semantics and has previously
+        # hung two shards for 22 minutes with zero JUnit XML. Its replacement
+        # is target.performScrollTo() plus assertIsDisplayed(), which still
+        # checks the real scroll behaviour instead of hiding it.
+        if re.search(r"\.performScrollToNode\s*\(", source):
+            raise ValueError(
+                f"{file}: performScrollToNode is unsafe for these Column.verticalScroll "
+                "tests; scroll the tagged target via performScrollTo instead"
+            )
         package = re.search(r"(?m)^package\s+([\w.]+)\s*$", source)
         klass = re.search(r"(?m)^\s*(?:public\s+|internal\s+)?class\s+(\w+)\b", source)
         if package is None or klass is None:

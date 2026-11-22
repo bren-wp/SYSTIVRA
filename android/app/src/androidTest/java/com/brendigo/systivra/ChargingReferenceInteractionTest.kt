@@ -2,8 +2,8 @@
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
-import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -48,9 +48,11 @@ class ChargingReferenceInteractionTest {
         rule.onNodeWithTag("reference-row-temperature").assertExists()
         // The overview keeps reference geometry while providing a scroll fallback
         // so the final card remains reachable on short displays.
-        rule.onNodeWithTag("reference-charging-analysis")
-            .performScrollToNode(hasTestTag("reference-row-session-duration"))
-        rule.onNodeWithTag("reference-row-session-duration").assertExists()
+        // The content uses Column.verticalScroll, not LazyList semantics.
+        // Scroll the actual target into view; searching ScrollToIndex in a
+        // regular Column can hang the instrumentation runner indefinitely.
+        rule.onNodeWithTag("reference-row-session-duration").performScrollTo()
+        rule.onNodeWithTag("reference-row-session-duration").assertIsDisplayed()
     }
 
     @Test fun blankChartDoesNotPretendAnIllustrationIsMeasured() {
