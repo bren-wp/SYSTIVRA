@@ -98,9 +98,9 @@ def main() -> None:
     if required and skipped:
         failures.append("Mandatory test cases skipped: " + ", ".join(skipped))
     if required:
-        report += f"\\nRequired test classes: **{len(required)}**; reported: **{len(required - set(missing))}**.\\n"
+        report += f"\nRequired test classes: **{len(required)}**; reported: **{len(required - set(missing))}**.\n"
     if failures:
-        report += "\\n## INCOMPLETE INSTRUMENTATION\\n" + "\\n".join("- " + item for item in failures) + "\\n"
+        report += "\n## INCOMPLETE INSTRUMENTATION\n" + "\n".join("- " + item for item in failures) + "\n"
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     args.summary.write_text(report, encoding="utf-8")
     if failures:
