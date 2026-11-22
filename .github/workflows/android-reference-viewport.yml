@@ -203,7 +203,11 @@ jobs:
         run: |
           python3 tools/summarize-android-instrumentation.py \
             --results android/app/build/outputs/androidTest-results/connected \
-            --summary qa/instrumentation/summary.md --require-results
+            --summary qa/instrumentation/summary.md --require-results \
+            --require-classes "${{ matrix.classes }}" || {
+              cat qa/instrumentation/summary.md >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            }
           cat qa/instrumentation/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve JUnit XML, HTML reports and logcat even on test failure
         if: always()
