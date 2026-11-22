@@ -225,6 +225,7 @@ fun AppRoot(
     savedSessions: List<RecordedSession> = emptyList(),
     selectedSessionId: Long? = null,
     selectedSessionSamples: List<DeviceSnapshot> = emptyList(),
+    selectedSessionLoading: Boolean = false,
     onSelectSession: (Long?) -> Unit = {},
     onDeleteSession: (Long) -> Unit = {}
 ) {
@@ -287,7 +288,15 @@ fun AppRoot(
                         )
                     }
                 }
-                when (route) {
+                if (selectedSessionLoading && route in setOf(
+                    "reports-export-controls", "session-analysis", "session-analysis-data",
+                    "session-insights"
+                )) {
+                    Box(
+                        Modifier.fillMaxSize().testTag("selected-session-loading"),
+                        contentAlignment = Alignment.Center
+                    ) { Text("Loading selected recording…", color = Muted) }
+                } else when (route) {
                     "dashboard" -> Dashboard(snapshot, samples, ::open)
                     "system-health" -> NextPriorityReferenceScreen(
                         "system-health", snapshot, samples, benchmark,

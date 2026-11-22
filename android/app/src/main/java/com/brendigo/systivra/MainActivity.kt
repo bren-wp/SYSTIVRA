@@ -19,6 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+import com.brendigo.systivra.data.SelectedRecordingState
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,7 +33,7 @@ class MainActivity : ComponentActivity() {
         data class Add(val snapshot: DeviceSnapshot) : StorageAction
         data object Clear : StorageAction
         data class Delete(val sessionId: Long) : StorageAction
-        data class Select(val sessionId: Long?) : StorageAction
+        data class Select(val sessionId: Long?, val generation: Long) : StorageAction
     }
 
     // A single IO consumer preserves control-action order. Individual hardware
@@ -57,8 +59,8 @@ class MainActivity : ComponentActivity() {
     private val history = MutableStateFlow<List<DeviceSnapshot>>(emptyList())
     private val recorded = MutableStateFlow<List<DeviceSnapshot>>(emptyList())
     private val sessions = MutableStateFlow<List<RecordedSession>>(emptyList())
-    private val selectedSessionId = MutableStateFlow<Long?>(null)
-    private val selectedSamples = MutableStateFlow<List<DeviceSnapshot>>(emptyList())
+    // Atomic selection state prevents previous-session readings appearing during a new query.
+    private val selectedRecording = MutableStateFlow(SelectedRecordingState())
     private val recording = MutableStateFlow(false)
 
     override fun onStop() {
@@ -83,7 +85,9 @@ class MainActivity : ComponentActivity() {
             fun refresh() {
                 recorded.value = store.readRecent()
                 sessions.value = store.listSessions()
-                selectedSamples.value = selectedSessionId.value?.let(store::readSession) ?: emptyList()
+                val request = selectedRecording.value
+                val selectionSamples = request.id?.let(store::readSession) ?: emptyList()
+                selectedRecording.update { it.resolve(request.id, request.generation, selectionSamples) }
             }
             val loaded = runCatching {
                 store.recoverInterruptedSessions()
@@ -113,21 +117,26 @@ class MainActivity : ComponentActivity() {
                             }
                             StorageAction.Clear -> {
                                 store.clear()
-                                selectedSessionId.value = null
+                                selectedRecording.update { it.clear() }
                             }
                             is StorageAction.Delete -> {
                                 if (activeId != action.sessionId) {
                                     store.deleteSession(action.sessionId)
-                                    if (selectedSessionId.value == action.sessionId) {
-                                        selectedSessionId.value = null
+                                    selectedRecording.update {
+                                        if (it.id == action.sessionId) it.clear() else it
                                     }
                                 }
                             }
-                            is StorageAction.Select -> selectedSessionId.value = action.sessionId
+                            // The UI has already set the atomic loading state;
+                            // refresh() supplies the corresponding DB result.
+                            is StorageAction.Select -> Unit
                         }
                         refresh()
                         storageError.value = null
                     }.onFailure {
+                        if (action is StorageAction.Select) {
+                            selectedRecording.update { it.fail(action.sessionId, action.generation) }
+                        }
                         // Do not show SQLite exceptions, internal paths or
                         // provider implementation details in the user interface.
                         storageError.value = "Saved history action failed. Please retry."
@@ -168,8 +177,7 @@ class MainActivity : ComponentActivity() {
             val samples = history.collectAsStateWithLifecycle().value
             val saved = recorded.collectAsStateWithLifecycle().value
             val sessionList = sessions.collectAsStateWithLifecycle().value
-            val session = selectedSessionId.collectAsStateWithLifecycle().value
-            val selected = selectedSamples.collectAsStateWithLifecycle().value
+            val selection = selectedRecording.collectAsStateWithLifecycle().value
             val isRecording = recording.collectAsStateWithLifecycle().value
             val ready = storageReady.collectAsStateWithLifecycle().value
             val writeError = storageError.collectAsStateWithLifecycle().value
@@ -197,10 +205,18 @@ class MainActivity : ComponentActivity() {
                 historyReady = ready,
                 historyStorageError = writeError,
                 savedSessions = sessionList,
-                selectedSessionId = session,
-                selectedSessionSamples = selected,
-                onSelectSession = {
-                    if (ready) actions.trySend(StorageAction.Select(it))
+                selectedSessionId = selection.id,
+                selectedSessionSamples = selection.samples,
+                selectedSessionLoading = selection.loading,
+                onSelectSession = { target ->
+                    if (ready) {
+                        val request = selectedRecording.value.select(target)
+                        selectedRecording.value = request
+                        if (actions.trySend(StorageAction.Select(target, request.generation)).isFailure) {
+                            selectedRecording.update { it.fail(target, request.generation) }
+                            storageError.value = "Recording storage is unavailable."
+                        }
+                    }
                 },
                 onDeleteSession = {
                     if (ready && !recording.value) actions.trySend(StorageAction.Delete(it))
