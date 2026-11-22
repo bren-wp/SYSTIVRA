@@ -13,6 +13,7 @@ import com.brendigo.systivra.ui.AppTheme
 import com.brendigo.systivra.ui.ComponentTest
 import com.brendigo.systivra.ui.OverlayPreviewScreen
 import com.brendigo.systivra.ui.ReportExportScreen
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.assertIsDisplayed
@@ -113,7 +114,10 @@ class ReferenceComponentInteractionAuditTest {
                 }
             }
         }
-        rule.onNodeWithTag("report-export-focused-screen").performTouchInput { swipeUp() }
+        // The action must remain reachable even if a single swipe is too
+        // short on a 320x380 viewport. Compose scrolls the actual target
+        // into view through its nearest verticalScroll parent.
+        rule.onNodeWithTag("report-start-recording").performScrollTo()
         rule.onNodeWithTag("report-start-recording").assertIsDisplayed()
         rule.onNodeWithTag("report-start-recording").performClick()
         rule.runOnIdle { assertEquals(1, requests) }
