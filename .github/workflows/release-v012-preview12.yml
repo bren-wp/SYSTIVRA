@@ -1,0 +1,116 @@
+# SYSTIVRA by Brendigo
+name: Publish SYSTIVRA v0.12.0 Preview 12 developer binaries
+# Developer preview from successful exact-SHA Android CI artifacts.
+# Connected emulator and pixel-parity QA are separate and not claimed passed.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - ".github/workflows/release-v012-preview12.yml"
+      - "docs/releases/v0.12.0-preview.12.md"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: systivra-preview12-verified-developer-binaries
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: bren-wp/SYSTIVRA
+      TAG: v0.12.0-preview.12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check exact version, source and immutable release
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F 'applicationId = "com.brendigo.systivra"' android/app/build.gradle.kts
+          grep -F 'versionCode = 26' android/app/build.gradle.kts
+          grep -F 'versionName = "0.12.0-preview.12"' android/app/build.gradle.kts
+          test -s docs/releases/v0.12.0-preview.12.md
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "::error::Immutable preview already exists; refusing overwrite"
+            exit 1
+          fi
+      - name: Wait for previously built APK and AAB from successful exact-SHA Android CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id=""
+          for attempt in $(seq 1 80); do
+            result="$(gh api "repos/$GH_REPO/actions/workflows/android-ci.yml/runs?branch=main&per_page=50")"
+            run_id="$(echo "$result" | jq -r --arg sha "$GITHUB_SHA" '[.workflow_runs[] | select(.head_sha == $sha and .conclusion == "success")] | sort_by(.created_at) | last | .id // empty')"
+            if [ -n "$run_id" ]; then
+              echo "Exact-source Android CI passed: $run_id"
+              break
+            fi
+            failed="$(echo "$result" | jq -r --arg sha "$GITHUB_SHA" '[.workflow_runs[] | select(.head_sha == $sha and (.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "cancelled"))] | length')"
+            if [ "$failed" -gt 0 ]; then
+              echo "::error::Android CI failed or was canceled for exact source $GITHUB_SHA"
+              exit 1
+            fi
+            echo "Android CI for $GITHUB_SHA not complete ($attempt/80)"
+            sleep 10
+          done
+          if [ -z "$run_id" ]; then
+            echo "::error::Android CI did not finish successfully within the bounded gate"
+            exit 1
+          fi
+          test "$(gh api "repos/$GH_REPO/branches/main" --jq '.commit.sha')" = "$GITHUB_SHA"
+          echo "SOURCE_RUN=$run_id" >> "$GITHUB_ENV"
+      - name: Retrieve unchanged developer APK and unsigned AAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p staging/apk staging/aab dist
+          test "$(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN" --jq '.head_sha')" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN" --jq '.conclusion')" = "success"
+          gh run download "$SOURCE_RUN" --repo "$GH_REPO" --name systivra-debug-apk --dir staging/apk
+          gh run download "$SOURCE_RUN" --repo "$GH_REPO" --name systivra-unsigned-release-aab --dir staging/aab
+          test -s staging/apk/app-debug.apk
+          test -s staging/aab/app-release.aab
+          unzip -t staging/apk/app-debug.apk >/dev/null
+          unzip -t staging/aab/app-release.aab >/dev/null
+          unzip -Z1 staging/apk/app-debug.apk | grep -Fx AndroidManifest.xml
+          unzip -Z1 staging/aab/app-release.aab | grep -Fx base/manifest/AndroidManifest.xml
+      - name: Package exact source, original designs, artwork and SHA256 checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp staging/apk/app-debug.apk "dist/SYSTIVRA-$TAG-debug.apk"
+          cp staging/aab/app-release.aab "dist/SYSTIVRA-$TAG-unsigned.aab"
+          git archive --format=zip --output="dist/SYSTIVRA-$TAG-source.zip" HEAD
+          cp brending/google-play/assets/SYSTIVRA-Play-Graphics.zip "dist/SYSTIVRA-$TAG-play-artwork.zip"
+          cp brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/SYSTIVRA-37-REFERENCE-PREVIEWS-1080x1920.zip "dist/SYSTIVRA-$TAG-reference-designs-NOT-screenshots.zip"
+          cp docs/releases/v0.12.0-preview.12.md "dist/SYSTIVRA-$TAG-release-notes.md"
+          (cd dist && sha256sum SYSTIVRA-* > SHA256SUMS.txt && sha256sum -c SHA256SUMS.txt)
+      - name: Publish immutable developer prerelease
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GH_REPO/branches/main" --jq '.commit.sha')" = "$GITHUB_SHA"
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "::error::Immutable preview already exists; refusing overwrite"
+            exit 1
+          fi
+          gh release create "$TAG" dist/* --repo "$GH_REPO" --target "$GITHUB_SHA" \
+            --prerelease --title "SYSTIVRA v0.12.0 Preview 12 — Developer Test Build" \
+            --notes-file docs/releases/v0.12.0-preview.12.md
+          gh release view "$TAG" --repo "$GH_REPO" --json tagName,isPrerelease,assets \
+            --jq '{tag: .tagName, prerelease: .isPrerelease, files: [.assets[].name]}'
+      - name: Preserve actual developer distributions and checksums
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: systivra-preview12-exact-source-developer-distribution
+          path: dist/
+          if-no-files-found: warn

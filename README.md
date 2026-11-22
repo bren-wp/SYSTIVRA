@@ -82,7 +82,7 @@ The app requests no camera/microphone recording or floating-window permission. O
 
 [**Open GitHub Releases**](https://github.com/bren-wp/SYSTIVRA/releases)
 
-The next release candidate is **v0.12.0-preview.11** (versionCode 25), based on [merged PR #42](https://github.com/bren-wp/SYSTIVRA/pull/42). See [GitHub Releases](https://github.com/bren-wp/SYSTIVRA/releases) for the latest **successfully published** build. The code separates large Kotlin files, uses focused controls and paging, and retains overflow scrolling for short screens. This candidate must pass independent emulator and screenshot checks before publication.
+The current development candidate is **v0.12.0-preview.12** (versionCode 26). It corrects stale saved-session data while switching recordings, strengthens CSV export safety and restores access to actions on short screens. [Preview 11](https://github.com/bren-wp/SYSTIVRA/releases/tag/v0.12.0-preview.11) is the previously published test build; check [GitHub Releases](https://github.com/bren-wp/SYSTIVRA/releases) for the latest **successfully published** version. Full Android device, accessibility and 1:1 visual validation are still separate acceptance tasks.
 
 Release assets distinguish the **debug-signed APK** (for installation/testing) from an **unsigned AAB** (not ready for a Google Play upload). Production signing requires a private signing key that must never be committed.
 
@@ -113,7 +113,7 @@ The source pins Kotlin 2.4.21, AGP 9.5.1, a compatible Compose BOM and reviewed 
 
 ### Project links
 
-[License (MIT)](LICENSE) · [Changelog](CHANGELOG.md) · [Preview 11 notes](docs/releases/v0.12.0-preview.11.md) · [Source security audit](docs/AUDIT-2026-11-18.md) · [Android UI QA](docs/VISUAL-QA.md) · [Google Play readiness](docs/GOOGLE-PLAY-RELEASE-GATE.md)
+[License (MIT)](LICENSE) · [Changelog](CHANGELOG.md) · [Preview 12 notes](docs/releases/v0.12.0-preview.12.md) · [Source security audit](docs/AUDIT-2026-11-18.md) · [Android UI QA](docs/VISUAL-QA.md) · [Google Play readiness](docs/GOOGLE-PLAY-RELEASE-GATE.md)
 
 Visual QA, physical Android device testing, complete third-party security review and production signing remain separate acceptance gates. An automated green build alone does not establish 1:1 pixel identity across all 37 reference screens.
 

@@ -1,3 +1,11 @@
+## v0.12.0-preview.12 — safe saved-session switching, CSV security and compact UI (2026-11-22)
+
+- Selecting a recording now immediately clears stale readings and displays a loading state before showing session analysis, insights or export controls. SQLite responses are accepted only for the matching selection generation; a slow earlier query cannot overwrite a newer selection. Clear/delete paths invalidate pending state.
+- CSV export removes row-breaking controls and Unicode line separators and neutralizes formula-like fields even behind invisible Unicode prefixes. Original benign values and standard CSV quote escaping remain supported.
+- Settings, About, History, Recording Library and searchable Tool Catalog keep their standard reference geometry but allow vertical overflow access when content exceeds the viewport. This addresses short-landscape, split-screen and enlarged-font clipping without repurposing reference SVGs.
+- Added regression coverage for session-selection races, exports and compact Settings interaction; kept private local SQLite recording and no-account workflow.
+- Android versionCode **26**, versionName **0.12.0-preview.12**. Test-preview publication uses successful exact-SHA Android CI APK/AAB artifacts, immutable prerelease tag and SHA256 checksums. Native emulator, physical-device, accessibility and 1:1 pixel-parity acceptance remain separate gates; unsigned AAB is **not Play-ready**.
+
 ## v0.12.0-preview.11 — focused UI, feature modularization and dependency compatibility (2026-11-22)
 
 - Split the original ~65 KB `AppRoot.kt` across feature modules (`ReferenceHomeScreens`, `MonitoringAndDiagnosticsScreens`, `ComponentTestScreen`, `SettingsScreen`, `AboutScreen`, `UiCards`), retaining actual Android interactions, route identity and system-navigation safe area.
