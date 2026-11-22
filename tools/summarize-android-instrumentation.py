@@ -59,9 +59,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--results", type=Path, required=True)
     parser.add_argument("--summary", type=Path, required=True)
+    parser.add_argument("--require-results", action="store_true",
+                        help="Fail if the emulator did not produce parseable JUnit results")
     args = parser.parse_args()
+    report = summarize(args.results)
     args.summary.parent.mkdir(parents=True, exist_ok=True)
-    args.summary.write_text(summarize(args.results), encoding="utf-8")
+    args.summary.write_text(report, encoding="utf-8")
+    if args.require_results and "No parseable connected-test JUnit XML was produced." in report:
+        raise SystemExit("ERROR: Connected Android tests produced no JUnit results; not a pass.")
 
 
 if __name__ == "__main__":
