@@ -4,6 +4,7 @@ package com.brendigo.systivra.ui
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.data.Reading
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -68,19 +69,25 @@ class ReportCsvTest {
 
     @Test fun formulaWithLeadingWhitespaceIsNotExecutedOnSpreadsheetImport() {
         val csv = buildSessionCsv(listOf(entry("  =HYPERLINK(1,2)", "30.0 °C")))
-        assertTrue(csv.contains("\"'  =HYPERLINK(1,2)\""))
+        // Do not retain ignorable leading whitespace ahead of the CSV quote guard.
+        assertTrue(csv.contains("\"'=HYPERLINK(1,2)\""))
     }
 
     @Test fun formulaBehindInvisibleUnicodePrefixIsEscaped() {
         val csv = buildSessionCsv(listOf(entry("\uFEFF=HYPERLINK(1,2)", "\u200B \t@SUM(1)")))
-        assertTrue(csv.contains("\"'\uFEFF=HYPERLINK(1,2)\""))
-        assertTrue(csv.contains("\"'\u200B \t@SUM(1)\""))
+        assertTrue(csv.contains("\"'=HYPERLINK(1,2)\""))
+        assertTrue(csv.contains("\"'@SUM(1)\""))
+        assertFalse(csv.contains("\uFEFF=HYPERLINK"))
+        assertFalse(csv.contains("\u200B \t@SUM"))
     }
 
     @Test fun controlPrefixAndUnicodeWordJoinerCannotHideFormula() {
         val csv = buildSessionCsv(listOf(entry("\u0000+1+2", "\u2060-4+5")))
-        assertTrue(csv.contains("\"'\u0000+1+2\""))
-        assertTrue(csv.contains("\"'\u2060-4+5\""))
+        // Control prefixes are normalized/removed; no raw control bytes enter CSV.
+        assertTrue(csv.contains("\"'+1+2\""))
+        assertTrue(csv.contains("\"'-4+5\""))
+        assertFalse(csv.contains("\u0000"))
+        assertFalse(csv.contains("\u2060-4+5"))
     }
 
     @Test fun safeLeadingUnicodeAndQuotedFieldsArePreserved() {

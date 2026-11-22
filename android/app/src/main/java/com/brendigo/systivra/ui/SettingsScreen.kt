@@ -2,6 +2,8 @@
 package com.brendigo.systivra.ui
 
 import android.content.Context
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -153,7 +155,7 @@ internal fun Settings(open: (String) -> Unit) {
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("settings-page")
+        modifier = Modifier.fillMaxSize().testTag("settings-page").verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

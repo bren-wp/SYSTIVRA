@@ -337,14 +337,23 @@ internal fun buildSessionCsv(samples: List<DeviceSnapshot>): String {
     fun csv(value: String): String {
         // Some spreadsheet importers ignore BOM, zero-width and control prefixes.
         // Preserve the source reading, but force dangerous formulas to be plain text.
-        val firstVisible = value.dropWhile { ch ->
-            ch.isWhitespace() || ch.isISOControl() ||
-                ch == '\uFEFF' || ch == '\u200B' || ch == '\u200C' ||
-                ch == '\u200D' || ch == '\u2060'
-        }.firstOrNull()
+        // Normalize all line/control separators inside source readings:
+        // quoted CSV cells must not create extra physical spreadsheet rows.
+        val flattened = value.map { ch ->
+            if (ch.isISOControl() || ch == '\u2028' || ch == '\u2029') ' ' else ch
+        }.joinToString("")
+        val visible = flattened.dropWhile { ch ->
+            ch.isWhitespace() || ch == '\uFEFF' || ch == '\u200B' ||
+                ch == '\u200C' || ch == '\u200D' || ch == '\u2060' ||
+                ch == '\u200E' || ch == '\u200F' ||
+                ch in '\u202A'..'\u202E' || ch in '\u2066'..'\u2069'
+        }
+        // Strip ignorable prefixes before a dangerous formula, so an apostrophe
+        // is immediately visible to spreadsheet importers. Benign values stay intact.
+        val firstVisible = visible.firstOrNull()
         val protected = if (firstVisible == '=' || firstVisible == '+' ||
             firstVisible == '-' || firstVisible == '@'
-        ) "'$value" else value
+        ) "'$visible" else flattened
         return "\"" + protected.replace("\"", "\"\"") + "\""
     }
     val header = "timestamp_utc,battery_percent,battery_temp_c,free_ram,thermal_status\n"

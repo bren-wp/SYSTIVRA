@@ -1,6 +1,8 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -45,7 +47,9 @@ internal fun ScreenCatalog(
         val perPage = if (maxHeight < 580.dp) 1 else if (maxHeight < 750.dp) 2 else 3
         val page = requestedPage.coerceIn(0, pageCount(matches.size, perPage) - 1)
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxSize().testTag("catalog-scroll-content")
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text("Find a function", fontWeight = FontWeight.Bold, fontSize = 21.sp)

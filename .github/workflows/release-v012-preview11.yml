@@ -4,22 +4,9 @@ name: Publish SYSTIVRA v0.12.0 Preview 11
 # responsive QA have succeeded on exactly the same source commit.
 # Debug APK / unsigned AAB, NOT a Play-signed or 1:1 certified release.
 # Publish only merged, validated source on the default branch.
+# Preview 11 is already published as an immutable tag. This historical gate
+# must not auto-run on later main-branch updates for Preview 12 and beyond.
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/release-v012-preview11.yml"
-      - "android/**"
-      - "docs/releases/v0.12.0-preview.11.md"
-      - "tools/audit-native-screen-ink.py"
-      - "tools/report-surface-luminance.py"
-      - "tools/capture-interactive-contrast.sh"
-      - ".github/workflows/android-reference-viewport.yml"
-      - ".github/workflows/android-responsive-qa.yml"
-      - ".github/workflows/android-splash-cold-start.yml"
-      - "docs/AUDIT-2026-11-18.md"
-      - "tools/audit-android-surface.py"
-      - "README.md"
   workflow_dispatch:
 permissions:
   contents: write
