@@ -3,9 +3,10 @@ name: Publish SYSTIVRA v0.12.0 Preview 11
 # Publishes real Android binaries only when independent screen, emulator and
 # responsive QA have succeeded on exactly the same source commit.
 # Debug APK / unsigned AAB, NOT a Play-signed or 1:1 certified release.
+# Publish only merged, validated source on the default branch.
 on:
   push:
-    branches: [feat/systivra-v012-preview11-paged-screens-refactor]
+    branches: [main]
     paths:
       - ".github/workflows/release-v012-preview11.yml"
       - "android/**"
@@ -30,6 +31,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   release:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 70
     steps:
@@ -200,6 +202,11 @@ jobs:
         run: |
           set -euo pipefail
           TAG=v0.12.0-preview.11
+          REMOTE_HEAD="$(gh api "repos/$GH_REPO/branches/main" --jq '.commit.sha')"
+          if [ "$GITHUB_SHA" != "$REMOTE_HEAD" ]; then
+            echo "::error::Main moved from $GITHUB_SHA to $REMOTE_HEAD; do not publish an obsolete source revision"
+            exit 1
+          fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "::error::Tag already exists. Refusing to replace immutable preview files."
             exit 1
