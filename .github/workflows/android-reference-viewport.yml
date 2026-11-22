@@ -157,9 +157,9 @@ jobs:
           - group: recording-and-reference
             classes: "com.brendigo.systivra.RecordingLibraryPagingTest,com.brendigo.systivra.ReferenceEntrancesTest,com.brendigo.systivra.ReferenceGeometryTest,com.brendigo.systivra.SessionLoadingAndCompactAccessTest,com.brendigo.systivra.TemperaturePreferenceInteractionTest"
     steps:
+      - uses: actions/checkout@v4
       - name: Verify every Android instrumented test class is assigned once
         run: python3 tools/check-instrumentation-shards.py
-      - uses: actions/checkout@v4
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
