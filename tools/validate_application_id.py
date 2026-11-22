@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Hard fail when Android application identity deviates from BRENDIGO's ID.
 
 This guards accidental source/namespace/package mismatch and prevents signing

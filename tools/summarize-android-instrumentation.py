@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Write concrete Android instrumented-test evidence to GitHub job summary.
 
 Does not change or reinterpret the actual Gradle test exit code.

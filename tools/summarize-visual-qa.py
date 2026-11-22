@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Generate an evidence-based Android screen QA report without claiming 1:1 parity.
 
 Each original in-app reference must have a valid screenshot comparison.

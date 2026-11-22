@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Measure whether native UI surfaces are darker than their ORIGINAL SVGs.
 
 This is a non-destructive diagnostic for 390x844 Android screenshots. It keeps

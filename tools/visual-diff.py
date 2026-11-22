@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Strict SYSTIVRA screenshot comparison. Never claims 1:1 without captured pixels.
 
 Example:

@@ -1,7 +1,13 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -86,55 +93,70 @@ internal fun PriorityReferenceScreen(
         )
     }
 
-    LazyColumn(
-        modifier = Modifier.testTag("priority-reference-$route"),
-        contentPadding = PaddingValues(
-            start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp
-        ),
+    var showActions by rememberSaveable(route) { mutableStateOf(false) }
+    if (showActions) {
+        AlertDialog(
+            containerColor = Raised,
+            titleContentColor = TextPrimary,
+            textContentColor = TextPrimary,
+            onDismissRequest = { showActions = false },
+            title = { Text("Additional actions") },
+            text = {
+                Column {
+                    if (detailRoute != null) {
+                        TextButton(onClick = {
+                            showActions = false
+                            open(detailRoute)
+                        }, modifier = Modifier.fillMaxWidth().testTag("priority-open-controls-$route")) {
+                            Text("Open full controls")
+                        }
+                    }
+                    if (route == "benchmark-results") {
+                        TextButton(onClick = {
+                            showActions = false
+                            open("benchmark-center")
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            Text("Start a new CPU benchmark")
+                        }
+                    }
+                    if (route == "session-analysis") {
+                        TextButton(onClick = {
+                            showActions = false
+                            open("session-insights")
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            Text("View session insights")
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showActions = false }) { Text("Close") }
+            }
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("priority-reference-$route").verticalScroll(rememberScrollState())
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading(spec.title, spec.subtitle, spec.caption) }
-        item {
-            if (spec.chart) {
+        ReferenceHeading(spec.title, spec.subtitle, spec.caption)
+        if (spec.chart) {
+            Box(Modifier.fillMaxWidth().clickable { showActions = true }) {
                 ReferenceMeasuredChart(chartPoints)
-            } else {
-                ReferenceHeroCard {
-                    // Each reference page opens its own real functional controls.
-                    open(detailRoute ?: "all-screens")
-                }
+            }
+        } else {
+            ReferenceHeroCard {
+                if (route == "session-analysis") showActions = true
+                else open(detailRoute ?: "all-screens")
             }
         }
-        item { Spacer(Modifier.height(0.dp)) }
-        items(spec.rows.size) { index ->
+        Spacer(Modifier.height(0.dp))
+        spec.rows.forEachIndexed { index, label ->
             ReferenceMetricRow(
-                label = spec.rows[index],
+                label = label,
                 glyph = listOf("◇", "▤", "◉", "⌁")[index],
                 index = index
-            ) { select(spec.rows[index]) }
-        }
-        // Four reference actions remain on this screen. Full controls get their
-        // own route instead of a 116dp filler and a second vertical page.
-        if (detailRoute != null) {
-            item {
-                TextButton(
-                    onClick = { open(detailRoute) },
-                    modifier = Modifier.fillMaxWidth().testTag("priority-open-controls-$route")
-                ) { Text("Open full controls") }
-            }
-        }
-        if (route == "benchmark-results") {
-            item {
-                TextButton(onClick = { open("benchmark-center") }) {
-                    Text("Start a new CPU benchmark")
-                }
-            }
-        }
-        if (route == "session-analysis") {
-            item {
-                TextButton(onClick = { open("session-insights") }) {
-                    Text("View session insights")
-                }
-            }
+            ) { select(label) }
         }
     }
 }

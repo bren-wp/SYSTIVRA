@@ -1,3 +1,4 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.hasText
@@ -36,8 +37,9 @@ class HistorySessionSelectionTest {
                 )
             }
         }
-        rule.onNodeWithTag("history-scroll")
-            .performScrollToNode(hasText("7 recorded samples"))
+        rule.onNodeWithTag("history-page").assertExists()
+        rule.onNodeWithText("All sessions").performClick()
+        rule.onNodeWithTag("history-sessions-page").assertExists()
         rule.onNodeWithText("7 recorded samples").performClick()
         rule.runOnIdle {
             assertEquals(42L, chosen)

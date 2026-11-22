@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SYSTIVRA by Brendigo
 set -euo pipefail
 # This script is deliberately invoked through bash: emulator-runner executes
 # its script field using /bin/sh, which does NOT support 'set -o pipefail'.

@@ -1,3 +1,4 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
 import android.graphics.Color

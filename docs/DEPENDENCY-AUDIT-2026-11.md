@@ -1,5 +1,5 @@
 # SYSTIVRA — dependency and Google Play compatibility audit
-Originally 2026-11-15; updated 2026-11-18
+Originally 2026-11-15; reviewed 2026-11-21
 
 ## Verified stable dependencies
 
@@ -11,11 +11,11 @@ Originally 2026-11-15; updated 2026-11-18
 | Android SDK compile | API 37 | Already supported by AGP 9.4 |
 | Android SDK target | API 36 | Meets Google Play deadline August 31, 2026 |
 | Android minimum | API 24 | Existing supported minimum |
-| Compose BOM | 2026.09.00 | Already stable |
+| Compose BOM | 2026.09.00 | Compatible with pinned Android API 37.0; November BOM requires 37.1+ and is deferred |
 | AndroidX Activity Compose | 1.13.0 | Already stable |
 | AndroidX Core KTX | 1.19.1 | Already stable |
 | AndroidX Core SplashScreen | 1.2.0 | Updated from 1.0.1 |
-| AndroidX Lifecycle | 2.11.0 | Existing stable; 2.12 only preview when checked |
+| AndroidX Lifecycle | 2.11.1 | November 18, 2026 stable patch; CI validation required |
 | AndroidX Test Runner / Core | 1.7.0 | Existing stable; avoid 1.8 alpha |
 
 ## Maintenance policy
@@ -38,7 +38,7 @@ References:
 
 - `org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0`: newest stable release, upgraded from 1.10.2. [Kotlin coroutines releases](https://github.com/Kotlin/kotlinx.coroutines/releases).
 - Gradle `9.9.1`: patched documented security vulnerabilities in version catalog accessors and Gradle daemon registry; upgraded CI from 9.6.0. [Gradle 9.9.1 release notes](https://docs.gradle.org/current/release-notes.html).
-- Stable Compose BOM `2026.09.00`, AndroidX Activity `1.13.0`, Lifecycle `2.11.0`, AndroidX Test `1.7.0` kept stable; newer versions of some libraries are pre-release and intentionally not used.
+- Stable Compose BOM `2026.09.00` (superseded on Nov 21), AndroidX Activity `1.13.0`, Lifecycle `2.11.0` (superseded on Nov 21), AndroidX Test `1.7.0` kept stable; newer versions of some libraries are pre-release and intentionally not used.
 - Verify exact application ID by running `python3 tools/validate_application_id.py` before any release.
 - New Android Play app ID: `com.brendigo.systivra`. This is a new Play listing, not an update to a previous ID.
 
@@ -50,3 +50,20 @@ References:
 - No INTERNET permission, ads or external analytics SDK appears in the current app manifest and dependency declarations.
 - **Not independently verified**: complete transitive Maven dependency graph, all resolved artifacts against a timestamped vulnerability database, signed dependency supply-chain provenance, and current Play Console policy state. A source/version review cannot establish that no known CVE exists anywhere in the full dependency graph.
 - Dependabot tracks Gradle and GitHub Actions weekly; production release must add a reproducible SBOM, dependency advisory scan and risk triage before claiming a full dependency-security pass.
+
+## November 21 current stable dependency refresh
+
+- Evaluated the November stable Compose BOM **2026.11.01**, but CI detected that Compose 1.13.0 requires **compileSdk 37.1+**. Kept compatible **2026.09.00** for compileSdk 37.0; the next upgrade requires a platform/tooling migration.
+- Updated AndroidX Lifecycle runtime KTX and runtime Compose **2.11.0 → 2.11.1** (Nov 18 stable patch).
+- Retained Kotlin **2.4.21** rather than the November Kotlin 2.5 release candidate, and AGP **9.5.1** rather than a prerelease. Activity Compose **1.13.0**, AndroidX Core **1.19.1**, AndroidX SplashScreen **1.2.0** and coroutines **1.11.0** remain pinned until a strictly newer stable version and compatibility are verified.
+- These changes require Gradle resolution, lint/JVM/device tests and visual native comparison. A successful build does **not** replace transitive dependency SBOM/CVE review.
+
+Sources:
+- https://developer.android.com/jetpack/androidx/versions/stable-channel
+- https://developer.android.com/jetpack/androidx/releases/lifecycle
+- https://mvnrepository.com/artifact/androidx.compose/compose-bom/2026.11.01
+- https://kotlinlang.org/docs/releases.html
+
+## 2026-11-21 compatibility gate: November Compose BOM intentionally deferred
+
+The exact-head CI build failed at `app:checkDebugAarMetadata`: Compose 1.13.0 from BOM `2026.11.01` requires **compileSdk 37.1+**, while SYSTIVRA builds and its strict visual/emulator workflows currently use **37.0**. This was a real dependency incompatibility, not a code error. Reverted BOM to the compatible pinned **2026.09.00**; retained the compatible Lifecycle **2.11.1** update pending full test verification. Do not assert that all dependencies are latest until the Android platform 37.1/37.2 upgrade and corresponding CI/emulator infrastructure have been validated. See https://developer.android.com/build and https://developer.android.com/reference/tools/gradle-api/9.5/com/android/build/api/dsl/CompileSdkSpec.

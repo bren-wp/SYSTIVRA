@@ -1,3 +1,4 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra.data
 
 import java.util.concurrent.CountDownLatch

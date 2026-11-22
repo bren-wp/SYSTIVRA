@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Audit visible native Android title/subtitle/caption ink in 36 SVG routes.
 
 Reads real, unretouched 390x844 emulator PNGs. The test prevents a global

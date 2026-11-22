@@ -1,3 +1,4 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
 import com.brendigo.systivra.data.DeviceSnapshot

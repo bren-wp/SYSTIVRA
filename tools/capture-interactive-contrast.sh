@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SYSTIVRA by Brendigo
 set -euo pipefail
 # Actual Android screenshots of UI STATES not represented by the 37 SVG boards.
 # Never retouch. Keep separate from the strict 38 source-reference captures.

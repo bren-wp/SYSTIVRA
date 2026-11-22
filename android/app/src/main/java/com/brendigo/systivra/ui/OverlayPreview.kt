@@ -1,8 +1,10 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Slider
@@ -53,82 +56,96 @@ fun OverlayPreviewScreen(snapshot: DeviceSnapshot) {
         else -> Alignment.TopStart
     }
 
-    LazyColumn(
-        modifier = Modifier.testTag("hud-preview-controls"),
-        contentPadding = PaddingValues(18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    var section by rememberSaveable { mutableStateOf("Metrics") }
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("hud-preview-controls").padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        item {
-            Text("Performance HUD", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-            Text(
-                "Interactive in-app HUD preview. Cross-application floating windows are not available in this build.",
-                color = Muted, fontSize = 13.sp
-            )
-        }
-        item {
-            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
-                Box(
-                    Modifier.fillMaxWidth().height(230.dp).padding(12.dp),
-                    contentAlignment = alignment
+        Text("Performance HUD", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Text("Interactive in-app preview. No permission to draw over other apps.",
+            color = Muted, fontSize = 12.sp)
+        Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+            Box(
+                Modifier.fillMaxWidth().height(208.dp).padding(12.dp),
+                contentAlignment = alignment
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(sizeFraction).testTag("hud-preview-card"),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF152235).copy(alpha = opacity)
+                    )
                 ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(sizeFraction).testTag("hud-preview-card"),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFF152235).copy(alpha = opacity)
-                        )
+                    Column(
+                        Modifier.fillMaxWidth().padding(13.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("SYSTIVRA · Live Preview", color = Cyan, fontWeight = FontWeight.Bold)
-                            if (showBattery) Text("Battery   " + (snapshot.chargeLevelText() ?: "Unavailable"))
-                            if (showMemory) Text("Free RAM   " + (snapshot.availableRamText() ?: "Unavailable"))
-                            if (showThermal) Text("Thermal   " + (snapshot.thermalStatusText() ?: "Unavailable"))
-                            if (!showBattery && !showMemory && !showThermal) {
-                                Text("Choose a metric below.", color = Muted)
-                            }
+                        Text("SYSTIVRA · Live Preview", color = Cyan, fontWeight = FontWeight.Bold)
+                        if (showBattery) Text("Battery  " + (snapshot.chargeLevelText() ?: "Unavailable"))
+                        if (showMemory) Text("Free RAM  " + (snapshot.availableRamText() ?: "Unavailable"))
+                        if (showThermal) Text("Thermal  " + (snapshot.thermalStatusText() ?: "Unavailable"))
+                        if (!showBattery && !showMemory && !showThermal) {
+                            Text("Select at least one metric.", color = Muted)
                         }
                     }
                 }
             }
         }
-        item { MetricToggle("Battery", showBattery) { showBattery = it } }
-        item { MetricToggle("Memory", showMemory) { showMemory = it } }
-        item { MetricToggle("Thermal status", showThermal) { showThermal = it } }
-        item {
-            Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
-                Column(Modifier.fillMaxWidth().padding(17.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Preview opacity: " + (opacity * 100).toInt() + "%", fontWeight = FontWeight.Bold)
-                    Slider(
-                        value = opacity, onValueChange = { opacity = it },
-                        valueRange = 0.4f..1f, modifier = Modifier.testTag("hud-opacity-slider")
-                    )
-                    Text("Preview size: " + (sizeFraction * 100).toInt() + "%", fontWeight = FontWeight.Bold)
-                    Slider(
-                        value = sizeFraction, onValueChange = { sizeFraction = it },
-                        valueRange = 0.65f..1f, modifier = Modifier.testTag("hud-size-slider")
-                    )
-                    Text("Preview position: $position", fontWeight = FontWeight.Bold)
-                    listOf(
-                        listOf("Top left", "Top right"),
-                        listOf("Bottom left", "Bottom right")
-                    ).forEach { choices ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            choices.forEach { choice ->
-                                Button(
-                                    modifier = Modifier.weight(1f).testTag("hud-position-" + choice.lowercase().replace(" ", "-")),
-                                    onClick = { position = choice }
-                                ) {
-                                    Text((if (choice == position) "✓ " else "") + choice, fontSize = 12.sp)
-                                }
-                            }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            listOf("Metrics", "Appearance", "Position").forEach { label ->
+                OutlinedButton(
+                    modifier = Modifier.weight(1f).testTag("hud-tab-${label.lowercase()}"),
+                    onClick = { section = label }
+                ) { Text(label, fontSize = 11.sp, maxLines = 1) }
+            }
+        }
+        when (section) {
+            "Metrics" -> {
+                MetricToggle("Battery", showBattery) { showBattery = it }
+                MetricToggle("Memory", showMemory) { showMemory = it }
+                MetricToggle("Thermal status", showThermal) { showThermal = it }
+            }
+            "Appearance" -> {
+                Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(15.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text("Preview opacity: ${(opacity * 100).toInt()}%")
+                        Slider(
+                            value = opacity, onValueChange = { opacity = it },
+                            valueRange = 0.4f..1f,
+                            modifier = Modifier.testTag("hud-opacity-slider")
+                        )
+                        Text("Preview size: ${(sizeFraction * 100).toInt()}%")
+                        Slider(
+                            value = sizeFraction, onValueChange = { sizeFraction = it },
+                            valueRange = 0.65f..1f,
+                            modifier = Modifier.testTag("hud-size-slider")
+                        )
+                    }
+                }
+            }
+            else -> {
+                Text("Preview position: $position", color = Cyan, fontWeight = FontWeight.SemiBold)
+                listOf(
+                    listOf("Top left", "Top right"),
+                    listOf("Bottom left", "Bottom right")
+                ).forEach { options ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        options.forEach { choice ->
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f).testTag(
+                                    "hud-position-" + choice.lowercase().replace(" ", "-")
+                                ),
+                                onClick = { position = choice }
+                            ) { Text(choice, fontSize = 12.sp, maxLines = 1) }
                         }
                     }
-                    Text(
-                        "Size, position and opacity change only this preview. Android overlay permission is not requested.",
-                        color = Muted, fontSize = 12.sp
-                    )
                 }
             }
         }
+        Text("Size, position and opacity affect only this local preview.",
+            color = Muted, fontSize = 12.sp)
     }
 }
 

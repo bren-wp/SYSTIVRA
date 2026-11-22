@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SYSTIVRA by Brendigo
 set -euo pipefail
 # Manual only: requires a USB-authorized Android device physically connected
 # to the operator's computer. This script is NOT run by GitHub Actions.

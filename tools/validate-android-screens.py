@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Fail image capture validation if screenshots are malformed or near-duplicates.
 
 This does not certify pixel-perfect parity with a design reference.

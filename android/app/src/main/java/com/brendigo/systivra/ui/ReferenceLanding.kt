@@ -1,12 +1,14 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -29,28 +31,18 @@ internal fun ReferenceLanding(
 ) {
     require(actions.size in 1..4) { "Reference layout supports one to four real actions" }
 
-    LazyColumn(
-        modifier = Modifier.testTag("reference-landing-$route"),
-        contentPadding = PaddingValues(
-            start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp
-        ),
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("reference-landing-$route").verticalScroll(rememberScrollState())
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ReferenceHeading(title, subtitle, caption) }
-        item {
-            // The shared reference hero is a primary action for this route,
-            // not an unrelated shortcut to Device & Android on every screen.
-            ReferenceHeroCard { open(actions.first().destination) }
-        }
-        item { Spacer(Modifier.height(0.dp)) }
-        itemsIndexed(actions) { index, action ->
+        ReferenceHeading(title, subtitle, caption)
+        ReferenceHeroCard { open(actions.first().destination) }
+        Spacer(Modifier.height(0.dp))
+        actions.forEachIndexed { index, action ->
             ReferenceMetricRow(
-                action.title,
-                listOf("◇", "▤", "◉", "⌁")[index],
-                index
-            ) {
-                open(action.destination)
-            }
+                action.title, listOf("◇", "▤", "◉", "⌁")[index], index
+            ) { open(action.destination) }
         }
     }
 }

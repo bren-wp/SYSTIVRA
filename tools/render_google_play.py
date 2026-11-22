@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Render exact Google Play graphics from versioned SVG sources.
 
 Only icon and feature graphic are upload-ready illustrations.

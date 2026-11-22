@@ -1,3 +1,12 @@
+## v0.12.0-preview.11 — focused non-scrolling UI, feature modularization and dependency compatibility (2026-11-21)
+
+- Split the original ~65 KB `AppRoot.kt` across feature modules (`ReferenceHomeScreens`, `MonitoringAndDiagnosticsScreens`, `ComponentTestScreen`, `SettingsScreen`, `AboutScreen`, `UiCards`), retaining actual Android interactions, route identity and system-navigation safe area.
+- Replaced long lists with compact fixed reference boards, accessible per-task dialogs and Previous/Next paging for Screen Catalog, Android metrics, History, Recording Library, recording controls, Session Analysis, Insights, Performance Lab, network, sensors, usage, permissions, local alerts and HUD editor. All 38 audited Compose UI source files avoid explicit `LazyColumn` / `verticalScroll`. This static check is **not** a physical viewport or 37/37 pixel-perfect sign-off.
+- Preserved per-session analysis/export/delete flows, real sensor listeners, user-confirmed diagnostic outcomes, bounded CPU benchmark, private SQLite recordings, and explicit Android file export.
+- Added paging JVM/Compose tests and updated navigation tests to use focused actions rather than legacy scroll tags. Source branding header `SYSTIVRA by Brendigo` standardized on Kotlin and supporting scripts without damaging shebangs.
+- Gradle dependency check rejected Compose BOM `2026.11.01`: Compose 1.13.0 requires compileSdk 37.1+ while current app/tooling compile SDK is 37.0. Reverted to compatible BOM `2026.09.00`; retained stable Lifecycle `2.11.1`. No alpha/RC versions were installed.
+- Android versionCode **25**, versionName **0.12.0-preview.11**; release publication requires exact-commit Android lint/JVM/emulator tests, reference screenshots, four responsive configurations, genuine Splash capture, static security/dead-code audit and binary checksums.
+
 ## v0.12.0-preview.10 — deterministic exports, recording recovery and production copy cleanup (2026-11-21)
 - CSV, JSON and PDF exports freeze their real recorded sample list and all nested reading collections at the instant the user launches the Android Storage Access Framework document picker. Later session changes or incoming recordings cannot silently alter the export. If pending state is lost after process recreation, exports fail closed with a clear retry message instead of exporting a different session.
 - Added JVM unit tests for frozen sample/history and nested-reading snapshots, single-consumption/cancel behavior and state loss. Preserved real native SAF document callbacks and error handling.

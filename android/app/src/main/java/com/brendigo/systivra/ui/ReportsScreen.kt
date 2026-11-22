@@ -1,3 +1,4 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
 import android.content.Intent
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
@@ -150,16 +152,15 @@ fun ReportExportScreen(
             }
         }
     }
-    LazyColumn(
-        modifier = Modifier.testTag("report-export-focused-screen"),
-        contentPadding = PaddingValues(18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    Column(
+        modifier = Modifier.fillMaxSize().testTag("report-export-focused-screen").padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item {
+        Column {
             Text("Session Report", fontWeight = FontWeight.Bold, fontSize = 25.sp)
             Text("Choose one format. Only the selected export action is shown.", color = Muted)
         }
-        item {
+        Column {
             Column(
                 modifier = Modifier.fillMaxWidth().testTag("report-format-selector"),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -197,7 +198,7 @@ fun ReportExportScreen(
             }
         }
         if (snapshot.isEmpty()) {
-            item {
+            Column {
                 // Keep the chosen action visible without vertical scrolling on
                 // compact phones. Empty-state guidance occupies only one row.
                 Row(
@@ -220,7 +221,7 @@ fun ReportExportScreen(
                 }
             }
         }
-        if (selectedFormat == "csv") item {
+        if (selectedFormat == "csv") Column {
             Card(
                 modifier = Modifier.testTag("report-export-format-csv"),
                 colors = CardDefaults.cardColors(containerColor = Panel)
@@ -244,7 +245,7 @@ fun ReportExportScreen(
                 }
             }
         }
-        if (selectedFormat == "json") item {
+        if (selectedFormat == "json") Column {
             Card(
                 modifier = Modifier.testTag("report-export-format-json"),
                 colors = CardDefaults.cardColors(containerColor = Panel)
@@ -267,7 +268,7 @@ fun ReportExportScreen(
                 }
             }
         }
-        if (selectedFormat == "pdf") item {
+        if (selectedFormat == "pdf") Column {
             Card(
                 modifier = Modifier.testTag("report-export-format-pdf"),
                 colors = CardDefaults.cardColors(containerColor = Panel)
@@ -290,7 +291,7 @@ fun ReportExportScreen(
                 }
             }
         }
-        if (selectedFormat == "share") item {
+        if (selectedFormat == "share") Column {
             Card(
                 modifier = Modifier.testTag("report-export-format-share"),
                 colors = CardDefaults.cardColors(containerColor = Panel)
@@ -319,7 +320,7 @@ fun ReportExportScreen(
                 }
             }
         }
-        item {
+        Column {
             Text(
                 "Saved readings persist privately in SQLite until deleted. Exports are copies written " +
                     "to a location you choose; they may contain sensitive device activity details. " +

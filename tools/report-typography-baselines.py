@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Measure original SVG vs real Android text glyph top positions at 390x844.
 
 Only reads screenshots; it does not manipulate, mask, or retouch reference

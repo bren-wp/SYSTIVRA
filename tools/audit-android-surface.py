@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Conservative, deterministic source/dead-code and Android security audit.
 
 This catches forbidden platform configurations and common dangerous patterns;

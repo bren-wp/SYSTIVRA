@@ -1,3 +1,4 @@
+// SYSTIVRA by Brendigo
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -109,6 +110,29 @@ class ReferenceDetailInteractionTest {
             .assert(hasAnyDescendant(hasText("arm64-v8a")))
         rule.onNodeWithText("Close").performClick()
         rule.onNodeWithTag("selected-metric-cpu-details").assertDoesNotExist()
+    }
+
+    @Test fun manyReadingsUseNextAndPreviousPagesWithoutScroll() {
+        val actual = (1..9).map {
+            Reading("Voltage $it", "$it V", "Android battery sensor")
+        }
+        rule.setContent {
+            AppTheme {
+                com.brendigo.systivra.ui.DeviceReadingsBrowser(
+                    route = "battery-details", readings = actual
+                )
+            }
+        }
+        rule.onNodeWithTag("readings-browser-battery-details").assertExists()
+        rule.onNodeWithText("Voltage 1").assertExists()
+        rule.onNodeWithText("Voltage 9").assertDoesNotExist()
+        repeat(4) {
+            rule.onNodeWithTag("readings-battery-details-next").performClick()
+        }
+        rule.onNodeWithText("Voltage 9").assertExists()
+        rule.onNodeWithText("Voltage 1").assertDoesNotExist()
+        rule.onNodeWithTag("readings-battery-details-previous").performClick()
+        rule.onNodeWithText("Voltage 7").assertExists()
     }
 
     @Test fun usersCanFilterTheDedicatedReadingScreenOffline() {

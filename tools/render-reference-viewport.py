@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SYSTIVRA by Brendigo
 """Rasterize unmodified original 390×844 design SVGs for like-for-like Android QA.
 
 These are DESIGN references only, never genuine device or Google Play captures.
