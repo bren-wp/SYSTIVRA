@@ -5,7 +5,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -40,8 +40,8 @@ class AdditionalReferenceInteractionTest {
                 }
             }
         }
-        rule.onNodeWithTag("recording-reference-scroll")
-            .performScrollToNode(hasTestTag("reference-row-storage-policy"))
+        rule.onNodeWithTag("recording-reference-scroll").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("reference-row-storage-policy").assertIsDisplayed()
         rule.onNodeWithTag("reference-row-storage-policy").performClick()
         rule.onNodeWithTag("recording-reference-data")
             .assert(hasAnyDescendant(hasText("Maximum 900 samples", substring = true)))
@@ -55,8 +55,8 @@ class AdditionalReferenceInteractionTest {
                 }
             }
         }
-        rule.onNodeWithTag("permission-reference-scroll")
-            .performScrollToNode(hasTestTag("reference-row-microphone"))
+        rule.onNodeWithTag("permission-reference-scroll").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("reference-row-microphone").assertIsDisplayed()
         rule.onNodeWithTag("reference-row-microphone").performClick()
         rule.onNodeWithTag("permission-reference-data")
             .assert(hasAnyDescendant(hasText("Microphone is not requested by this Android build.")))

@@ -13,7 +13,9 @@ import com.brendigo.systivra.ui.AppTheme
 import com.brendigo.systivra.ui.ComponentTest
 import com.brendigo.systivra.ui.OverlayPreviewScreen
 import com.brendigo.systivra.ui.ReportExportScreen
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -46,10 +48,12 @@ class ReferenceComponentInteractionAuditTest {
 
     @Test fun allFourNativeVectorIconsExistAtOriginal18dpSize() {
         dashboard()
+        // One real swipe must expose the last card; off-screen icon geometry
+        // remains measurable via getUnclippedBoundsInRoot without repeated
+        // semantics scroll searches that can deadlock instrumentation.
+        rule.onNodeWithTag("dashboard-page").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("reference-row-thermal-status").assertIsDisplayed()
         for (name in listOf("memory", "storage", "battery", "thermal-status")) {
-            // Reach the row first; bounds for offscreen nodes are clipped.
-            rule.onNodeWithTag("dashboard-page")
-                .performScrollToNode(hasTestTag("reference-row-$name"))
             val icon = rule.onNodeWithTag(
                 "reference-row-icon-$name", useUnmergedTree = true
             ).getUnclippedBoundsInRoot()
@@ -77,8 +81,8 @@ class ReferenceComponentInteractionAuditTest {
             }
         }
         rule.onNodeWithTag("hud-tab-position").performClick()
-        rule.onNodeWithTag("hud-preview-controls")
-            .performScrollToNode(hasTestTag("hud-position-bottom-right"))
+        rule.onNodeWithTag("hud-preview-controls").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("hud-position-bottom-right").assertIsDisplayed()
         rule.onNodeWithTag("hud-position-bottom-right").performClick()
         rule.onNodeWithText("Preview position: Bottom right").assertExists()
     }
@@ -91,8 +95,8 @@ class ReferenceComponentInteractionAuditTest {
                 }
             }
         }
-        rule.onNodeWithTag("component-test-page")
-            .performScrollToNode(hasText("Next color"))
+        rule.onNodeWithTag("component-test-page").performTouchInput { swipeUp() }
+        rule.onNodeWithText("Next color").assertIsDisplayed()
         rule.onNodeWithText("Next color").performClick()
         rule.onNodeWithText("Touches registered: 0").assertExists()
     }
@@ -109,8 +113,8 @@ class ReferenceComponentInteractionAuditTest {
                 }
             }
         }
-        rule.onNodeWithTag("report-export-focused-screen")
-            .performScrollToNode(hasTestTag("report-start-recording"))
+        rule.onNodeWithTag("report-export-focused-screen").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("report-start-recording").assertIsDisplayed()
         rule.onNodeWithTag("report-start-recording").performClick()
         rule.runOnIdle { assertEquals(1, requests) }
     }

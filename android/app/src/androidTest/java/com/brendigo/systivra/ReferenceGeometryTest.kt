@@ -2,7 +2,9 @@
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -83,8 +85,8 @@ class ReferenceGeometryTest {
         assertEquals(82f, (battery.top - storage.top).value, 0.7f)
         // On short/large-font viewports, scroll instead of measuring the
         // clipped visible fragment as though it were the whole fourth row.
-        rule.onNodeWithTag("dashboard-page")
-            .performScrollToNode(hasTestTag("reference-row-thermal-status"))
+        rule.onNodeWithTag("dashboard-page").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("reference-row-thermal-status").assertIsDisplayed()
         val thermal = rule.onNodeWithTag("reference-row-thermal-status").getUnclippedBoundsInRoot()
         val batteryAfterScroll = rule.onNodeWithTag("reference-row-battery").getUnclippedBoundsInRoot()
         assertEquals(20f, thermal.left.value, 0.7f)
