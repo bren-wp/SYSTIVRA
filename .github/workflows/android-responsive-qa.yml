@@ -9,7 +9,7 @@ on:
       - "tools/capture-responsive-priority.sh"
       - "tools/validate-responsive-priority.py"
   push:
-    branches: [feat/priority-five-screen-parity-and-splash-qa, feat/systivra-v011-five-screen-preview, feat/systivra-v0112-pixel-parity]
+    branches: [main, feat/priority-five-screen-parity-and-splash-qa, feat/systivra-v011-five-screen-preview, feat/systivra-v0112-pixel-parity]
     paths:
       - ".github/workflows/android-responsive-qa.yml"
       - "tools/capture-responsive-priority.sh"
