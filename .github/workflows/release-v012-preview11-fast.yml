@@ -1,0 +1,99 @@
+# SYSTIVRA by Brendigo
+name: Publish SYSTIVRA Preview 11 verified developer binaries
+# Developer preview: reuse binary artifacts of an already successful Android build.
+# Extended native screenshot / connected-emulator QA remains independent; never
+# present this as Play-ready, fully device-validated, or pixel-perfect.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/release-v012-preview11-fast.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: systivra-preview11-verified-binaries
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: bren-wp/SYSTIVRA
+      SOURCE_RUN: "44969477541"
+      SOURCE_SHA: "817ff2400b7eb1d68a15a6a8661ba31255dc4e33"
+      TAG: "v0.12.0-preview.11"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prove binaries belong to the same unchanged Android source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN" --jq '.head_sha')" = "$SOURCE_SHA"
+          test "$(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN" --jq '.conclusion')" = "success"
+          git merge-base --is-ancestor "$SOURCE_SHA" "$GITHUB_SHA"
+          git diff --quiet "$SOURCE_SHA" "$GITHUB_SHA" -- android
+          git diff --quiet "$SOURCE_SHA" "$GITHUB_SHA" -- tools/validate_application_id.py tools/audit-android-surface.py
+          grep -F 'applicationId = "com.brendigo.systivra"' android/app/build.gradle.kts
+          grep -F 'versionCode = 25' android/app/build.gradle.kts
+          grep -F 'versionName = "0.12.0-preview.11"' android/app/build.gradle.kts
+          test -s docs/releases/v0.12.0-preview.11-fast.md
+          test "$(gh api "repos/$GH_REPO/branches/main" --jq '.commit.sha')" = "$GITHUB_SHA"
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "::error::Immutable release already exists. No overwrite."
+            exit 1
+          fi
+      - name: Retrieve successful Android CI APK and AAB without rebuilding
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p staging/apk staging/aab dist
+          gh run download "$SOURCE_RUN" --repo "$GH_REPO" --name systivra-debug-apk --dir staging/apk
+          gh run download "$SOURCE_RUN" --repo "$GH_REPO" --name systivra-unsigned-release-aab --dir staging/aab
+          test -s staging/apk/app-debug.apk
+          test -s staging/aab/app-release.aab
+          unzip -t staging/apk/app-debug.apk >/dev/null
+          unzip -t staging/aab/app-release.aab >/dev/null
+          unzip -Z1 staging/apk/app-debug.apk | grep -Fx AndroidManifest.xml
+          unzip -Z1 staging/aab/app-release.aab | grep -Fx base/manifest/AndroidManifest.xml
+      - name: Package real exact-source preview, artwork and SHA256 manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp staging/apk/app-debug.apk "dist/SYSTIVRA-$TAG-debug.apk"
+          cp staging/aab/app-release.aab "dist/SYSTIVRA-$TAG-unsigned.aab"
+          git archive --format=zip --output="dist/SYSTIVRA-$TAG-source.zip" HEAD
+          cp brending/google-play/assets/SYSTIVRA-Play-Graphics.zip "dist/SYSTIVRA-$TAG-play-artwork.zip"
+          cp brending/google-play/reference-previews-NOT-PLAY-SCREENSHOTS/SYSTIVRA-37-REFERENCE-PREVIEWS-1080x1920.zip "dist/SYSTIVRA-$TAG-reference-designs-NOT-screenshots.zip"
+          cp docs/releases/v0.12.0-preview.11-fast.md "dist/SYSTIVRA-$TAG-release-notes.md"
+          (cd dist && sha256sum SYSTIVRA-* > SHA256SUMS.txt && sha256sum -c SHA256SUMS.txt)
+          test "$(gh api "repos/$GH_REPO/branches/main" --jq '.commit.sha')" = "$GITHUB_SHA"
+      - name: Publish immutable, clearly labeled developer preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "::error::Tag exists, refusing to overwrite"
+            exit 1
+          fi
+          gh release create "$TAG" dist/* \
+            --repo "$GH_REPO" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "SYSTIVRA v0.12.0 Preview 11 — Developer Test Build" \
+            --notes-file docs/releases/v0.12.0-preview.11-fast.md
+          gh release view "$TAG" --repo "$GH_REPO" --json tagName,isPrerelease,assets \
+            --jq '{tag: .tagName, prerelease: .isPrerelease, files: [.assets[].name]}'
+      - name: Preserve SHA-verified distributables
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: systivra-preview11-verified-developer-distribution
+          path: dist/
+          if-no-files-found: warn
