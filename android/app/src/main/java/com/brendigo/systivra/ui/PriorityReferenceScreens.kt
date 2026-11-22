@@ -150,7 +150,7 @@ internal fun PriorityReferenceScreen(
                 else open(detailRoute ?: "all-screens")
             }
         }
-        Spacer(Modifier.height(0.dp))
+        Spacer(Modifier.height(if (spec.chart) 1.dp else 0.dp))
         spec.rows.forEachIndexed { index, label ->
             ReferenceMetricRow(
                 label = label,

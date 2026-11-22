@@ -136,7 +136,7 @@ internal fun ReferenceDetailScreen(
         } else {
             ReferenceHeroCard { open("$route-readings") }
         }
-        Spacer(Modifier.height(0.dp))
+        Spacer(Modifier.height(if (spec.hasChart) 1.dp else 0.dp))
         spec.rows.forEachIndexed { index, label ->
             ReferenceMetricRow(label, listOf("◇", "▤", "◉", "⌁")[index], index) {
                 if (route == "memory-details" && label == "History") {

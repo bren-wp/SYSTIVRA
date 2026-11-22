@@ -148,7 +148,7 @@ internal fun NextPriorityReferenceScreen(
                 else open(detailRoute ?: "dashboard")
             }
         }
-        Spacer(Modifier.height(0.dp))
+        Spacer(Modifier.height(if (spec.hasChart) 1.dp else 0.dp))
         spec.rows.forEachIndexed { index, label ->
             ReferenceMetricRow(
                 label, listOf("◇", "▤", "◉", "⌁")[index], index

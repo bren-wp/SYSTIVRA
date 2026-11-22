@@ -59,7 +59,7 @@ internal fun ReferenceChargingAnalysis(
         ) {
             ReferenceMeasuredChart(chargeSeries)
         }
-        Spacer(Modifier.height(0.dp))
+        Spacer(Modifier.height(1.dp))
         actions.forEachIndexed { index, (label, destination) ->
             ReferenceMetricRow(label, listOf("◇", "▤", "◉", "⌁")[index], index) {
                 open(destination)
