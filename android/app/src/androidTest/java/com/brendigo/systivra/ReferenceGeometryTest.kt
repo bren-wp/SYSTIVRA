@@ -7,7 +7,6 @@ import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.performClick
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.ui.AppRoot
