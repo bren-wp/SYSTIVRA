@@ -131,9 +131,24 @@ jobs:
   # same emulator previously left broken SwiftShader ColorBuffer state; do not
   # weaken or disable the instrumentation assertions to hide the failure.
   instrumented-ui-tests:
+    # Independent emulators prevent a single stuck test from blocking the full suite.
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: storage-and-reports
+            classes: "com.brendigo.systivra.AppThemeColorTest,com.brendigo.systivra.HistorySessionSelectionTest,com.brendigo.systivra.RecordingDeletionConfirmationTest,com.brendigo.systivra.ReportPdfInstrumentedTest,com.brendigo.systivra.data.RecordingStoreInstrumentedTest"
+          - group: screen-behaviors
+            classes: "com.brendigo.systivra.AdditionalReferenceInteractionTest,com.brendigo.systivra.AllScreensSmokeTest,com.brendigo.systivra.ChargingReferenceInteractionTest,com.brendigo.systivra.ContrastControlsInstrumentedTest,com.brendigo.systivra.NextPriorityInteractionTest"
+          - group: navigation-and-details
+            classes: "com.brendigo.systivra.NavigationSmokeTest,com.brendigo.systivra.PriorityReferenceInteractionTest,com.brendigo.systivra.ReferenceBottomBarTest,com.brendigo.systivra.ReferenceComponentInteractionAuditTest,com.brendigo.systivra.ReferenceDetailInteractionTest"
+          - group: recording-and-reference
+            classes: "com.brendigo.systivra.RecordingLibraryPagingTest,com.brendigo.systivra.ReferenceEntrancesTest,com.brendigo.systivra.ReferenceGeometryTest,com.brendigo.systivra.SessionLoadingAndCompactAccessTest,com.brendigo.systivra.TemperaturePreferenceInteractionTest"
     steps:
+      - name: Verify every Android instrumented test class is assigned once
+        run: python3 tools/check-instrumentation-shards.py
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v5
         with:
@@ -159,8 +174,10 @@ jobs:
           test -e /dev/kvm || { echo "::error::KVM is unavailable"; exit 1; }
           sudo chmod a+rw /dev/kvm
           test -r /dev/kvm && test -w /dev/kvm
-      - name: Run ALL connected UI and crash smoke tests on clean emulator
+      - name: Run connected UI tests on isolated emulator
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SYSTIVRA_TEST_CLASSES: ${{ matrix.classes }}
         with:
           api-level: 33
           target: default
@@ -168,20 +185,21 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-animations: true
-          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
+          # Use supported software rendering; swiftshader_indirect was deprecated.
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader -noaudio
           script: bash tools/run-android-instrumentation.sh
       - name: Report exact failing test cases
         if: always()
         run: |
           python3 tools/summarize-android-instrumentation.py \
             --results android/app/build/outputs/androidTest-results/connected \
-            --summary qa/instrumentation/summary.md
+            --summary qa/instrumentation/summary.md --require-results
           cat qa/instrumentation/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve JUnit XML, HTML reports and logcat even on test failure
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: systivra-instrumentation-junit-and-logcat
+          name: systivra-instrumentation-${{ matrix.group }}-junit-and-logcat
           path: |
             android/app/build/outputs/androidTest-results/connected/
             android/app/build/reports/androidTests/connected/
