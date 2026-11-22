@@ -2,6 +2,17 @@
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithText
+import com.brendigo.systivra.ui.AppTheme
+import com.brendigo.systivra.ui.ComponentTest
+import com.brendigo.systivra.ui.OverlayPreviewScreen
+import com.brendigo.systivra.ui.ReportExportScreen
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -56,4 +67,52 @@ class ReferenceComponentInteractionAuditTest {
         row.performClick()
         rule.onNodeWithTag("reference-detail-memory-details").assertExists()
     }
+
+    @Test fun compactPerformanceHudLetsUserReachEveryPositionButton() {
+        rule.setContent {
+            AppTheme {
+                Box(Modifier.width(320.dp).height(440.dp)) {
+                    OverlayPreviewScreen(DeviceSnapshot.empty())
+                }
+            }
+        }
+        rule.onNodeWithTag("hud-tab-position").performClick()
+        rule.onNodeWithTag("hud-preview-controls")
+            .performScrollToNode(hasTestTag("hud-position-bottom-right"))
+        rule.onNodeWithTag("hud-position-bottom-right").performClick()
+        rule.onNodeWithText("Preview position: Bottom right").assertExists()
+    }
+
+    @Test fun compactComponentTesterPreservesWorkingColorActionBelowFold() {
+        rule.setContent {
+            AppTheme {
+                Box(Modifier.width(320.dp).height(430.dp)) {
+                    ComponentTest()
+                }
+            }
+        }
+        rule.onNodeWithTag("component-test-page")
+            .performScrollToNode(hasText("Next color"))
+        rule.onNodeWithText("Next color").performClick()
+        rule.onNodeWithText("Touches registered: 0").assertExists()
+    }
+
+    @Test fun compactExportPreservesActualRecordingShortcut() {
+        var requests = 0
+        rule.setContent {
+            AppTheme {
+                Box(Modifier.width(320.dp).height(380.dp)) {
+                    ReportExportScreen(
+                        samples = emptyList(), preferredFormat = "csv",
+                        onStartRecording = { requests++ }
+                    )
+                }
+            }
+        }
+        rule.onNodeWithTag("report-export-focused-screen")
+            .performScrollToNode(hasTestTag("report-start-recording"))
+        rule.onNodeWithTag("report-start-recording").performClick()
+        rule.runOnIdle { assertEquals(1, requests) }
+    }
+
 }
