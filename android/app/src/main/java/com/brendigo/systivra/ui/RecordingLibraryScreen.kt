@@ -1,6 +1,8 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -117,7 +119,8 @@ fun RecordingLibraryScreen(
         val perPage = if (maxHeight < 720.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(sessions.size, perPage) - 1)
         Column(
-            Modifier.fillMaxSize().padding(18.dp),
+            Modifier.fillMaxSize().testTag("recording-library-scroll-content")
+                .verticalScroll(rememberScrollState()).padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)
         ) {
             Text("Recording Library", fontWeight = FontWeight.Bold, fontSize = 24.sp)

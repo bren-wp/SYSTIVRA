@@ -3,6 +3,8 @@ package com.brendigo.systivra.ui
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -81,7 +83,7 @@ internal fun About(open: (String) -> Unit) {
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("about-page")
+        modifier = Modifier.fillMaxSize().testTag("about-page").verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

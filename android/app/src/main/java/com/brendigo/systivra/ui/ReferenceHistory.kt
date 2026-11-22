@@ -2,6 +2,8 @@
 package com.brendigo.systivra.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -195,7 +197,7 @@ internal fun ReferenceHistory(
 
     Column(
         modifier = Modifier.fillMaxSize().padding(start = 20.dp, end = 20.dp, top = 48.dp)
-            .testTag("history-page"),
+            .testTag("history-page").verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         ReferenceHeading("History", "Recent sessions", "Local device records")
