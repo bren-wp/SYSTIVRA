@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import android.content.Context
 import android.media.AudioManager
 import android.media.ToneGenerator
@@ -95,7 +98,7 @@ internal fun ComponentTest() {
     }
     var section by rememberSaveable { mutableStateOf("Display") }
     Column(
-        modifier = Modifier.fillMaxSize().padding(18.dp).testTag("component-test-page"),
+        modifier = Modifier.fillMaxSize().testTag("component-test-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(9.dp)
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {

@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager
 import android.content.Context
@@ -102,7 +105,7 @@ fun SensorLiveScreen() {
     }
     val selectedIndex = available.indexOfFirst { it.first == sensorId }.coerceAtLeast(0)
     Column(
-        modifier = Modifier.fillMaxSize().testTag("sensor-live-page").padding(18.dp),
+        modifier = Modifier.fillMaxSize().testTag("sensor-live-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text("Live Sensor Inspector", fontSize = 23.sp, fontWeight = FontWeight.Bold)
@@ -175,7 +178,7 @@ fun NetworkDetailsScreen() {
     BoxWithConstraints(Modifier.fillMaxSize().testTag("network-details-page")) {
         val perPage = if (maxHeight < 550.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(entries.size, perPage) - 1)
-        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Network status", fontWeight = FontWeight.Bold, fontSize = 24.sp)
             Text("Reads connection state only. No internet request or speed test is performed.",
                 color = Muted)
@@ -226,7 +229,7 @@ fun AppUsageScreen() {
     BoxWithConstraints(Modifier.fillMaxSize().testTag("app-usage-page")) {
         val perPage = if (maxHeight < 570.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(top.size, perPage) - 1)
-        Column(Modifier.fillMaxSize().padding(18.dp),
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("App usage — last 24 hours", fontWeight = FontWeight.Bold, fontSize = 22.sp)
             Text("Optional Usage Access. Statistics stay on this device.", color = Muted)
@@ -278,7 +281,7 @@ fun AlertsScreen(snapshot: DeviceSnapshot) {
         else -> "No threshold warnings at this time"
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("alerts-control-page").padding(18.dp),
+        modifier = Modifier.fillMaxSize().testTag("alerts-control-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text("Live Alerts", fontWeight = FontWeight.Bold, fontSize = 24.sp)
@@ -339,7 +342,7 @@ fun PermissionCenterScreen() {
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("permission-controls-page").padding(18.dp),
+        modifier = Modifier.fillMaxSize().testTag("permission-controls-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text("Permission Center", fontWeight = FontWeight.Bold, fontSize = 24.sp)

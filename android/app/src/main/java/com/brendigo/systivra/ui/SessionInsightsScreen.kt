@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -67,7 +70,7 @@ fun SessionInsightsScreen(samples: List<DeviceSnapshot>, open: (String) -> Unit)
     var page by rememberSaveable { mutableIntStateOf(0) }
     val current = page.coerceIn(0, pageCount(items.size, 1) - 1)
     Column(
-        modifier = Modifier.fillMaxSize().testTag("session-insights-page").padding(18.dp),
+        modifier = Modifier.fillMaxSize().testTag("session-insights-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text("Session Insights", fontSize = 24.sp, fontWeight = FontWeight.Bold)

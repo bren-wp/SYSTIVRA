@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,7 +61,7 @@ fun OverlayPreviewScreen(snapshot: DeviceSnapshot) {
 
     var section by rememberSaveable { mutableStateOf("Metrics") }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("hud-preview-controls").padding(18.dp),
+        modifier = Modifier.fillMaxSize().testTag("hud-preview-controls").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text("Performance HUD", fontWeight = FontWeight.Bold, fontSize = 24.sp)

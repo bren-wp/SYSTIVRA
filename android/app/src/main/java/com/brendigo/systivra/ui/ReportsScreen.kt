@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -153,7 +156,7 @@ fun ReportExportScreen(
         }
     }
     Column(
-        modifier = Modifier.fillMaxSize().testTag("report-export-focused-screen").padding(18.dp),
+        modifier = Modifier.fillMaxSize().testTag("report-export-focused-screen").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Column {
