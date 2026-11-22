@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -161,7 +162,15 @@ internal fun copyMeasurement(context: Context, reading: Reading) {
     }
 }
 
-/** Never draw a decorative trend that could be mistaken for actual measurements. */
+/**
+ * All reference chart boards use one 350x170dp source rectangle. Place the
+ * guides at their actual SVG offsets (y=78/108/138 from card top) rather than
+ * deriving y from a variable-height Compose text column. This also keeps the
+ * chart stable when user-visible measurement strings change.
+ *
+ * The SVG zigzag is deliberately NOT drawn: it is not a real device reading.
+ * Only genuine finite, valid Android sample percentages become plotted points.
+ */
 @Composable
 internal fun ReferenceMeasuredChart(points: List<Float>) {
     val valid = points.filter { it.isFinite() && it in 0f..100f }
@@ -171,55 +180,61 @@ internal fun ReferenceMeasuredChart(points: List<Float>) {
         colors = CardDefaults.cardColors(containerColor = Panel),
         border = BorderStroke(1.dp, Color(0xFF233857))
     ) {
-        Column(
-            Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text("Live data chart", fontSize = 13.sp, color = Muted)
-            Box(Modifier.fillMaxWidth().height(78.dp)) {
-                Canvas(Modifier.matchParentSize().testTag("reference-chart-plot")) {
-                    // The source SVG has 4/7px dashed guides. They are
-                    // decorative gridlines, NOT invented device samples.
-                    val dash = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
-                        floatArrayOf(4.dp.toPx(), 7.dp.toPx()), 0f
-                    )
-                    for (fraction in listOf(0.25f, 0.60f, 0.95f)) {
-                        val y = size.height * fraction
+        Box(Modifier.fillMaxSize()) {
+            Canvas(Modifier.matchParentSize().testTag("reference-chart-plot")) {
+                val startX = 20.dp.toPx()
+                val endX = size.width - 20.dp.toPx()
+                val topY = 31.dp.toPx()
+                val bottomY = 138.dp.toPx()
+                val guides = listOf(78.dp.toPx(), 108.dp.toPx(), 138.dp.toPx())
+                val dash = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+                    floatArrayOf(4.dp.toPx(), 7.dp.toPx()), 0f
+                )
+                if (endX > startX) {
+                    guides.forEach { y ->
                         drawLine(
                             color = Color(0xFF24425C),
-                            start = Offset(0f, y),
-                            end = Offset(size.width, y),
+                            start = Offset(startX, y),
+                            end = Offset(endX, y),
                             strokeWidth = 1.dp.toPx(),
                             pathEffect = dash
                         )
                     }
                     if (valid.size >= 2) {
-                        val dx = size.width / (valid.size - 1).toFloat()
-                        valid.zipWithNext().forEachIndexed { i, pair ->
+                        val dx = (endX - startX) / (valid.size - 1).toFloat()
+                        valid.zipWithNext().forEachIndexed { index, pair ->
+                            val y0 = bottomY - pair.first / 100f * (bottomY - topY)
+                            val y1 = bottomY - pair.second / 100f * (bottomY - topY)
                             drawLine(
                                 color = ReferenceChartLine,
-                                start = Offset(dx * i, size.height * (1f - pair.first / 100f)),
-                                end = Offset(dx * (i + 1), size.height * (1f - pair.second / 100f)),
-                                strokeWidth = 3.dp.toPx(),
+                                start = Offset(startX + dx * index, y0),
+                                end = Offset(startX + dx * (index + 1), y1),
+                                strokeWidth = 4.dp.toPx(),
                                 cap = StrokeCap.Round
                             )
                         }
                     }
                 }
-                if (valid.size < 2) {
-                    Text(
-                        "Waiting for measured samples",
-                        modifier = Modifier.align(Alignment.Center),
-                        color = Muted, fontSize = 12.sp
-                    )
-                }
+            }
+            Text(
+                "Live data chart",
+                modifier = Modifier.offset(x = 18.dp, y = 14.dp),
+                fontSize = 13.sp, color = Color(0xFFA8BED2)
+            )
+            if (valid.size < 2) {
+                Text(
+                    "Waiting for measured samples",
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Muted, fontSize = 12.sp
+                )
             }
             Text(
                 if (valid.size >= 2)
                     "Recorded device samples · measured percentages"
                 else
                     "No illustrative or fabricated readings",
-                fontSize = 11.sp, color = Muted
+                modifier = Modifier.offset(x = 18.dp, y = 142.dp),
+                fontSize = 11.sp, color = Color(0xFF8DAAC1)
             )
         }
     }
