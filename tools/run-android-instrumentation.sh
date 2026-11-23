@@ -19,7 +19,7 @@ run_connected_tests() {
   shift
   # An emulator/test-runner deadlock must terminate with exit code 124
   # and preserve diagnostics rather than silently consuming the entire job.
-  if timeout --signal=TERM --kill-after=30s "${SYSTIVRA_TEST_TIMEOUT:-22m}" \
+  if timeout --signal=TERM --kill-after=30s "${SYSTIVRA_TEST_TIMEOUT:-8m}" \
       gradle -p android :app:connectedDebugAndroidTest --no-daemon --stacktrace \
       "${runner_args[@]}" "$@" 2>&1 | tee "$output"; then
     return 0
@@ -38,9 +38,21 @@ if [[ "$status" -ne 0 ]] &&
   run_connected_tests qa/instrumentation/gradle-connected-resolution-retry.log --refresh-dependencies || status=$?
 fi
 
-adb logcat -d -t 6000 > qa/instrumentation/logcat.txt 2>&1 || true
 if [[ "$status" -eq 124 ]]; then
-  echo "::error::Android instrumentation timed out; inspect this shard's Gradle log and logcat. No assertions were suppressed."
+  # Best-effort Java thread stack from the actual instrumented test process.
+  # Preserve its diagnostic output; a timeout never counts as passing tests.
+  for package in com.brendigo.systivra.test com.brendigo.systivra; do
+    pid="$(adb shell pidof "$package" 2>/dev/null | tr -d '\r' | awk '{print $1}')"
+    if [[ "$pid" =~ ^[0-9]+$ ]]; then
+      echo "::warning::Collecting SIGQUIT thread dump from $package (pid $pid)"
+      adb shell kill -3 "$pid" 2>/dev/null || true
+    fi
+  done
+  sleep 2
+fi
+adb logcat -d -t 12000 > qa/instrumentation/logcat.txt 2>&1 || true
+if [[ "$status" -eq 124 ]]; then
+  echo "::error::Android instrumentation timed out after ${SYSTIVRA_TEST_TIMEOUT:-8m}; inspect captured test trace and logcat. No assertions were suppressed."
 fi
 echo "Android connected tests exit status: $status; class filter: ${SYSTIVRA_TEST_CLASSES:-ALL}"
 exit "$status"
