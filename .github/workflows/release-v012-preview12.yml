@@ -127,7 +127,6 @@ jobs:
             --jq '{tag: .tagName, prerelease: .isPrerelease, files: [.assets[].name]}'
       - name: Preserve actual developer distributions and checksums
         if: always() && steps.immutable_release.outputs.already_published == 'false'
-        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: systivra-preview12-exact-source-developer-distribution
