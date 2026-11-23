@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -12,7 +15,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,7 +45,7 @@ internal fun DeviceReadingsBrowser(route: String, readings: List<Reading>) {
         val perPage = if (maxHeight < 590.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(filtered.size, perPage) - 1)
         Column(
-            Modifier.fillMaxSize().padding(18.dp),
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)
         ) {
             Text("${spec.title} readings", fontSize = 22.sp, fontWeight = FontWeight.Bold)

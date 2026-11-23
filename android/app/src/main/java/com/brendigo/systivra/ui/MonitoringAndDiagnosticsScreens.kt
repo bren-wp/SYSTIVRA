@@ -36,7 +36,7 @@ import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.Sensors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
@@ -72,7 +72,7 @@ internal fun MetricScreen(readings: List<Reading>, subtitle: String) {
     BoxWithConstraints(Modifier.fillMaxSize().testTag("metric-reading-page")) {
         val perPage = if (maxHeight < 530.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(readings.size, perPage) - 1)
-        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(subtitle, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             if (readings.isEmpty()) Text("Waiting for device readings…", color = Muted)
             pageItems(readings, page, perPage).forEach { reading ->
@@ -140,36 +140,23 @@ internal fun LiveMonitor(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         ReferenceHeading("Live Monitor", "System readings", "Real-time activity")
-        Card(
-            modifier = Modifier.fillMaxWidth().height(172.dp).clickable { tools = true },
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF152235)),
-            border = BorderStroke(1.dp, Color(0xFF233857))
+        Box(
+            Modifier.fillMaxWidth().testTag("monitor-chart-target")
+                .clickable { tools = true }
         ) {
-            Column(Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 14.dp)) {
-                Text("Live data chart", color = Muted, fontSize = 13.sp)
-                Spacer(Modifier.height(12.dp))
-                Canvas(Modifier.fillMaxWidth().height(84.dp)) {
-                    if (history.size >= 2) {
-                        val dx = size.width / (history.size - 1)
-                        history.zipWithNext().forEachIndexed { index, pair ->
-                            drawLine(
-                                Mint,
-                                Offset(dx * index, size.height * (1f - pair.first / 100f)),
-                                Offset(dx * (index + 1), size.height * (1f - pair.second / 100f)),
-                                strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.height(7.dp))
-                Text(
-                    if (history.size >= 2) "Actual Android battery readings · ${history.size} samples"
-                    else "Waiting for real device readings", color = Muted, fontSize = 11.sp
-                )
-            }
+            // Use the same SVG-coordinate guides as all other chart boards.
+            // The line is plotted only from genuine Android battery samples.
+            ReferenceMeasuredChart(
+                history,
+                footer = if (history.size >= 2)
+                    "Actual Android battery readings · ${history.size} samples"
+                else
+                    "Waiting for real device readings"
+            )
         }
-        Spacer(Modifier.height(0.dp))
+        // Old 172dp card starts rows at y402. The source card is 170dp;
+        // preserve the 402dp row anchor with a two-pixel inter-card spacer.
+        Spacer(Modifier.height(2.dp))
         primary.forEachIndexed { index, (title, symbol, route) ->
             ReferenceMetricRow(title, symbol, index) { open(route) }
         }

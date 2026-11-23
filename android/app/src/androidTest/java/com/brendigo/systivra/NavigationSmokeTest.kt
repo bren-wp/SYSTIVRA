@@ -2,6 +2,7 @@
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -10,6 +11,10 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.core.app.ApplicationProvider
+import android.content.Context
+import org.junit.Assert.assertEquals
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,6 +22,46 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class NavigationSmokeTest {
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
+
+    // The actual user preference must persist in production. Tests must not
+    // leak a Croatian selection into unrelated English SVG assertions.
+    @After fun restoreEnglishTestLanguage() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        context.getSharedPreferences("systivra_settings", Context.MODE_PRIVATE)
+            .edit().putString("ui_language", "en").commit()
+    }
+
+    @Test fun languageSwitchesBetweenEnglishAndCroatianAndPersistsLocally() {
+        rule.waitForIdle()
+        rule.onNodeWithText("More").performClick()
+        rule.onNodeWithTag("reference-heading-title")
+            .assert(hasText("Settings"))
+        rule.onNodeWithText("Appearance").performClick()
+        rule.onNodeWithTag("settings-language-croatian").performClick()
+        rule.onNodeWithTag("reference-heading-title")
+            .assert(hasText("Postavke"))
+        rule.onNodeWithTag("reference-bottom-label-settings", useUnmergedTree = true)
+            .assert(hasText("Više"))
+        rule.runOnIdle {
+            val prefs = rule.activity.getSharedPreferences(
+                "systivra_settings", android.content.Context.MODE_PRIVATE
+            )
+            assertEquals("hr", prefs.getString("ui_language", "en"))
+        }
+        // Restore English so subsequent UI tests keep the original source
+        // language and compare screenshots against unmodified English SVGs.
+        rule.onNodeWithTag("settings-language-english").performClick()
+        rule.onNodeWithTag("reference-heading-title")
+            .assert(hasText("Settings"))
+        rule.onNodeWithTag("reference-bottom-label-settings", useUnmergedTree = true)
+            .assert(hasText("More"))
+        rule.runOnIdle {
+            val prefs = rule.activity.getSharedPreferences(
+                "systivra_settings", android.content.Context.MODE_PRIVATE
+            )
+            assertEquals("en", prefs.getString("ui_language", "hr"))
+        }
+    }
 
     @Test fun dashboardRendersWithoutAccountOrOnboarding() {
         rule.waitForIdle()

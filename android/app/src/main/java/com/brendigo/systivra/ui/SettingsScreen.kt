@@ -20,7 +20,7 @@ import androidx.compose.material3.FilterChipDefaults
 import kotlin.math.roundToInt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun Settings(open: (String) -> Unit) {
     val context = LocalContext.current
+    val languageCode = LocalUiLanguage.current
+    val setLanguage = LocalSetUiLanguage.current
     val preferences = remember(context) {
         context.getSharedPreferences("systivra_settings", Context.MODE_PRIVATE)
     }
@@ -59,7 +61,35 @@ internal fun Settings(open: (String) -> Unit) {
             text = {
                 when (activeDialog) {
                     "Appearance" -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("SYSTIVRA uses its midnight dark theme and English interface.")
+                        Text("SYSTIVRA uses its midnight dark theme.")
+                        Text("App language")
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            FilterChip(
+                                selected = languageCode == UI_LANGUAGE_ENGLISH,
+                                onClick = { setLanguage(UI_LANGUAGE_ENGLISH) },
+                                modifier = Modifier.testTag("settings-language-english"),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Panel,
+                                    labelColor = TextPrimary,
+                                    selectedContainerColor = Color(0xFF153B68),
+                                    selectedLabelColor = TextPrimary
+                                ),
+                                label = { Text("English") }
+                            )
+                            FilterChip(
+                                selected = languageCode == UI_LANGUAGE_CROATIAN,
+                                onClick = { setLanguage(UI_LANGUAGE_CROATIAN) },
+                                modifier = Modifier.testTag("settings-language-croatian"),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Panel,
+                                    labelColor = TextPrimary,
+                                    selectedContainerColor = Color(0xFF153B68),
+                                    selectedLabelColor = TextPrimary
+                                ),
+                                label = { Text("Hrvatski") }
+                            )
+                        }
+                        Text("Changes are applied immediately and saved on this device.", color = Muted)
                         Text("No account, onboarding or unsupported theme toggle is required.", color = Muted)
                     }
                     "Update interval" -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -147,6 +177,10 @@ internal fun Settings(open: (String) -> Unit) {
                             modifier = Modifier.fillMaxWidth().testTag(tag)
                         ) { Text(label) }
                     }
+                    TextButton(
+                        onClick = { shortcuts = false; activeDialog = "Appearance" },
+                        modifier = Modifier.fillMaxWidth().testTag("settings-language-shortcut")
+                    ) { Text("Language") }
                 }
             },
             confirmButton = {

@@ -18,7 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -150,7 +150,7 @@ internal fun PriorityReferenceScreen(
                 else open(detailRoute ?: "all-screens")
             }
         }
-        Spacer(Modifier.height(0.dp))
+        Spacer(Modifier.height(if (spec.chart) 1.dp else 0.dp))
         spec.rows.forEachIndexed { index, label ->
             ReferenceMetricRow(
                 label = label,

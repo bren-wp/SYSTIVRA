@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -112,6 +115,7 @@ internal fun RecordingReferenceScreen(
     }
     Column(
         modifier = Modifier.fillMaxSize().testTag("recording-reference-scroll")
+            .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -119,7 +123,7 @@ internal fun RecordingReferenceScreen(
         Box(Modifier.fillMaxWidth().clickable { moreActions = true }) {
             ReferenceMeasuredChart(recordedBatteryPoints(recorded))
         }
-        Spacer(Modifier.height(0.dp))
+        Spacer(Modifier.height(1.dp))
         recordingReferenceRows.forEachIndexed { index, label ->
             ReferenceMetricRow(label, listOf("◇", "▤", "◉", "⌁")[index], index) {
                 chosen = label
@@ -144,6 +148,7 @@ internal fun PermissionReferenceScreen(open: (String) -> Unit) {
     }
     Column(
         modifier = Modifier.fillMaxSize().testTag("permission-reference-scroll")
+            .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

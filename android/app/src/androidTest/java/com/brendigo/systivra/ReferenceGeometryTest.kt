@@ -2,10 +2,14 @@
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import com.brendigo.systivra.data.DeviceSnapshot
 import com.brendigo.systivra.ui.AppRoot
 import org.junit.Assert.assertEquals
@@ -18,6 +22,29 @@ import org.junit.Test
  */
 class ReferenceGeometryTest {
     @get:Rule val rule = createComposeRule()
+
+    @Test fun liveMonitorUsesSharedReferenceChartGeometryAndWorkingControls() {
+        rule.setContent {
+            AppRoot(
+                snapshot = DeviceSnapshot.empty(),
+                samples = emptyList(),
+                recorded = emptyList(),
+                isRecording = false,
+                onToggleRecording = {},
+                onClearRecording = {},
+                initialRoute = "live-monitor"
+            )
+        }
+        val chart = rule.onNodeWithTag("reference-measured-chart", useUnmergedTree = true)
+            .getUnclippedBoundsInRoot()
+        val battery = rule.onNodeWithTag("reference-row-battery").getUnclippedBoundsInRoot()
+        assertEquals("All original chart boards use a 170dp chart",
+            170f, (chart.bottom - chart.top).value, 1f)
+        assertEquals("Live Monitor battery row follows SVG y402",
+            24f, (battery.top - chart.bottom).value, 2f)
+        rule.onNodeWithTag("monitor-chart-target").performClick()
+        rule.onNodeWithText("Monitor tools").assertExists()
+    }
 
     @Test fun dashboardHeaderHeroAndRowSpacingFollowTheOriginalVectorGrid() {
         rule.setContent {
@@ -58,8 +85,8 @@ class ReferenceGeometryTest {
         assertEquals(82f, (battery.top - storage.top).value, 0.7f)
         // On short/large-font viewports, scroll instead of measuring the
         // clipped visible fragment as though it were the whole fourth row.
-        rule.onNodeWithTag("dashboard-page")
-            .performScrollToNode(hasTestTag("reference-row-thermal-status"))
+        rule.onNodeWithTag("dashboard-page").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("reference-row-thermal-status").assertIsDisplayed()
         val thermal = rule.onNodeWithTag("reference-row-thermal-status").getUnclippedBoundsInRoot()
         val batteryAfterScroll = rule.onNodeWithTag("reference-row-battery").getUnclippedBoundsInRoot()
         assertEquals(20f, thermal.left.value, 0.7f)

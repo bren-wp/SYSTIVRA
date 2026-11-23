@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -45,7 +48,7 @@ fun SystemHealth(snapshot: DeviceSnapshot, open: (String) -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize().testTag("system-health-page")) {
         val perPage = if (maxHeight < 570.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(sections.size, perPage) - 1)
-        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("System Health", fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Text("Actual Android measurements. No artificial health score.", color = Muted, fontSize = 13.sp)
             pageItems(sections, page, perPage).forEach { (title, readings, destination) ->
@@ -79,7 +82,7 @@ fun PrivacyCenter() {
     BoxWithConstraints(Modifier.fillMaxSize().testTag("privacy-center-page")) {
         val perPage = if (maxHeight < 570.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(disclosures.size, perPage) - 1)
-        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Privacy by design", color = Mint, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             pageItems(disclosures, page, perPage).forEach { (title, detail) ->
                 Card(colors = CardDefaults.cardColors(containerColor = Panel)) {
@@ -98,7 +101,7 @@ fun PrivacyCenter() {
 fun CpuCoreInspector(snapshot: DeviceSnapshot) {
     val count = snapshot.cpu.firstOrNull { it.name == "Logical processors" }?.value
     Column(
-        modifier = Modifier.fillMaxSize().testTag("cpu-core-page").padding(18.dp),
+        modifier = Modifier.fillMaxSize().testTag("cpu-core-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text("CPU Core Inspector", fontSize = 23.sp, fontWeight = FontWeight.Bold)
@@ -122,7 +125,7 @@ fun ChargingAnalysis(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
     BoxWithConstraints(Modifier.fillMaxSize().testTag("charging-readings-page")) {
         val perPage = if (maxHeight < 570.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(battery.size, perPage) - 1)
-        Column(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Charging Analysis", fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Text("Real Android battery readings. No fabricated capacity estimate.", color = Muted)
             pageItems(battery, page, perPage).forEach { reading ->
@@ -145,7 +148,7 @@ fun ChargingAnalysis(snapshot: DeviceSnapshot, samples: List<DeviceSnapshot>) {
 fun FullscreenMetric(samples: List<DeviceSnapshot>) {
     val values = samples.measuredChargePercentages()
     Column(
-        modifier = Modifier.fillMaxSize().testTag("fullscreen-battery-page").padding(18.dp),
+        modifier = Modifier.fillMaxSize().testTag("fullscreen-battery-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Column {

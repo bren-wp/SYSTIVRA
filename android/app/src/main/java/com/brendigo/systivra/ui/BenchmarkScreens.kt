@@ -1,6 +1,9 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import android.content.Context
 import android.os.Build
 import android.os.PowerManager
@@ -17,7 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import com.brendigo.systivra.ui.LocalizedText as Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
@@ -134,7 +137,7 @@ fun BenchmarkCenterScreen(controller: BenchmarkController, onStart: () -> Unit) 
         )
     }
     Column(
-        modifier = Modifier.fillMaxSize().padding(18.dp).testTag("benchmark-lab-page"),
+        modifier = Modifier.fillMaxSize().testTag("benchmark-lab-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(11.dp)
     ) {
         Text("Performance Lab", fontWeight = FontWeight.Bold, fontSize = 24.sp)
@@ -155,7 +158,7 @@ fun BenchmarkCenterScreen(controller: BenchmarkController, onStart: () -> Unit) 
 @Composable
 fun BenchmarkRunningScreen(controller: BenchmarkController, open: (String) -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(18.dp).testTag("benchmark-running-page"),
+        modifier = Modifier.fillMaxSize().testTag("benchmark-running-page").verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(11.dp)
     ) {
         Text("CPU Benchmark", fontWeight = FontWeight.Bold, fontSize = 24.sp)
@@ -190,7 +193,7 @@ fun BenchmarkResultsScreen(controller: BenchmarkController) {
         val pageSize = if (maxHeight < 590.dp) 1 else 2
         val page = requestedPage.coerceIn(0, pageCount(metrics.size, pageSize) - 1)
         Column(
-            modifier = Modifier.fillMaxSize().padding(18.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(11.dp)
         ) {
             Text("Benchmark Results", fontWeight = FontWeight.Bold, fontSize = 24.sp)

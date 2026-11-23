@@ -194,6 +194,49 @@ class RecordingStoreInstrumentedTest {
         }
     }
 
+    @Test fun staleSampleCannotResurrectDeletedOrClearedSession() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val name = "systivra-test-stale-session.db"
+        context.deleteDatabase(name)
+        try {
+            RecordingStore(context, name).use { store ->
+                val deletedId = store.startSession(1730000000000L)
+                store.insert(deletedId, snapshot(1730000000000L))
+                store.deleteSession(deletedId)
+                assertTrue(runCatching {
+                    store.insert(deletedId, snapshot(1730000001000L))
+                }.exceptionOrNull() is IllegalStateException)
+
+                val clearedId = store.startSession(1730000002000L)
+                store.insert(clearedId, snapshot(1730000002000L))
+                store.clear()
+                assertTrue(runCatching {
+                    store.insert(clearedId, snapshot(1730000003000L))
+                }.exceptionOrNull() is IllegalStateException)
+
+                val stoppedId = store.startSession(1730000004000L)
+                store.insert(stoppedId, snapshot(1730000004000L))
+                store.stopSession(stoppedId, 1730000005000L)
+                assertTrue(runCatching {
+                    store.insert(stoppedId, snapshot(1730000006000L))
+                }.exceptionOrNull() is IllegalStateException)
+
+                assertEquals(1, store.listSessions().size)
+                assertEquals(stoppedId, store.listSessions().single().id)
+                assertEquals(1, store.readRecent().size)
+                store.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM metric_samples WHERE session_id NOT IN " +
+                        "(SELECT id FROM recording_sessions)", null
+                ).use { rows ->
+                    assertTrue(rows.moveToFirst())
+                    assertEquals(0L, rows.getLong(0))
+                }
+            }
+        } finally {
+            context.deleteDatabase(name)
+        }
+    }
+
     @Test fun emptySessionHasNoFakeMeasurement() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val name = "systivra-test-empty.db"

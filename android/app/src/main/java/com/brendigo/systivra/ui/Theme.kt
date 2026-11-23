@@ -1,6 +1,14 @@
 // SYSTIVRA by Brendigo
 package com.brendigo.systivra.ui
 
+import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -99,10 +107,30 @@ internal val SystivraDarkColorScheme = darkColorScheme(
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
+    // First launch is always English. Only the explicit Settings selection
+    // persists Croatian; this never follows/overrides the device locale.
+    val context = LocalContext.current
+    val preferences = remember(context) {
+        context.getSharedPreferences("systivra_settings", Context.MODE_PRIVATE)
+    }
+    var languageCode by rememberSaveable {
+        mutableStateOf(normalizedUiLanguage(preferences.getString(UI_LANGUAGE_PREFERENCE, null)))
+    }
+    val selectLanguage: (String) -> Unit = { requested ->
+        val valid = normalizedUiLanguage(requested)
+        if (languageCode != valid) {
+            languageCode = valid
+            preferences.edit().putString(UI_LANGUAGE_PREFERENCE, valid).apply()
+        }
+    }
     MaterialTheme(colorScheme = SystivraDarkColorScheme) {
-        // Transparent Scaffold/Canvas containers inherit LocalContentColor.
-        // Without an explicit dark foreground, default Text can render black.
-        CompositionLocalProvider(LocalContentColor provides SystivraDarkColorScheme.onBackground) {
+        // Changing languages re-renders every Compose text in the same route.
+        // Preserve existing navigation stack, click targets and dynamic data.
+        CompositionLocalProvider(
+            LocalContentColor provides SystivraDarkColorScheme.onBackground,
+            LocalUiLanguage provides languageCode,
+            LocalSetUiLanguage provides selectLanguage
+        ) {
             content()
         }
     }

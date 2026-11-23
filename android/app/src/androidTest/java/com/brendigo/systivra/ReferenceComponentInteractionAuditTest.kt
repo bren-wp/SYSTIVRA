@@ -2,7 +2,21 @@
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithText
+import com.brendigo.systivra.ui.AppTheme
+import com.brendigo.systivra.ui.ComponentTest
+import com.brendigo.systivra.ui.OverlayPreviewScreen
+import com.brendigo.systivra.ui.ReportExportScreen
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -35,10 +49,12 @@ class ReferenceComponentInteractionAuditTest {
 
     @Test fun allFourNativeVectorIconsExistAtOriginal18dpSize() {
         dashboard()
+        // One real swipe must expose the last card; off-screen icon geometry
+        // remains measurable via getUnclippedBoundsInRoot without repeated
+        // semantics scroll searches that can deadlock instrumentation.
+        rule.onNodeWithTag("dashboard-page").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("reference-row-thermal-status").assertIsDisplayed()
         for (name in listOf("memory", "storage", "battery", "thermal-status")) {
-            // Reach the row first; bounds for offscreen nodes are clipped.
-            rule.onNodeWithTag("dashboard-page")
-                .performScrollToNode(hasTestTag("reference-row-$name"))
             val icon = rule.onNodeWithTag(
                 "reference-row-icon-$name", useUnmergedTree = true
             ).getUnclippedBoundsInRoot()
@@ -56,4 +72,55 @@ class ReferenceComponentInteractionAuditTest {
         row.performClick()
         rule.onNodeWithTag("reference-detail-memory-details").assertExists()
     }
+
+    @Test fun compactPerformanceHudLetsUserReachEveryPositionButton() {
+        rule.setContent {
+            AppTheme {
+                Box(Modifier.width(320.dp).height(440.dp)) {
+                    OverlayPreviewScreen(DeviceSnapshot.empty())
+                }
+            }
+        }
+        rule.onNodeWithTag("hud-tab-position").performClick()
+        rule.onNodeWithTag("hud-preview-controls").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("hud-position-bottom-right").assertIsDisplayed()
+        rule.onNodeWithTag("hud-position-bottom-right").performClick()
+        rule.onNodeWithText("Preview position: Bottom right").assertExists()
+    }
+
+    @Test fun compactComponentTesterPreservesWorkingColorActionBelowFold() {
+        rule.setContent {
+            AppTheme {
+                Box(Modifier.width(320.dp).height(430.dp)) {
+                    ComponentTest()
+                }
+            }
+        }
+        rule.onNodeWithTag("component-test-page").performTouchInput { swipeUp() }
+        rule.onNodeWithText("Next color").assertIsDisplayed()
+        rule.onNodeWithText("Next color").performClick()
+        rule.onNodeWithText("Touches registered: 0").assertExists()
+    }
+
+    @Test fun compactExportPreservesActualRecordingShortcut() {
+        var requests = 0
+        rule.setContent {
+            AppTheme {
+                Box(Modifier.width(320.dp).height(380.dp)) {
+                    ReportExportScreen(
+                        samples = emptyList(), preferredFormat = "csv",
+                        onStartRecording = { requests++ }
+                    )
+                }
+            }
+        }
+        // The action must remain reachable even if a single swipe is too
+        // short on a 320x380 viewport. Compose scrolls the actual target
+        // into view through its nearest verticalScroll parent.
+        rule.onNodeWithTag("report-start-recording").performScrollTo()
+        rule.onNodeWithTag("report-start-recording").assertIsDisplayed()
+        rule.onNodeWithTag("report-start-recording").performClick()
+        rule.runOnIdle { assertEquals(1, requests) }
+    }
+
 }

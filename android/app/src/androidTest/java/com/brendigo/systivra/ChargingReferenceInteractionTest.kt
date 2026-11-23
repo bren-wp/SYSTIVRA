@@ -2,8 +2,10 @@
 package com.brendigo.systivra
 
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
-import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
+import android.util.Log
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -46,11 +48,18 @@ class ChargingReferenceInteractionTest {
         assertEquals(24f, (first.top - chart.bottom).value, 1.5f)
         rule.onNodeWithTag("reference-row-current-if-available").assertExists()
         rule.onNodeWithTag("reference-row-temperature").assertExists()
-        // The overview keeps reference geometry while providing a scroll fallback
-        // so the final card remains reachable on short displays.
-        rule.onNodeWithTag("reference-charging-analysis")
-            .performScrollToNode(hasTestTag("reference-row-session-duration"))
-        rule.onNodeWithTag("reference-row-session-duration").assertExists()
+        // Verify genuine touch scroll on the Android viewport rather than
+        // semantics auto-scroll, which deadlocked this test on API 33.
+        // Two bounded swipes must reveal the final card. Fail immediately if
+        // the card remains clipped; never wait indefinitely for scroll idleness.
+        Log.i("SYSTIVRA_SCROLL_QA", "charging: geometry verified; swipe start")
+        repeat(2) {
+            rule.onNodeWithTag("reference-charging-analysis")
+                .performTouchInput { swipeUp() }
+        }
+        Log.i("SYSTIVRA_SCROLL_QA", "charging: swipes finished; checking last row")
+        rule.onNodeWithTag("reference-row-session-duration").assertIsDisplayed()
+        Log.i("SYSTIVRA_SCROLL_QA", "charging: last row visible")
     }
 
     @Test fun blankChartDoesNotPretendAnIllustrationIsMeasured() {

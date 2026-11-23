@@ -10,8 +10,12 @@ on:
       - "android/app/src/main/**"
       - "android/app/src/androidTest/**"
       - "android/app/src/test/**"
+      - "tools/gradle-compose-retry.sh"
       - "tools/capture-reference-viewport.sh"
       - "tools/visual-diff.py"
+      - "tools/check-native-visual-regression.py"
+      - "tools/verify-reference-layout.py"
+      - "qa/baselines/**"
       - "tools/report-surface-luminance.py"
       - "tools/report-typography-baselines.py"
       - "tools/report-screen-regions.py"
@@ -29,10 +33,14 @@ on:
       - "tools/capture-reference-viewport.sh"
       - "tools/run-android-instrumentation.sh"
       - "tools/summarize-android-instrumentation.py"
+      - "tools/check-instrumentation-shards.py"
       - "tools/validate-android-screens.py"
       - "tools/render-reference-viewport.py"
       - "tools/summarize-visual-qa.py"
       - "tools/visual-diff.py"
+      - "tools/check-native-visual-regression.py"
+      - "tools/verify-reference-layout.py"
+      - "qa/baselines/**"
       - "tools/report-surface-luminance.py"
       - "tools/report-typography-baselines.py"
       - "brending/screens/**"
@@ -64,7 +72,7 @@ jobs:
           gradle-version: "9.9.1"
       - name: Compile actual debug APK
         working-directory: android
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+        run: bash ../tools/gradle-compose-retry.sh :app:assembleDebug
       - name: Render 36 original non-Splash SVG references at their native viewport
         run: |
           python3 -m pip install --quiet Pillow CairoSVG
@@ -84,7 +92,7 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-animations: true
-          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader -noaudio
           script: bash tools/capture-reference-viewport.sh && bash tools/capture-interactive-contrast.sh
       - name: Compare matching viewport pixels (diagnostic, not an acceptance claim)
         run: |
@@ -92,12 +100,22 @@ jobs:
             --reference qa/reference-viewport/references \
             --actual qa/reference-viewport/screenshots \
             --output qa/reference-viewport/diff \
-            --max-mae-percent 100 --max-changed-percent 100
+            --max-mae-percent 4.5 --max-changed-percent 43
           python3 tools/summarize-visual-qa.py \
             --report qa/reference-viewport/diff/report.csv \
             --output qa/reference-viewport/diff/summary.md \
             --geometry native
           cat qa/reference-viewport/diff/summary.md >> "$GITHUB_STEP_SUMMARY"
+          # Validate title starts, visible panel positions and chart grid
+          # against source SVG-derived pixels on all 36 genuine app screens.
+          python3 tools/verify-reference-layout.py \
+            --reference qa/reference-viewport/references \
+            --actual qa/reference-viewport/screenshots
+          # Baseline: actual main commit fdfadda / run 44973870570, not design PNGs.
+          # This gate catches regression but does NOT certify screen parity.
+          python3 tools/check-native-visual-regression.py \
+            --baseline qa/baselines/native-390x844-preview12.csv \
+            --report qa/reference-viewport/diff/report.csv
           python3 tools/report-typography-baselines.py \
             --reference qa/reference-viewport/references \
             --actual qa/reference-viewport/screenshots \
@@ -131,10 +149,25 @@ jobs:
   # same emulator previously left broken SwiftShader ColorBuffer state; do not
   # weaken or disable the instrumentation assertions to hide the failure.
   instrumented-ui-tests:
+    # Independent emulators prevent a single stuck test from blocking the full suite.
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: storage-and-reports
+            classes: "com.brendigo.systivra.AppThemeColorTest,com.brendigo.systivra.HistorySessionSelectionTest,com.brendigo.systivra.RecordingDeletionConfirmationTest,com.brendigo.systivra.ReportPdfInstrumentedTest,com.brendigo.systivra.data.RecordingStoreInstrumentedTest"
+          - group: screen-behaviors
+            classes: "com.brendigo.systivra.AdditionalReferenceInteractionTest,com.brendigo.systivra.AllScreensSmokeTest,com.brendigo.systivra.ChargingReferenceInteractionTest,com.brendigo.systivra.ContrastControlsInstrumentedTest,com.brendigo.systivra.NextPriorityInteractionTest"
+          - group: navigation-and-details
+            classes: "com.brendigo.systivra.NavigationSmokeTest,com.brendigo.systivra.PriorityReferenceInteractionTest,com.brendigo.systivra.ReferenceBottomBarTest,com.brendigo.systivra.ReferenceComponentInteractionAuditTest,com.brendigo.systivra.ReferenceDetailInteractionTest"
+          - group: recording-and-reference
+            classes: "com.brendigo.systivra.RecordingLibraryPagingTest,com.brendigo.systivra.ReferenceEntrancesTest,com.brendigo.systivra.ReferenceGeometryTest,com.brendigo.systivra.SessionLoadingAndCompactAccessTest,com.brendigo.systivra.TemperaturePreferenceInteractionTest"
     steps:
       - uses: actions/checkout@v4
+      - name: Verify every Android instrumented test class is assigned once
+        run: python3 tools/check-instrumentation-shards.py
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -152,15 +185,17 @@ jobs:
           gradle-version: "9.9.1"
       - name: Compile Android debug and instrumentation packages
         working-directory: android
-        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --stacktrace
+        run: bash ../tools/gradle-compose-retry.sh :app:assembleDebug :app:assembleDebugAndroidTest
       - name: Enable hardware acceleration
         run: |
           set -euo pipefail
           test -e /dev/kvm || { echo "::error::KVM is unavailable"; exit 1; }
           sudo chmod a+rw /dev/kvm
           test -r /dev/kvm && test -w /dev/kvm
-      - name: Run ALL connected UI and crash smoke tests on clean emulator
+      - name: Run connected UI tests on isolated emulator
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SYSTIVRA_TEST_CLASSES: ${{ matrix.classes }}
         with:
           api-level: 33
           target: default
@@ -168,20 +203,25 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-animations: true
-          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect -noaudio
+          # Use supported software rendering; swiftshader_indirect was deprecated.
+          emulator-options: -no-window -no-snapshot -no-boot-anim -gpu swiftshader -noaudio
           script: bash tools/run-android-instrumentation.sh
       - name: Report exact failing test cases
         if: always()
         run: |
           python3 tools/summarize-android-instrumentation.py \
             --results android/app/build/outputs/androidTest-results/connected \
-            --summary qa/instrumentation/summary.md
+            --summary qa/instrumentation/summary.md --require-results \
+            --require-classes "${{ matrix.classes }}" || {
+              cat qa/instrumentation/summary.md >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            }
           cat qa/instrumentation/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve JUnit XML, HTML reports and logcat even on test failure
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: systivra-instrumentation-junit-and-logcat
+          name: systivra-instrumentation-${{ matrix.group }}-junit-and-logcat
           path: |
             android/app/build/outputs/androidTest-results/connected/
             android/app/build/reports/androidTests/connected/
