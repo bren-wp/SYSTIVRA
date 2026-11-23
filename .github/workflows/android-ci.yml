@@ -17,7 +17,7 @@ jobs:
         run: python3 tools/check-readme-captures.py
       - name: Verify Croatian coverage for all 37 unchanged SVG boards
         run: python3 tools/check-croatian-ui.py
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "17"
