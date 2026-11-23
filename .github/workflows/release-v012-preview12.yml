@@ -1,9 +1,15 @@
 # SYSTIVRA by Brendigo
 name: Publish SYSTIVRA v0.12.0 Preview 12 developer binaries
-# Historical one-time publisher. Never republish the immutable Preview 12 tag
-# on every main commit; a new app version requires a NEW tag and publisher.
+# Historical one-time publisher. No re-publication of immutable Preview 12 on
+# unrelated main merges; publishing a new version requires a NEW tag/workflow.
 # Connected emulator and pixel-parity QA are separate and not claimed passed.
 on:
+  push:
+    branches: [main]
+    paths:
+      # Only a deliberate change to this retired publisher can trigger it.
+      # Android feature merges must not republish the old immutable tag.
+      - ".github/workflows/release-v012-preview12.yml"
   workflow_dispatch:
 permissions:
   contents: write
