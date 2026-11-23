@@ -11,6 +11,7 @@ import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -65,7 +66,10 @@ class AdditionalReferenceInteractionTest {
     @Test fun recordingReferenceDoesNotMoveWhenItFitsTheOriginalViewport() {
         rule.setContent {
             AppTheme {
-                Box(Modifier.width(390.dp).height(844.dp)) {
+                // Pixel_2 emulator content window is shorter than 844dp.
+                // width()/height() are coerced by parent constraints; requiredSize
+                // guarantees the *actual* 390x844dp reference layout being tested.
+                Box(Modifier.requiredSize(390.dp, 844.dp).testTag("recording-390x844-viewport")) {
                     RecordingReferenceScreen(
                         recorded = emptyList(), sessions = emptyList(),
                         recording = false, ready = true, storageError = null,
@@ -74,6 +78,11 @@ class AdditionalReferenceInteractionTest {
                 }
             }
         }
+        val viewport = rule.onNodeWithTag("recording-390x844-viewport").getUnclippedBoundsInRoot()
+        assertEquals("Reference test must measure the requested viewport width",
+            390f, (viewport.right - viewport.left).value, 1f)
+        assertEquals("Reference test must measure the requested viewport height",
+            844f, (viewport.bottom - viewport.top).value, 1f)
         val before = rule.onNodeWithTag("reference-row-storage-policy").getUnclippedBoundsInRoot()
         rule.onNodeWithTag("recording-reference-scroll").performTouchInput { swipeUp() }
         rule.waitForIdle()
